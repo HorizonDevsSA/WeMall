@@ -1,0 +1,17 @@
+{
+  "seller_id": "01e3ebb4-5eb7-45e2-8f5d-6b17d277bc94",
+  "category_id": "c37f8cf4-81cd-443a-941e-5c9e7daf3bf2",
+  "title": "Ankara Print Wrap Dress",
+  "description": "Beautiful African print wrap dress, perfect for all occasions",
+  "attributes": {"size":"M","color":"Multi","material":"Cotton","season":"All Season"},
+  "brand": "AfriStyle",
+  "origin_country": "ZW",
+  "language": "en",
+  "tags": ["african","dress","ankara"],
+  "variants": [
+    {"sku":"ANKARA-S-MULTI","options":{"size":"S","color":"Multi"},"price":45.00,"compare_price":60.00},
+    {"sku":"ANKARA-M-MULTI","options":{"size":"M","color":"Multi"},"price":45.00,"compare_price":60.00},
+    {"sku":"ANKARA-L-MULTI","options":{"size":"L","color":"Multi"},"price":48.00,"compare_price":65.00},
+    {"sku":"ANKARA-XL-MULTI","options":{"size":"XL","color":"Multi"},"price":50.00,"compare_price":68.00}
+  ]
+}

@@ -1,0 +1,180 @@
+syntax = "proto3";
+package order.v1;
+option go_package = "github.com/wemall/gen/order/v1;orderv1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
+
+enum OrderStatus {
+  ORDER_STATUS_UNSPECIFIED = 0;
+  ORDER_STATUS_PENDING     = 1;
+  ORDER_STATUS_CONFIRMED   = 2;
+  ORDER_STATUS_SHIPPED     = 3;
+  ORDER_STATUS_DELIVERED   = 4;
+  ORDER_STATUS_CANCELLED   = 5;
+  ORDER_STATUS_REFUNDED    = 6;
+}
+
+enum ProductType {
+  PRODUCT_TYPE_UNSPECIFIED = 0;
+  PRODUCT_TYPE_ELECTRONICS = 1;
+  PRODUCT_TYPE_MOBILE_PHONES_ACCESSORIES = 2;
+  PRODUCT_TYPE_FASHION = 3;
+  PRODUCT_TYPE_HOME_FURNITURE = 4;
+  PRODUCT_TYPE_BEAUTY_HEALTH = 5;
+  PRODUCT_TYPE_APPLIANCES = 6;
+  PRODUCT_TYPE_AUTOMOTIVE = 7;
+  PRODUCT_TYPE_HARDWARE_CONSTRUCTION = 8;
+  PRODUCT_TYPE_AGRICULTURE = 9;
+  PRODUCT_TYPE_SPORTS_OUTDOORS = 10;
+  PRODUCT_TYPE_BABY_KIDS = 11;
+  PRODUCT_TYPE_OFFICE_SUPPLIES = 12;
+  PRODUCT_TYPE_BOOKS_EDUCATION = 13;
+  PRODUCT_TYPE_PET_SUPPLIES = 14;
+  PRODUCT_TYPE_DIGITAL_PRODUCTS = 15;
+  PRODUCT_TYPE_SERVICES = 16;
+  PRODUCT_TYPE_LIQUIDS = 17;
+  PRODUCT_TYPE_BEVERAGES = 18;
+}
+
+// ── Core Types ────────────────────────────────────────────────────────────────
+
+message CartItem {
+  string                 id                  = 1;
+  string                 variant_id          = 2;
+  string                 product_id          = 3;
+  int32                  quantity            = 4;
+  double                 unit_price          = 5;
+  string                 product_title       = 6;
+  string                 variation           = 7;
+  string                 variation_thumbnail = 8;
+  string                 seller_id           = 9;
+  string                 store_title         = 10;
+  string                 store_logo          = 11;
+  google.protobuf.Struct options             = 12;
+  ProductType            product_type        = 13;
+}
+
+message Cart {
+  string            id         = 1;
+  string            user_id    = 2;
+  repeated CartItem items      = 3;
+  int32             item_count = 4;
+  double            subtotal   = 5;
+}
+
+message OrderItem {
+  string                 id                  = 1;
+  string                 variant_id          = 2;
+  string                 product_id          = 3;
+  string                 seller_id           = 4;
+  int32                  quantity            = 5;
+  double                 unit_price          = 6;
+  google.protobuf.Struct snapshot            = 7;  // frozen at purchase time
+  OrderStatus            status              = 8;
+  string                 product_title       = 9;
+  string                 variation           = 10;
+  string                 variation_thumbnail = 11;
+  string                 store_title         = 12;
+  string                 store_logo          = 13;
+  google.protobuf.Struct options             = 14;
+  ProductType            product_type        = 15;
+}
+
+
+message Order {
+  string                    id               = 1;
+  string                    order_number     = 2;
+  string                    user_id          = 3;
+  OrderStatus               status           = 4;
+  double                    subtotal         = 5;
+  double                    shipping_fee     = 6;
+  double                    discount_amount  = 7;
+  double                    total            = 8;
+  google.protobuf.Struct    shipping_address = 9;
+  repeated OrderItem        items            = 10;
+  string                    coupon_code      = 11;
+  string                    notes            = 12;
+  string                    currency         = 13;
+  google.protobuf.Timestamp created_at       = 14;
+  google.protobuf.Timestamp updated_at       = 15;
+}
+
+// ── Request / Response Messages ───────────────────────────────────────────────
+
+message GetCartRequest {
+  string user_id = 1;
+}
+
+message AddToCartRequest {
+  string user_id    = 1;
+  string variant_id = 2;
+  int32  quantity   = 3;
+}
+
+message UpdateCartItemRequest {
+  string user_id  = 1;
+  string item_id  = 2;
+  int32  quantity = 3;
+}
+
+message RemoveCartItemRequest {
+  string user_id = 1;
+  string item_id = 2;
+}
+
+message ClearCartRequest {
+  string user_id = 1;
+}
+
+message CheckoutInput {
+  google.protobuf.Struct shipping_address = 1;
+  string                 coupon_code      = 2;
+  string                 notes            = 3;
+  string                 currency         = 4;  // "USD" | "ZWG"
+}
+
+message CheckoutRequest {
+  string        user_id = 1;
+  CheckoutInput input   = 2;
+}
+
+message GetOrderRequest {
+  string id      = 1;
+  string user_id = 2;
+}
+
+message ListOrdersRequest {
+  string user_id    = 1;
+  int32  page_size  = 2;
+  string page_token = 3;
+}
+
+message ListOrdersResponse {
+  repeated Order orders          = 1;
+  string         next_page_token = 2;
+  int32          total           = 3;
+}
+
+message CancelOrderRequest {
+  string id      = 1;
+  string user_id = 2;
+}
+
+// ── Service ───────────────────────────────────────────────────────────────────
+
+service OrderService {
+  // Cart
+  rpc GetCart(GetCartRequest)               returns (Cart);
+  rpc AddToCart(AddToCartRequest)           returns (Cart);
+  rpc UpdateCartItem(UpdateCartItemRequest) returns (Cart);
+  rpc RemoveCartItem(RemoveCartItemRequest) returns (Cart);
+  rpc ClearCart(ClearCartRequest)           returns (Cart);
+
+  // Orders
+  rpc Checkout(CheckoutRequest)             returns (Order);
+  rpc GetOrder(GetOrderRequest)             returns (Order);
+  rpc ListOrders(ListOrdersRequest)         returns (ListOrdersResponse);
+  rpc CancelOrder(CancelOrderRequest)       returns (Order);
+}

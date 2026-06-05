@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeMall | Enterprise API Reference Documentation Portal</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS Styling -->
+    <link rel="stylesheet" href="/static/style.css">
+    
+    <!-- HTMX and Mermaid.js via CDN -->
+    <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'dark',
+            themeVariables: {
+                background: '#0b0f19',
+                primaryColor: '#6366f1',
+                primaryTextColor: '#f3f4f6',
+                primaryBorderColor: '#312e81',
+                lineColor: '#818cf8',
+                secondaryColor: '#1e293b',
+                tertiaryColor: '#0f172a'
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/" hx-get="/" hx-target="#main-content" hx-push-url="true" class="brand-link">
+                    <span class="brand-icon">📦</span>
+                    <span class="brand-text">WeMall <span class="badge badge-alpha">API Docs</span></span>
+                </a>
+            </div>
+            
+            <div class="sidebar-search">
+                <input type="text" id="flow-search" placeholder="Search APIs..." autocomplete="off">
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Core Catalog</div>
+                <a href="/" hx-get="/" hx-target="#main-content" hx-push-url="true" 
+                   class="nav-link {{if eq .ActiveSlug "dashboard"}}active{{end}}" id="nav-dashboard">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">API Dashboard</span>
+                </a>
+
+                <div class="nav-section-title">Services Reference</div>
+                <div class="flows-list" id="flows-sidebar-list">
+                    {{range .Categories}}
+                    <a href="/flows/{{.Slug}}" hx-get="/flows/{{.Slug}}" hx-target="#main-content" hx-push-url="true"
+                       class="nav-link flow-link {{if eq $.ActiveSlug .Slug}}active{{end}}" id="nav-{{.Slug}}">
+                        <span class="nav-icon">{{.Icon}}</span>
+                        <span class="nav-text">{{.Title}}</span>
+                    </a>
+                    {{end}}
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <main class="workspace">
+            <header class="workspace-header">
+                <div class="breadcrumbs">
+                    <span class="crumb-root">WeMall Reference</span>
+                    <span class="crumb-separator">/</span>
+                    <span class="crumb-current" id="breadcrumb-current">
+                        {{if eq .ActiveSlug "dashboard"}}API Dashboard{{else}}{{range .Categories}}{{if eq $.ActiveSlug .Slug}}{{.Title}}{{end}}{{end}}{{end}}
+                    </span>
+                </div>
+                <div class="system-status">
+                    <span class="status-dot online"></span>
+                    <span class="status-text">GraphQL Gateway :8080</span>
+                </div>
+            </header>
+
+            <div class="workspace-content" id="main-content">
+                {{if eq .ActiveSlug "dashboard"}}
+                    {{template "dashboard.html" .}}
+                {{else}}
+                    {{template "api_detail.html" .}}
+                {{end}}
+            </div>
+        </main>
+    </div>
+
+    <!-- Client-side helper scripts -->
+    <script src="/static/script.js"></script>
+</body>
+</html>

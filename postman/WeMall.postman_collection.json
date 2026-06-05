@@ -1,0 +1,1322 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "WeMall API",
+    "description": "Postman collection for the WeMall API Gateway.\n\n**Base URL:** `http://localhost:8080` (default)\n\n**Endpoints:**\n- `GET /health` \u2014 service health\n- `POST /graphql` \u2014 GraphQL API\n- `GET /playground` \u2014 GraphQL Playground (browser only)\n\n**Auth:** Protected operations use `Authorization: Bearer <accessToken>`. Run an auth request first; collection tests auto-save `accessToken` and `refreshToken`.\n\n**Roles:** Buyer endpoints require a buyer JWT; seller product mutations require seller (or admin) role.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auth folder requests override collection bearer when needed"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (pm.request.url.toString().includes('/graphql')) {",
+          "  pm.test('GraphQL response does not include top-level errors', function () {",
+          "    const data = pm.response.json();",
+          "    pm.expect(data.errors, JSON.stringify(data.errors || [])).to.be.undefined;",
+          "  });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "productId",
+      "value": ""
+    },
+    {
+      "key": "variantId",
+      "value": ""
+    },
+    {
+      "key": "cartItemId",
+      "value": ""
+    },
+    {
+      "key": "orderId",
+      "value": ""
+    },
+    {
+      "key": "addressId",
+      "value": ""
+    },
+    {
+      "key": "categorySlug",
+      "value": "electronics"
+    },
+    {
+      "key": "storeId",
+      "value": ""
+    },
+    {
+      "key": "storeSlug",
+      "value": ""
+    },
+    {
+      "key": "storeName",
+      "value": "Amazing Electronics Store"
+    },
+    {
+      "key": "storeDescription",
+      "value": "Your one-stop shop for the latest electronics and gadgets"
+    },
+    {
+      "key": "storeLogoUrl",
+      "value": "https://example.com/logo.png"
+    },
+    {
+      "key": "storeBannerUrl",
+      "value": "https://example.com/banner.png"
+    },
+    {
+      "key": "storeLatitude",
+      "value": "37.7749"
+    },
+    {
+      "key": "storeLongitude",
+      "value": "-122.4194"
+    },
+    {
+      "key": "updatedStoreName",
+      "value": "Premium Electronics Store"
+    },
+    {
+      "key": "updatedStoreDescription",
+      "value": "Premium electronics with exceptional service"
+    },
+    {
+      "key": "updatedStoreLatitude",
+      "value": "37.7849"
+    },
+    {
+      "key": "updatedStoreLongitude",
+      "value": "-122.4094"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Returns `{\"status\":\"UP\"}` when the API gateway is running."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "auth": {
+        "type": "noauth"
+      },
+      "item": [
+        {
+          "name": "Buyer",
+          "item": [
+            {
+              "name": "Send OTP",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const res = pm.response.json();",
+                      "if (res.data?.buyerSendOTP?.requestId) {",
+                      "  pm.collectionVariables.set('otpRequestId', res.data.buyerSendOTP.requestId);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation BuyerSendOTP($phone: String!) { buyerSendOTP(phone: $phone) { message requestId } }",
+                    "variables": "{\n  \"phone\": \"{{buyerPhone}}\"\n}"
+                  }
+                },
+                "url": "{{baseUrl}}/graphql",
+                "description": "Send OTP to buyer phone number (Africa's Talking in production)."
+              }
+            },
+            {
+              "name": "Verify OTP",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const res = pm.response.json();",
+                      "const payload = res.data?.buyerVerifyOTP;",
+                      "if (payload) {",
+                      "  pm.collectionVariables.set('accessToken', payload.accessToken);",
+                      "  pm.collectionVariables.set('refreshToken', payload.refreshToken);",
+                      "  pm.collectionVariables.set('userId', payload.user.id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation BuyerVerifyOTP($phone: String!, $otp: String!) { buyerVerifyOTP(phone: $phone, otp: $otp) { accessToken refreshToken user { id email phone fullName role isVerified } } }",
+                    "variables": "{\n  \"phone\": \"{{buyerPhone}}\",\n  \"otp\": \"{{buyerOtp}}\"\n}"
+                  }
+                },
+                "url": "{{baseUrl}}/graphql"
+              }
+            },
+            {
+              "name": "Google Auth",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const res = pm.response.json();",
+                      "const payload = res.data?.buyerGoogleAuth;",
+                      "if (payload) {",
+                      "  pm.collectionVariables.set('accessToken', payload.accessToken);",
+                      "  pm.collectionVariables.set('refreshToken', payload.refreshToken);",
+                      "  pm.collectionVariables.set('userId', payload.user.id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation BuyerGoogleAuth($code: String!, $redirectUri: String) { buyerGoogleAuth(code: $code, redirectUri: $redirectUri) { accessToken refreshToken user { id fullName role } } }",
+                    "variables": "{\n  \"code\": \"{{googleAuthCode}}\",\n  \"redirectUri\": \"{{googleRedirectUri}}\"\n}"
+                  }
+                },
+                "url": "{{baseUrl}}/graphql",
+                "description": "Exchange Google OAuth authorization code for JWT tokens."
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seller",
+          "item": [
+            {
+              "name": "Register",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const res = pm.response.json();",
+                      "const payload = res.data?.sellerRegister;",
+                      "if (payload) {",
+                      "  pm.collectionVariables.set('accessToken', payload.accessToken);",
+                      "  pm.collectionVariables.set('refreshToken', payload.refreshToken);",
+                      "  pm.collectionVariables.set('userId', payload.user.id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation SellerRegister($email: String!, $password: String!, $fullName: String!) { sellerRegister(email: $email, password: $password, fullName: $fullName) { accessToken refreshToken user { id email fullName role } } }",
+                    "variables": "{\n  \"email\": \"{{sellerEmail}}\",\n  \"password\": \"{{sellerPassword}}\",\n  \"fullName\": \"{{sellerFullName}}\"\n}"
+                  }
+                },
+                "url": "{{baseUrl}}/graphql"
+              }
+            },
+            {
+              "name": "Login",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const res = pm.response.json();",
+                      "const payload = res.data?.sellerLogin;",
+                      "if (payload) {",
+                      "  pm.collectionVariables.set('accessToken', payload.accessToken);",
+                      "  pm.collectionVariables.set('refreshToken', payload.refreshToken);",
+                      "  pm.collectionVariables.set('userId', payload.user.id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation SellerLogin($email: String!, $password: String!) { sellerLogin(email: $email, password: $password) { accessToken refreshToken user { id email fullName role } } }",
+                    "variables": "{\n  \"email\": \"{{sellerEmail}}\",\n  \"password\": \"{{sellerPassword}}\"\n}"
+                  }
+                },
+                "url": "{{baseUrl}}/graphql"
+              }
+            },
+            {
+              "name": "Create Store",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const res = pm.response.json();",
+                      "const store = res.data?.createStore;",
+                      "if (store) {",
+                      "  pm.collectionVariables.set('storeId', store.id);",
+                      "  pm.collectionVariables.set('storeSlug', store.storeSlug);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation CreateStore($input: CreateStoreInput!) { createStore(input: $input) { id userId storeName storeSlug description logoUrl bannerUrl latitude longitude isVerified createdAt } }",
+                    "variables": "{\n  \"input\": {\n    \"storeName\": \"{{storeName}}\",\n    \"description\": \"{{storeDescription}}\",\n    \"logoUrl\": \"{{storeLogoUrl}}\",\n    \"bannerUrl\": \"{{storeBannerUrl}}\",\n    \"latitude\": {{storeLatitude}},\n    \"longitude\": {{storeLongitude}}\n  }\n}"
+                  }
+                },
+                "url": "{{baseUrl}}/graphql",
+                "description": "Create a new seller store with geospatial coordinates. Requires seller JWT."
+              }
+            },
+            {
+              "name": "Update Store",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation UpdateStore($input: UpdateStoreInput!) { updateStore(input: $input) { id storeName storeSlug description logoUrl bannerUrl latitude longitude updatedAt } }",
+                    "variables": "{\n  \"input\": {\n    \"storeName\": \"{{updatedStoreName}}\",\n    \"description\": \"{{updatedStoreDescription}}\",\n    \"latitude\": {{updatedStoreLatitude}},\n    \"longitude\": {{updatedStoreLongitude}}\n  }\n}"
+                  }
+                },
+                "url": "{{baseUrl}}/graphql",
+                "description": "Update seller store information including geospatial coordinates. Requires seller JWT."
+              }
+            },
+            {
+              "name": "My Store",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query MyStore { myStore { id userId storeName storeSlug description logoUrl bannerUrl latitude longitude rating totalSales isVerified createdAt updatedAt } }",
+                    "variables": "{}"
+                  }
+                },
+                "url": "{{baseUrl}}/graphql",
+                "description": "Get current seller's store information. Requires seller JWT."
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const payload = res.data?.refreshToken;",
+                  "if (payload) {",
+                  "  pm.collectionVariables.set('accessToken', payload.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', payload.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation RefreshToken($refreshToken: String!) { refreshToken(refreshToken: $refreshToken) { accessToken refreshToken user { id role } } }",
+                "variables": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          }
+        }
+      ]
+    },
+    {
+      "name": "User & Profile",
+      "item": [
+        {
+          "name": "Me",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Me { me { id email phone fullName avatarUrl role isVerified createdAt } }",
+                "variables": "{}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql",
+            "description": "Requires buyer JWT (`@hasRole(BUYER)`)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('response is JSON', function () {",
+                  "  pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query User($id: ID!) { user(id: $id) { id fullName role isVerified createdAt } }",
+                "variables": "{\n  \"id\": \"{{userId}}\"\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('response is JSON', function () {",
+                  "  pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation UpdateProfile($fullName: String, $avatarUrl: String) { updateProfile(fullName: $fullName, avatarUrl: $avatarUrl) { id fullName avatarUrl } }",
+                "variables": "{\n  \"fullName\": \"{{profileFullName}}\",\n  \"avatarUrl\": \"{{profileAvatarUrl}}\"\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('response is JSON', function () {",
+                  "  pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Addresses",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Addresses { addresses { id label fullName phone addressLine1 city country isDefault } }",
+                "variables": "{}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('response is JSON', function () {",
+                  "  pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Address",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data?.createAddress?.id) {",
+                  "  pm.collectionVariables.set('addressId', res.data.createAddress.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateAddress($input: AddressInput!) { createAddress(input: $input) { id label fullName phone addressLine1 city country isDefault } }",
+                "variables": "{\n  \"input\": {\n    \"label\": \"{{addressLabel}}\",\n    \"fullName\": \"{{buyerFullName}}\",\n    \"phone\": \"{{buyerPhone}}\",\n    \"addressLine1\": \"{{buyerAddressLine1}}\",\n    \"city\": \"{{buyerCity}}\",\n    \"country\": \"{{buyerCountry}}\",\n    \"isDefault\": true\n  }\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          }
+        },
+        {
+          "name": "Delete Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation DeleteAddress($addressId: ID!) { deleteAddress(addressId: $addressId) }",
+                "variables": "{\n  \"addressId\": \"{{addressId}}\"\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('response is JSON', function () {",
+                  "  pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "List Categories",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Categories($language: String) { categories(language: $language) { id name slug level sortOrder children { id name slug } } }",
+                "variables": "{\n  \"language\": \"{{language}}\"\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('response is JSON', function () {",
+                  "  pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Category by Slug",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Category($slug: String!, $language: String) { category(slug: $slug, language: $language) { id name slug iconUrl bannerUrl level children { id name slug } } }",
+                "variables": "{\n  \"slug\": \"{{categorySlug}}\",\n  \"language\": \"{{language}}\"\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('response is JSON', function () {",
+                  "  pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List Products",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Products($filter: ProductFilterInput, $pageSize: Int, $pageToken: String, $language: String) { products(filter: $filter, pageSize: $pageSize, pageToken: $pageToken, language: $language) { total nextPageToken products { id title slug status minPrice maxPrice rating soldCount } } }",
+                "variables": "{\n  \"filter\": {\n    \"search\": \"{{productSearchTerm}}\",\n    \"inStockOnly\": true\n  },\n  \"pageSize\": \"{{productsPageSize}}\",\n  \"language\": \"{{language}}\"\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('response is JSON', function () {",
+                  "  pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const product = res.data?.product;",
+                  "if (product) {",
+                  "  pm.collectionVariables.set('productId', product.id);",
+                  "  const variant = product.variants?.[0];",
+                  "  if (variant) pm.collectionVariables.set('variantId', variant.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Product($id: ID, $slug: String, $language: String) { product(id: $id, slug: $slug, language: $language) { id title slug description status rating variants { id sku price isDefault } images { url isPrimary } tags } }",
+                "variables": "{\n  \"id\": \"{{productId}}\",\n  \"language\": \"{{language}}\"\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          }
+        },
+        {
+          "name": "Create Product (Seller)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const product = res.data?.createProduct;",
+                  "if (product) {",
+                  "  pm.collectionVariables.set('productId', product.id);",
+                  "  const variant = product.variants?.[0];",
+                  "  if (variant) pm.collectionVariables.set('variantId', variant.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateProduct($input: CreateProductInput!) { createProduct(input: $input) { id title slug status variants { id sku price } } }",
+                "variables": "{\n  \"input\": {\n    \"categoryId\": \"{{categoryId}}\",\n    \"title\": \"{{newProductTitle}}\",\n    \"description\": \"{{newProductDescription}}\",\n    \"attributes\": {},\n    \"brand\": \"{{newProductBrand}}\",\n    \"variants\": [\n      {\n        \"sku\": \"{{newProductSku}}\",\n        \"options\": {\n          \"color\": \"{{newProductColor}}\",\n          \"size\": \"{{newProductSize}}\"\n        },\n        \"price\": \"{{newProductPrice}}\"\n      }\n    ],\n    \"tags\": [\n      \"new\",\n      \"sale\"\n    ],\n    \"language\": \"{{language}}\"\n  }\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql",
+            "description": "Requires seller JWT (`@hasRole(SELLER)`)."
+          }
+        },
+        {
+          "name": "Update Product (Seller)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation UpdateProduct($id: ID!, $input: UpdateProductInput!) { updateProduct(id: $id, input: $input) { id title status updatedAt } }",
+                "variables": "{\n  \"id\": \"{{productId}}\",\n  \"input\": {\n    \"title\": \"{{updatedProductTitle}}\",\n    \"status\": \"{{updatedProductStatus}}\"\n  }\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('response is JSON', function () {",
+                  "  pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Product (Seller)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation DeleteProduct($id: ID!) { deleteProduct(id: $id) }",
+                "variables": "{\n  \"id\": \"{{productId}}\"\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('response is JSON', function () {",
+                  "  pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "Get Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Cart { cart { id userId itemCount subtotal items { id variantId productId quantity unitPrice } } }",
+                "variables": "{}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('response is JSON', function () {",
+                  "  pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add to Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const items = res.data?.addToCart?.items;",
+                  "if (items?.length) {",
+                  "  pm.collectionVariables.set('cartItemId', items[items.length - 1].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation AddToCart($variantId: ID!, $quantity: Int!) { addToCart(variantId: $variantId, quantity: $quantity) { id itemCount subtotal items { id variantId quantity unitPrice } } }",
+                "variables": "{\n  \"variantId\": \"{{variantId}}\",\n  \"quantity\": \"{{cartAddQuantity}}\"\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          }
+        },
+        {
+          "name": "Update Cart Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation UpdateCartItem($itemId: ID!, $quantity: Int!) { updateCartItem(itemId: $itemId, quantity: $quantity) { id itemCount subtotal items { id quantity } } }",
+                "variables": "{\n  \"itemId\": \"{{cartItemId}}\",\n  \"quantity\": \"{{cartUpdateQuantity}}\"\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('response is JSON', function () {",
+                  "  pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Remove Cart Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation RemoveCartItem($itemId: ID!) { removeCartItem(itemId: $itemId) { id itemCount items { id } } }",
+                "variables": "{\n  \"itemId\": \"{{cartItemId}}\"\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('response is JSON', function () {",
+                  "  pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Clear Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation ClearCart { clearCart { id itemCount items { id } } }",
+                "variables": "{}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('response is JSON', function () {",
+                  "  pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Checkout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data?.checkout?.id) {",
+                  "  pm.collectionVariables.set('orderId', res.data.checkout.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Checkout($input: CheckoutInput!) { checkout(input: $input) { id orderNumber status subtotal shippingFee total currency items { id quantity unitPrice } createdAt } }",
+                "variables": "{\n  \"input\": {\n    \"shippingAddress\": {\n      \"fullName\": \"{{buyerFullName}}\",\n      \"phone\": \"{{buyerPhone}}\",\n      \"addressLine1\": \"{{buyerAddressLine1}}\",\n      \"city\": \"{{buyerCity}}\",\n      \"country\": \"{{buyerCountry}}\"\n    },\n    \"couponCode\": \"{{checkoutCouponCode}}\",\n    \"notes\": \"{{checkoutNotes}}\",\n    \"currency\": \"{{checkoutCurrency}}\"\n  }\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          }
+        },
+        {
+          "name": "Get Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Order($id: ID!) { order(id: $id) { id orderNumber status subtotal total currency items { id productId quantity unitPrice status } createdAt } }",
+                "variables": "{\n  \"id\": \"{{orderId}}\"\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('response is JSON', function () {",
+                  "  pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Orders",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Orders($pageSize: Int, $pageToken: String) { orders(pageSize: $pageSize, pageToken: $pageToken) { total nextPageToken orders { id orderNumber status total createdAt } } }",
+                "variables": "{\n  \"pageSize\": \"{{ordersPageSize}}\"\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('response is JSON', function () {",
+                  "  pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CancelOrder($id: ID!) { cancelOrder(id: $id) { id orderNumber status } }",
+                "variables": "{\n  \"id\": \"{{orderId}}\"\n}"
+              }
+            },
+            "url": "{{baseUrl}}/graphql"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('response is JSON', function () {",
+                  "  pm.response.to.be.json;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+-- DB Migrations for order-service
+
+-- db/migrations/001_create_carts.up.sql is separate, see file.

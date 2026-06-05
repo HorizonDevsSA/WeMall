@@ -1,0 +1,14 @@
+go 1.21
+
+use (
+	./gen
+	./pkg
+	./services/api-gateway
+	./services/media-service
+	./services/notification-service
+	./services/order-service
+	./services/product-service
+	./services/seller-service
+	./services/user-service
+	./services/documentation-service
+)

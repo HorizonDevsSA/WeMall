@@ -1,0 +1,280 @@
+services:
+  # ── Databases ─────────────────────────────────────────────────────────────
+  postgres-users:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wemall_users
+      POSTGRES_USER: wemall
+      POSTGRES_PASSWORD: wemall_secret
+    ports: ['5432:5432']
+    volumes:
+      - pgdata-users:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U wemall -d wemall_users']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-products:
+    image: postgis/postgis:16-3.4-alpine
+    environment:
+      POSTGRES_DB: wemall_products
+      POSTGRES_USER: wemall
+      POSTGRES_PASSWORD: wemall_secret
+    ports: ['5433:5432']
+    volumes:
+      - pgdata-products:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U wemall -d wemall_products']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-orders:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wemall_orders
+      POSTGRES_USER: wemall
+      POSTGRES_PASSWORD: wemall_secret
+    ports: ['5434:5432']
+    volumes:
+      - pgdata-orders:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U wemall -d wemall_orders']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-sellers:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wemall_sellers
+      POSTGRES_USER: wemall
+      POSTGRES_PASSWORD: wemall_secret
+    ports: ['5435:5432']
+    volumes:
+      - pgdata-sellers:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U wemall -d wemall_sellers']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-notifications:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wemall_notifications
+      POSTGRES_USER: wemall
+      POSTGRES_PASSWORD: wemall_secret
+    ports: ['5436:5432']
+    volumes:
+      - pgdata-notifications:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U wemall -d wemall_notifications']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-media:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wemall_media
+      POSTGRES_USER: wemall
+      POSTGRES_PASSWORD: wemall_secret
+    ports: ['5437:5432']
+    volumes:
+      - pgdata-media:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U wemall -d wemall_media']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  # ── Redis ──────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    ports: ['6379:6379']
+    command: redis-server --appendonly yes
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── NATS JetStream ─────────────────────────────────────────────────────────
+  nats:
+    image: nats:2-alpine
+    ports:
+      - '4222:4222'
+      - '8222:8222'
+    command: ['-js', '-m', '8222']
+    volumes:
+      - natsdata:/data
+
+  # ── Meilisearch ────────────────────────────────────────────────────────────
+  meilisearch:
+    image: getmeili/meilisearch:v1.7
+    ports: ['7700:7700']
+    environment:
+      MEILI_MASTER_KEY: wemall_meili_key
+      MEILI_ENV: development
+    volumes:
+      - meilidata:/meili_data
+
+  # ── Phase 1 Services ───────────────────────────────────────────────────────
+  user-service:
+    build:
+      context: .
+      dockerfile: ./services/user-service/Dockerfile
+    ports: ['9001:9001']
+    env_file: .env
+    environment:
+      DB_URL: postgres://wemall:wemall_secret@postgres-users:5432/wemall_users?sslmode=disable
+      GRPC_PORT: '9001'
+      REDIS_URL: redis:6379
+    depends_on:
+      postgres-users:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  product-service:
+    build:
+      context: .
+      dockerfile: ./services/product-service/Dockerfile
+    ports: ['9003:9003']
+    environment:
+      DB_URL: postgres://wemall:wemall_secret@postgres-products:5432/wemall_products?sslmode=disable
+      GRPC_PORT: '9003'
+      SELLER_SERVICE_ADDR: seller-service:9002
+    depends_on:
+      postgres-products:
+        condition: service_healthy
+    restart: unless-stopped
+
+  order-service:
+    build:
+      context: .
+      dockerfile: ./services/order-service/Dockerfile
+    ports: ['9005:9005']
+    environment:
+      DB_URL: postgres://wemall:wemall_secret@postgres-orders:5432/wemall_orders?sslmode=disable
+      GRPC_PORT: '9005'
+      NATS_URL: nats://nats:4222
+      PRODUCT_SERVICE_ADDR: product-service:9003
+      SELLER_SERVICE_ADDR: seller-service:9002
+    depends_on:
+      postgres-orders:
+        condition: service_healthy
+      nats:
+        condition: service_started
+      seller-service:
+        condition: service_started
+    restart: unless-stopped
+
+
+  seller-service:
+    build:
+      context: .
+      dockerfile: ./services/seller-service/Dockerfile
+    ports: ['9002:9002']
+    environment:
+      DB_URL: postgres://wemall:wemall_secret@postgres-sellers:5432/wemall_sellers?sslmode=disable
+      GRPC_PORT: '9002'
+      ENVIRONMENT: development
+    depends_on:
+      postgres-sellers:
+        condition: service_healthy
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: ./services/api-gateway/Dockerfile
+    ports: ['8080:8080']
+    env_file: .env
+    environment:
+      PORT: '8080'
+      USER_SERVICE_ADDR: user-service:9001
+      PRODUCT_SERVICE_ADDR: product-service:9003
+      ORDER_SERVICE_ADDR: order-service:9005
+      SELLER_SERVICE_ADDR: seller-service:9002
+      INVENTORY_SERVICE_ADDR: product-service:9003
+      REDIS_URL: redis:6379
+      ENVIRONMENT: development
+      NOTIFICATION_SERVICE_ADDR: notification-service:9007
+    depends_on:
+      - user-service
+      - product-service
+      - order-service
+      - seller-service
+      - notification-service
+    restart: unless-stopped
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: ./services/notification-service/Dockerfile
+    ports: ['9007:9007']
+    environment:
+      DB_URL: postgres://wemall:wemall_secret@postgres-notifications:5432/wemall_notifications?sslmode=disable
+      GRPC_PORT: '9007'
+      REDIS_URL: redis:6379
+      NATS_URL: nats://nats:4222
+      SELLER_SERVICE_ADDR: seller-service:9002
+      ENVIRONMENT: development
+    depends_on:
+      postgres-notifications:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_started
+    restart: unless-stopped
+
+  media-service:
+    build:
+      context: .
+      dockerfile: ./services/media-service/Dockerfile
+    ports:
+      - '8087:8087'
+      - '50057:50057'
+    env_file: .env
+    environment:
+      DB_URL: postgres://wemall:wemall_secret@postgres-media:5432/wemall_media?sslmode=disable
+      HTTP_PORT: '8087'
+      GRPC_PORT: '50057'
+      NATS_URL: nats://nats:4222
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      AWS_CLOUDFRONT_PRIVATE_KEY_PEM: ${AWS_CLOUDFRONT_PRIVATE_KEY_PEM}
+    depends_on:
+      postgres-media:
+        condition: service_healthy
+      nats:
+        condition: service_started
+    volumes:
+      - ./.tmp/media:/app/.tmp/media
+    restart: unless-stopped
+
+  documentation-service:
+    build:
+      context: .
+      dockerfile: ./services/documentation-service/Dockerfile
+    ports:
+      - '8085:8085'
+    restart: unless-stopped
+
+volumes:
+  pgdata-users:
+  pgdata-products:
+  pgdata-orders:
+  pgdata-sellers:
+  pgdata-notifications:
+  pgdata-media:
+  redisdata:
+  natsdata:
+  meilidata:

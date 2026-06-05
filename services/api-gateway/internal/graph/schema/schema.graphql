@@ -1,0 +1,487 @@
+directive @hasRole(role: Role!) on FIELD_DEFINITION
+
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+enum SellerStatus {
+  PENDING
+  PROCESSING
+  VERIFIED
+  SUSPENDED
+}
+
+enum Currency {
+  USD
+  ZWG
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  BANNED
+}
+
+enum ProductType {
+  ELECTRONICS
+  MOBILE_PHONES_ACCESSORIES
+  FASHION
+  HOME_FURNITURE
+  BEAUTY_HEALTH
+  APPLIANCES
+  AUTOMOTIVE
+  HARDWARE_CONSTRUCTION
+  AGRICULTURE
+  SPORTS_OUTDOORS
+  BABY_KIDS
+  OFFICE_SUPPLIES
+  BOOKS_EDUCATION
+  PET_SUPPLIES
+  DIGITAL_PRODUCTS
+  SERVICES
+  LIQUIDS
+  BEVERAGES
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+# ── Scalars ───────────────────────────────────────────────────────────────────
+
+scalar JSON
+scalar Time
+
+# ── User Types ────────────────────────────────────────────────────────────────
+
+type User {
+  id:           ID!
+  email:        String
+  phone:        String
+  fullName:     String!
+  avatarUrl:    String
+  role:         Role!
+  isVerified:   Boolean!
+  createdAt:    Time!
+}
+
+type Address {
+  id:           ID!
+  userId:       ID!
+  label:        String
+  fullName:     String!
+  phone:        String!
+  addressLine1: String!
+  addressLine2: String
+  city:         String!
+  state:        String
+  postalCode:   String
+  country:      String!
+  isDefault:    Boolean!
+}
+
+type AuthPayload {
+  accessToken:  String!
+  refreshToken: String!
+  user:         User!
+}
+
+type OTPPayload {
+  message:   String!
+  requestId: String!
+}
+
+# ── Category Types ────────────────────────────────────────────────────────────
+
+type Category {
+  id:              ID!
+  parentId:        ID
+  name:            String!
+  slug:            String!
+  iconUrl:         String
+  bannerUrl:       String
+  level:           Int!
+  sortOrder:       Int!
+  attributeSchema: JSON
+  children:        [Category!]!
+}
+
+# ── Product Types ─────────────────────────────────────────────────────────────
+
+type ProductVariant {
+  id:           ID!
+  productId:    ID!
+  sku:          String!
+  options:      JSON!
+  price:        Float!
+  comparePrice: Float
+  imageUrl:     String
+  isDefault:    Boolean!
+  # Inventory information
+  inventory:    InventoryInfo!
+}
+
+type ProductImage {
+  id:        ID!
+  productId: ID!
+  url:       String!
+  altText:   String
+  sortOrder: Int!
+  isPrimary: Boolean!
+}
+
+type InventoryInfo {
+  quantity:  Int!
+  updatedAt: Time!
+}
+
+type Product {
+  id:            ID!
+  sellerId:      ID!
+  categoryId:    ID!
+  title:         String!
+  slug:          String!
+  description:   String
+  attributes:    JSON!
+  brand:         String
+  originCountry: String
+  status:        ProductStatus!
+  rating:        Float!
+  reviewCount:   Int!
+  soldCount:     Int!
+  minPrice:      Float
+  maxPrice:      Float
+  variants:      [ProductVariant!]!
+  images:        [ProductImage!]!
+  tags:          [String!]!
+  createdAt:     Time!
+  updatedAt:     Time!
+  latitude:      Float
+  longitude:     Float
+  distance:      Float
+  productType:   ProductType!
+  thumbnail:     String
+  imageUrl:      String
+  # Related data from other services
+  seller:        Seller!
+}
+
+type ProductWithDistance {
+  product:       Product!
+  distance:      Float!
+}
+
+type ProductList {
+  products:      [Product!]!
+  nextPageToken: String
+  total:         Int!
+}
+
+# ── Cart & Order Types ────────────────────────────────────────────────────────
+
+type CartItem {
+  id:                 ID!
+  variantId:          ID!
+  productId:          ID!
+  quantity:           Int!
+  unitPrice:          Float!
+  productTitle:       String!
+  variation:          String!
+  variationThumbnail: String!
+  sellerId:           ID!
+  storeTitle:         String!
+  storeLogo:          String!
+  options:            JSON!
+  productType:        ProductType!
+}
+
+type Cart {
+  id:        ID!
+  userId:    ID!
+  items:     [CartItem!]!
+  itemCount: Int!
+  subtotal:  Float!
+}
+
+type OrderItem {
+  id:                 ID!
+  variantId:          ID!
+  productId:          ID!
+  sellerId:           ID!
+  quantity:           Int!
+  unitPrice:          Float!
+  snapshot:           JSON!
+  status:             OrderStatus!
+  productTitle:       String!
+  variation:          String!
+  variationThumbnail: String!
+  storeTitle:         String!
+  storeLogo:          String!
+  options:            JSON!
+  productType:        ProductType!
+}
+
+type Order {
+  id:              ID!
+  orderNumber:     String!
+  userId:          ID!
+  status:          OrderStatus!
+  subtotal:        Float!
+  shippingFee:     Float!
+  discountAmount:  Float!
+  total:           Float!
+  shippingAddress: JSON!
+  items:           [OrderItem!]!
+  couponCode:      String
+  notes:           String
+  currency:        String!
+  createdAt:       Time!
+  updatedAt:       Time!
+}
+
+type OrderList {
+  orders:        [Order!]!
+  nextPageToken: String
+  total:         Int!
+}
+
+# ── Seller Types ─────────────────────────────────────────────────────────────
+
+type Seller {
+  id:          ID!
+  userId:      ID!
+  storeName:   String!
+  storeSlug:   String!
+  logoUrl:     String
+  bannerUrl:   String
+  description: String
+  rating:      Float!
+  totalSales:  Int!
+  isVerified:  Boolean!
+  status:      SellerStatus!
+  latitude:    Float
+  longitude:   Float
+  createdAt:   Time!
+  updatedAt:   Time!
+}
+
+# ── Input Types ───────────────────────────────────────────────────────────────
+
+input ProductFilterInput {
+  search:      String
+  categoryId:  ID
+  sellerId:    ID
+  minPrice:    Float
+  maxPrice:    Float
+  minRating:   Float
+  tags:        [String!]
+  attributes:  JSON
+  inStockOnly: Boolean
+}
+
+input VariantInput {
+  sku:          String!
+  options:      JSON!
+  price:        Float!
+  comparePrice: Float
+}
+
+input CreateProductInput {
+  categoryId:    ID!
+  title:         String!
+  description:   String
+  attributes:    JSON!
+  brand:         String
+  originCountry: String
+  variants:      [VariantInput!]!
+  tags:          [String!]
+  language:      String
+  productType:   ProductType
+}
+
+input UpdateProductInput {
+  title:       String
+  description: String
+  attributes:  JSON
+  brand:       String
+  status:      ProductStatus
+  language:    String
+}
+
+input AddressInput {
+  label:        String
+  fullName:     String!
+  phone:        String!
+  addressLine1: String!
+  addressLine2: String
+  city:         String!
+  state:        String
+  postalCode:   String
+  country:      String!
+  isDefault:    Boolean
+}
+
+input ShippingAddressInput {
+  fullName:     String!
+  phone:        String!
+  addressLine1: String!
+  addressLine2: String
+  city:         String!
+  state:        String
+  postalCode:   String
+  country:      String!
+}
+
+input CheckoutInput {
+  shippingAddress: ShippingAddressInput!
+  couponCode:      String
+  notes:           String
+  currency:        Currency
+}
+
+input CreateStoreInput {
+  storeName:   String!
+  description: String
+  logoUrl:     String
+  bannerUrl:   String
+  latitude:    Float
+  longitude:   Float
+}
+
+input UpdateStoreInput {
+  storeName:   String
+  description: String
+  logoUrl:     String
+  bannerUrl:   String
+  latitude:    Float
+  longitude:   Float
+}
+
+# ── Queries ───────────────────────────────────────────────────────────────────
+
+type Query {
+  # User
+  me:        User! @hasRole(role: BUYER)
+  user(id: ID!): User!
+  addresses: [Address!]! @hasRole(role: BUYER)
+
+  # Categories
+  categories(language: String): [Category!]!
+  category(slug: String!,  language: String): Category!
+
+  # Products
+  products(filter: ProductFilterInput, pageSize: Int, pageToken: String, language: String): ProductList!
+  product(id: ID, slug: String, language: String): Product!
+  nearbyProducts(latitude: Float!, longitude: Float!, radiusMeters: Float!, pageSize: Int, pageToken: String): [ProductWithDistance!]!
+  recommendedProducts(pageSize: Int, pageToken: String, language: String): ProductList!
+
+  # Seller
+  myStore: Seller @hasRole(role: SELLER)
+  seller(id: ID!): Seller!
+  isFollowingStore(sellerId: ID!): Boolean! @hasRole(role: BUYER)
+  myFollowedStores(pageSize: Int, pageToken: String): FollowedStoresList! @hasRole(role: BUYER)
+
+  # Cart & Orders
+  cart:   Cart! @hasRole(role: BUYER)
+  order(id: ID!): Order! @hasRole(role: BUYER)
+  orders(pageSize: Int, pageToken: String): OrderList! @hasRole(role: BUYER)
+
+  # Notifications
+  notificationPreferences: [NotificationPreference!]! @hasRole(role: BUYER)
+  myNotifications(limit: Int, offset: Int): [NotificationLog!]! @hasRole(role: BUYER)
+}
+
+type FollowedStoresList {
+  sellers:       [Seller!]!
+  nextPageToken: String
+  total:         Int!
+}
+
+# ── Notification Types ────────────────────────────────────────────────────────
+
+type NotificationPreference {
+  category: NotificationCategory!
+  emailEnabled: Boolean!
+  pushEnabled: Boolean!
+}
+
+enum NotificationCategory {
+  TRANSACTIONAL
+  SECURITY
+  LOW_STOCK
+  FOLLOWS
+  MARKETING
+}
+
+type NotificationLog {
+  id: ID!
+  category: String!
+  channel: String!
+  title: String!
+  content: String!
+  status: String!
+  createdAt: Time!
+}
+
+# ── Mutations ─────────────────────────────────────────────────────────────────
+
+type Mutation {
+  # Buyer auth
+  buyerGoogleAuth(code: String!, redirectUri: String): AuthPayload!
+  buyerSendOTP(phone: String!): OTPPayload!
+  buyerVerifyOTP(phone: String!, otp: String!): AuthPayload!
+
+  # Seller auth
+  sellerRegister(email: String!, password: String!, fullName: String!): AuthPayload!
+  sellerLogin(email: String!, password: String!): AuthPayload!
+
+  # Shared auth
+  refreshToken(refreshToken: String!): AuthPayload!
+
+  # Profile
+  updateProfile(fullName: String, avatarUrl: String): User! @hasRole(role: BUYER)
+  createAddress(input: AddressInput!): Address! @hasRole(role: BUYER)
+  deleteAddress(addressId: ID!): Boolean! @hasRole(role: BUYER)
+
+  # Products (seller)
+  createProduct(input: CreateProductInput!): Product! @hasRole(role: SELLER)
+  updateProduct(id: ID!, input: UpdateProductInput!): Product! @hasRole(role: SELLER)
+  deleteProduct(id: ID!): Boolean! @hasRole(role: SELLER)
+
+  # Store (seller)
+  createStore(input: CreateStoreInput!): Seller! @hasRole(role: SELLER)
+  updateStore(input: UpdateStoreInput!): Seller! @hasRole(role: SELLER)
+  updateSellerStatus(sellerId: ID!, status: SellerStatus!): Seller! @hasRole(role: ADMIN)
+
+
+  # Store follows (buyer)
+  followStore(sellerId: ID!): Boolean! @hasRole(role: BUYER)
+  unfollowStore(sellerId: ID!): Boolean! @hasRole(role: BUYER)
+
+  # Cart
+  addToCart(variantId: ID!, quantity: Int!): Cart! @hasRole(role: BUYER)
+  updateCartItem(itemId: ID!, quantity: Int!): Cart! @hasRole(role: BUYER)
+  removeCartItem(itemId: ID!): Cart! @hasRole(role: BUYER)
+  clearCart: Cart! @hasRole(role: BUYER)
+
+  # Orders
+  checkout(input: CheckoutInput!): Order! @hasRole(role: BUYER)
+  cancelOrder(id: ID!): Order! @hasRole(role: BUYER)
+
+  # Notifications
+  registerDeviceToken(token: String!, platform: String!, deviceName: String): Boolean! @hasRole(role: BUYER)
+  deregisterDeviceToken(token: String!): Boolean! @hasRole(role: BUYER)
+  updateNotificationPreferences(
+    category: NotificationCategory!
+    emailEnabled: Boolean!
+    pushEnabled: Boolean!
+  ): NotificationPreference! @hasRole(role: BUYER)
+}

@@ -1,0 +1,142 @@
+<div class="dashboard-container">
+    <div class="welcome-banner">
+        <h1 class="page-title">WeMall API Reference Catalog</h1>
+        <p class="page-subtitle">Interactive reference portal for all REST, GraphQL, and gRPC APIs powering the WeMall marketplace.</p>
+    </div>
+
+    <!-- Metrics Cards Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon icon-blue">🌐</div>
+            <div class="stat-content">
+                <span class="stat-label">GraphQL Entry Gateway</span>
+                <span class="stat-value">Port {{.Stats.GatewayPort}}</span>
+                <span class="stat-desc">Unified clients entrypoint</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon icon-purple">🧬</div>
+            <div class="stat-content">
+                <span class="stat-label">Domain APIs</span>
+                <span class="stat-value">{{.Stats.TotalCategories}} Modules</span>
+                <span class="stat-desc">Core functional domains</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon icon-indigo">🔗</div>
+            <div class="stat-content">
+                <span class="stat-label">System Endpoints</span>
+                <span class="stat-value">{{.Stats.TotalEndpoints}} Actions</span>
+                <span class="stat-desc">GraphQL, gRPC, and REST routes</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon icon-teal">🌊</div>
+            <div class="stat-content">
+                <span class="stat-label">Event Message Bus</span>
+                <span class="stat-value">NATS JetStream</span>
+                <span class="stat-desc">Asynchronous event routing</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Architecture Overview -->
+    <div class="card card-topology">
+        <div class="card-header-flex">
+            <h2>System Architecture Map</h2>
+            <span class="badge badge-verified">Online Stack</span>
+        </div>
+        <div class="card-body">
+            <p class="text-secondary">Clients communicate exclusively with the API Gateway via GraphQL. The Gateway handles validation and delegates requests using gRPC to independent backend microservices, which run on dedicated databases. High-throughput notifications and search index rebuilds run asynchronously via NATS JetStream.</p>
+            <div class="diagram-wrapper">
+                <div class="mermaid">
+graph TD
+    classDef client fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#f8fafc;
+    classDef gateway fill:#1e1b4b,stroke:#6366f1,stroke-width:2px,color:#f8fafc;
+    classDef svc fill:#0f172a,stroke:#4f46e5,stroke-width:2px,color:#f8fafc;
+    classDef db fill:#022c22,stroke:#0d9488,stroke-width:2px,color:#f8fafc;
+    classDef broker fill:#111827,stroke:#e11d48,stroke-width:2px,color:#f8fafc;
+
+    Client[Mobile / Web Clients]:::client
+    GW[API Gateway :8080]:::gateway
+    
+    US[User Service :9001]:::svc
+    SS[Seller Service :9002]:::svc
+    PS[Product Service :9003]:::svc
+    OS[Order Service :9005]:::svc
+    NS[Notification Service :9007]:::svc
+    MS[Media Service :8087]:::svc
+    
+    DB_U[(Users DB :5432)]:::db
+    DB_S[(Sellers DB :5435)]:::db
+    DB_P[(Products DB :5433)]:::db
+    DB_O[(Orders DB :5434)]:::db
+    DB_N[(Notifications DB :5436)]:::db
+    DB_M[(Media DB :5437)]:::db
+
+    NATS((NATS JetStream)):::broker
+    Redis[(Redis Queue)]:::broker
+
+    Client -- HTTP GraphQL --> GW
+    
+    GW -- gRPC --> US
+    GW -- gRPC --> SS
+    GW -- gRPC --> PS
+    GW -- gRPC --> OS
+    GW -- HTTP/gRPC --> MS
+
+    US --> DB_U
+    SS --> DB_S
+    PS --> DB_P
+    OS --> DB_O
+    NS --> DB_N
+    MS --> DB_M
+
+    OS -- Async Events --> NATS
+    PS -- Async Events --> NATS
+    NATS -- Consume --> NS
+    
+    NS -- Tasks Queue --> Redis
+    Redis -- Dispatch --> Workers[FCM Push / Google SMTP]
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active APIs List -->
+    <div class="card card-flows">
+        <h2>Available API Reference Catalog</h2>
+        <div class="table-wrapper">
+            <table class="flows-table">
+                <thead>
+                    <tr>
+                        <th>Icon</th>
+                        <th>API Domain</th>
+                        <th>Functional Overview</th>
+                        <th>Protocol Types</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Categories}}
+                    <tr>
+                        <td class="cell-icon">{{.Icon}}</td>
+                        <td class="cell-title"><strong>{{.Title}}</strong></td>
+                        <td class="cell-desc">{{.Overview}}</td>
+                        <td class="cell-services">
+                            <span class="service-tag">GraphQL</span>
+                            <span class="service-tag">gRPC</span>
+                            {{if eq .Slug "media-api"}}
+                            <span class="service-tag">REST HTTP</span>
+                            {{end}}
+                        </td>
+                        <td>
+                            <button hx-get="/flows/{{.Slug}}" hx-target="#main-content" hx-push-url="true" class="btn btn-primary btn-sm">View Reference</button>
+                        </td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
