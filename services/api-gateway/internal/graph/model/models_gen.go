@@ -9,6 +9,32 @@ import (
 	"time"
 )
 
+type AppendReview struct {
+	ID        string         `json:"id"`
+	Content   string         `json:"content"`
+	HasMedia  bool           `json:"hasMedia"`
+	Media     []*ReviewMedia `json:"media"`
+	CreatedAt time.Time      `json:"createdAt"`
+}
+
+type AppendReviewInput struct {
+	ReviewID  string   `json:"reviewId"`
+	Content   string   `json:"content"`
+	MediaUrls []string `json:"mediaUrls,omitempty"`
+}
+
+type CreateReviewInput struct {
+	OrderID           string   `json:"orderId"`
+	ProductID         string   `json:"productId"`
+	VariantID         string   `json:"variantId"`
+	RatingDescription int      `json:"ratingDescription"`
+	RatingService     int      `json:"ratingService"`
+	RatingDelivery    int      `json:"ratingDelivery"`
+	Content           *string  `json:"content,omitempty"`
+	IsAnonymous       *bool    `json:"isAnonymous,omitempty"`
+	MediaUrls         []string `json:"mediaUrls,omitempty"`
+}
+
 type Mutation struct {
 }
 
@@ -28,12 +54,84 @@ type NotificationPreference struct {
 	PushEnabled  bool                 `json:"pushEnabled"`
 }
 
+type ProductReviewConnection struct {
+	Edges      []*Review `json:"edges"`
+	TotalCount int       `json:"totalCount"`
+}
+
+type ProductReviewStats struct {
+	AverageRating float64  `json:"averageRating"`
+	TotalReviews  int      `json:"totalReviews"`
+	GoodCount     int      `json:"goodCount"`
+	NeutralCount  int      `json:"neutralCount"`
+	BadCount      int      `json:"badCount"`
+	HasMediaCount int      `json:"hasMediaCount"`
+	AppendCount   int      `json:"appendCount"`
+	TopTags       []string `json:"topTags"`
+}
+
 type ProductWithDistance struct {
 	Product  *Product `json:"product"`
 	Distance float64  `json:"distance"`
 }
 
 type Query struct {
+}
+
+type Review struct {
+	ID                string         `json:"id"`
+	OrderID           string         `json:"orderId"`
+	BuyerID           string         `json:"buyerId"`
+	BuyerName         string         `json:"buyerName"`
+	BuyerAvatar       *string        `json:"buyerAvatar,omitempty"`
+	RatingDescription int            `json:"ratingDescription"`
+	RatingService     int            `json:"ratingService"`
+	RatingDelivery    int            `json:"ratingDelivery"`
+	ReviewType        string         `json:"reviewType"`
+	Content           *string        `json:"content,omitempty"`
+	IsAnonymous       bool           `json:"isAnonymous"`
+	HasMedia          bool           `json:"hasMedia"`
+	Media             []*ReviewMedia `json:"media"`
+	NlpTags           []string       `json:"nlpTags"`
+	IsSystemGenerated bool           `json:"isSystemGenerated"`
+	CreatedAt         time.Time      `json:"createdAt"`
+	UpdatedAt         time.Time      `json:"updatedAt"`
+	AppendReview      *AppendReview  `json:"appendReview,omitempty"`
+	Replies           []*SellerReply `json:"replies"`
+}
+
+type ReviewMedia struct {
+	ID        string `json:"id"`
+	MediaURL  string `json:"mediaUrl"`
+	MediaType string `json:"mediaType"`
+}
+
+type SellerDsr struct {
+	AvgDescription  float64 `json:"avgDescription"`
+	AvgService      float64 `json:"avgService"`
+	AvgDelivery     float64 `json:"avgDelivery"`
+	ReputationScore int     `json:"reputationScore"`
+}
+
+type SellerReply struct {
+	ID        string    `json:"id"`
+	ReplyType string    `json:"replyType"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type SellerReplyInput struct {
+	ReviewID  string `json:"reviewId"`
+	ReplyType string `json:"replyType"`
+	Content   string `json:"content"`
+}
+
+type UpdateReviewInput struct {
+	ReviewID          string  `json:"reviewId"`
+	RatingDescription int     `json:"ratingDescription"`
+	RatingService     int     `json:"ratingService"`
+	RatingDelivery    int     `json:"ratingDelivery"`
+	Content           *string `json:"content,omitempty"`
 }
 
 type NotificationCategory string
@@ -80,5 +178,54 @@ func (e *NotificationCategory) UnmarshalGQL(v interface{}) error {
 }
 
 func (e NotificationCategory) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ReviewFilterType string
+
+const (
+	ReviewFilterTypeAll      ReviewFilterType = "ALL"
+	ReviewFilterTypeGood     ReviewFilterType = "GOOD"
+	ReviewFilterTypeNeutral  ReviewFilterType = "NEUTRAL"
+	ReviewFilterTypeBad      ReviewFilterType = "BAD"
+	ReviewFilterTypeHasMedia ReviewFilterType = "HAS_MEDIA"
+	ReviewFilterTypeAppend   ReviewFilterType = "APPEND"
+)
+
+var AllReviewFilterType = []ReviewFilterType{
+	ReviewFilterTypeAll,
+	ReviewFilterTypeGood,
+	ReviewFilterTypeNeutral,
+	ReviewFilterTypeBad,
+	ReviewFilterTypeHasMedia,
+	ReviewFilterTypeAppend,
+}
+
+func (e ReviewFilterType) IsValid() bool {
+	switch e {
+	case ReviewFilterTypeAll, ReviewFilterTypeGood, ReviewFilterTypeNeutral, ReviewFilterTypeBad, ReviewFilterTypeHasMedia, ReviewFilterTypeAppend:
+		return true
+	}
+	return false
+}
+
+func (e ReviewFilterType) String() string {
+	return string(e)
+}
+
+func (e *ReviewFilterType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReviewFilterType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReviewFilterType", str)
+	}
+	return nil
+}
+
+func (e ReviewFilterType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

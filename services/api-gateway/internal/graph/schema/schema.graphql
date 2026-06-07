@@ -172,6 +172,8 @@ type Product {
   imageUrl:      String
   # Related data from other services
   seller:        Seller!
+  reviews(filter: ReviewFilterType, page: Int, limit: Int): ProductReviewConnection!
+  reviewStats:   ProductReviewStats!
 }
 
 type ProductWithDistance {
@@ -271,6 +273,7 @@ type Seller {
   longitude:   Float
   createdAt:   Time!
   updatedAt:   Time!
+  dsr:         SellerDSR!
 }
 
 # ── Input Types ───────────────────────────────────────────────────────────────
@@ -484,4 +487,118 @@ type Mutation {
     emailEnabled: Boolean!
     pushEnabled: Boolean!
   ): NotificationPreference! @hasRole(role: BUYER)
+
+  # Reviews
+  createReview(input: CreateReviewInput!): Review! @hasRole(role: BUYER)
+  appendReview(input: AppendReviewInput!): AppendReview! @hasRole(role: BUYER)
+  updateReview(input: UpdateReviewInput!): Review! @hasRole(role: BUYER)
+  deleteReview(reviewId: ID!): Boolean! @hasRole(role: BUYER)
+  createSellerReply(input: SellerReplyInput!): SellerReply! @hasRole(role: SELLER)
+}
+
+enum ReviewFilterType {
+  ALL
+  GOOD
+  NEUTRAL
+  BAD
+  HAS_MEDIA
+  APPEND
+}
+
+type ProductReviewConnection {
+  edges: [Review!]!
+  totalCount: Int!
+}
+
+type Review {
+  id: ID!
+  orderId: ID!
+  buyerId: ID!
+  buyerName: String!
+  buyerAvatar: String
+  ratingDescription: Int!
+  ratingService: Int!
+  ratingDelivery: Int!
+  reviewType: String!
+  content: String
+  isAnonymous: Boolean!
+  hasMedia: Boolean!
+  media: [ReviewMedia!]!
+  nlpTags: [String!]!
+  isSystemGenerated: Boolean!
+  createdAt: Time!
+  updatedAt: Time!
+  appendReview: AppendReview
+  replies: [SellerReply!]!
+}
+
+type ReviewMedia {
+  id: ID!
+  mediaUrl: String!
+  mediaType: String!
+}
+
+type AppendReview {
+  id: ID!
+  content: String!
+  hasMedia: Boolean!
+  media: [ReviewMedia!]!
+  createdAt: Time!
+}
+
+type SellerReply {
+  id: ID!
+  replyType: String!
+  content: String!
+  createdAt: Time!
+}
+
+type ProductReviewStats {
+  averageRating: Float!
+  totalReviews: Int!
+  goodCount: Int!
+  neutralCount: Int!
+  badCount: Int!
+  hasMediaCount: Int!
+  appendCount: Int!
+  topTags: [String!]!
+}
+
+type SellerDSR {
+  avgDescription: Float!
+  avgService: Float!
+  avgDelivery: Float!
+  reputationScore: Int!
+}
+
+input CreateReviewInput {
+  orderId: ID!
+  productId: ID!
+  variantId: ID!
+  ratingDescription: Int!
+  ratingService: Int!
+  ratingDelivery: Int!
+  content: String
+  isAnonymous: Boolean
+  mediaUrls: [String!]
+}
+
+input AppendReviewInput {
+  reviewId: ID!
+  content: String!
+  mediaUrls: [String!]
+}
+
+input UpdateReviewInput {
+  reviewId: ID!
+  ratingDescription: Int!
+  ratingService: Int!
+  ratingDelivery: Int!
+  content: String
+}
+
+input SellerReplyInput {
+  reviewId: ID!
+  replyType: String!
+  content: String!
 }

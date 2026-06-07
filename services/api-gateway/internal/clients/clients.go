@@ -11,6 +11,7 @@ import (
 	notificationv1 "github.com/wemall/gen/notification/v1"
 	orderv1 "github.com/wemall/gen/order/v1"
 	productv1 "github.com/wemall/gen/product/v1"
+	reviewv1 "github.com/wemall/gen/review/v1"
 	sellerv1 "github.com/wemall/gen/seller/v1"
 	userv1 "github.com/wemall/gen/user/v1"
 )
@@ -23,6 +24,7 @@ type Clients struct {
 	Seller       sellerv1.SellerServiceClient
 	Inventory    inventoryv1.InventoryServiceClient
 	Notification notificationv1.NotificationServiceClient
+	Review       reviewv1.ReviewServiceClient
 
 	userConn         *grpc.ClientConn
 	productConn      *grpc.ClientConn
@@ -30,10 +32,11 @@ type Clients struct {
 	sellerConn       *grpc.ClientConn
 	inventoryConn    *grpc.ClientConn
 	notificationConn *grpc.ClientConn
+	reviewConn       *grpc.ClientConn
 }
 
-// New dials user, product, order, seller, inventory, and notification services.
-func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificationAddr string) (*Clients, error) {
+// New dials user, product, order, seller, inventory, notification, and review services.
+func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificationAddr, reviewAddr string) (*Clients, error) {
 	dial := func(addr string) (*grpc.ClientConn, error) {
 		conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
@@ -81,6 +84,16 @@ func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificati
 		iConn.Close()
 		return nil, err
 	}
+	rConn, err := dial(reviewAddr)
+	if err != nil {
+		uConn.Close()
+		pConn.Close()
+		oConn.Close()
+		sConn.Close()
+		iConn.Close()
+		nConn.Close()
+		return nil, err
+	}
 
 	return &Clients{
 		User:         userv1.NewUserServiceClient(uConn),
@@ -89,12 +102,14 @@ func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificati
 		Seller:       sellerv1.NewSellerServiceClient(sConn),
 		Inventory:    inventoryv1.NewInventoryServiceClient(iConn),
 		Notification: notificationv1.NewNotificationServiceClient(nConn),
+		Review:       reviewv1.NewReviewServiceClient(rConn),
 		userConn:         uConn,
 		productConn:      pConn,
 		orderConn:        oConn,
 		sellerConn:       sConn,
 		inventoryConn:    iConn,
 		notificationConn: nConn,
+		reviewConn:       rConn,
 	}, nil
 }
 
@@ -106,4 +121,5 @@ func (c *Clients) Close() {
 	c.sellerConn.Close()
 	c.inventoryConn.Close()
 	c.notificationConn.Close()
+	c.reviewConn.Close()
 }

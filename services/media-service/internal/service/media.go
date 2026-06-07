@@ -54,7 +54,7 @@ func NewMediaService(cfg *config.Config, log zerolog.Logger, q *db.Queries, pool
 	}
 
 	// Determine if we are in local development mock mode
-	if cfg.Environment == "development" && (os.Getenv("AWS_ACCESS_KEY_ID") == "" || cfg.AWSS3RawBucket == "wemall-media-raw") {
+	if cfg.Environment == "development" && os.Getenv("AWS_ACCESS_KEY_ID") == "" {
 		svc.log.Warn().Msg("AWS credentials or buckets missing; starting in LOCAL DEVELOPMENT MOCK MODE")
 		svc.isMockMode = true
 		// Ensure local temp directories exist
@@ -480,7 +480,8 @@ func (s *MediaService) resolveVariantURL(mediaID, filename string, isPrivate boo
 	if isPrivate {
 		// Dynamic URL Signing
 		if s.cfSigner != nil {
-			signedURL, err := s.cfSigner.Sign(rawURL, time.Now().Add(15*time.Minute))
+			// Return a permanently signed URL (100 years in the future)
+			signedURL, err := s.cfSigner.Sign(rawURL, time.Now().AddDate(100, 0, 0))
 			if err == nil {
 				return signedURL
 			}

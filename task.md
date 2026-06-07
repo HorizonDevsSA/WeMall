@@ -100,4 +100,15 @@ Legend: ✅ Done · ⬜ Not started
 
 All tasks done. Run `make dev` to start the full stack.
 
-**Next: Phase 2** — seller-service, inventory-service, DataLoaders, Redis caching.
+# Next: Phase 2 — seller-service, inventory-service, DataLoaders, Redis caching.
+
+---
+
+## Media Service Configuration & Verification Tasks
+
+- [x] Configure S3 keys and comment out session token in root `.env`
+- [x] Modify S3 mock-mode detection on startup in `media.go`
+- [x] Modify CloudFront URL signing expiration to 100 years in `media.go`
+- [x] Rebuild and restart the media service docker container
+- [x] Verify logs to ensure media service is running in real AWS mode
+- [x] Test upload, confirm, and URL generation flow to verify permanently signed URLs

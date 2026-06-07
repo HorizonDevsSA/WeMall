@@ -1,0 +1,171 @@
+syntax = "proto3";
+
+package review.v1;
+
+option go_package = "github.com/wemall/gen/review/v1;reviewv1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+service ReviewService {
+  rpc CreateReview(CreateReviewRequest) returns (Review);
+  rpc AppendReview(AppendReviewRequest) returns (AppendReviewResponse);
+  rpc UpdateReview(UpdateReviewRequest) returns (Review); // 30-day window to edit Bad/Neutral reviews
+  rpc DeleteReview(DeleteReviewRequest) returns (google.protobuf.Empty); // 30-day window to delete
+  rpc CreateSellerReply(CreateSellerReplyRequest) returns (SellerReply);
+  
+  rpc GetReview(GetReviewRequest) returns (Review);
+  rpc ListProductReviews(ListProductReviewsRequest) returns (ListProductReviewsResponse);
+  rpc ListSellerReviews(ListSellerReviewsRequest) returns (ListSellerReviewsResponse);
+  
+  // Trailing aggregations for Products and Sellers
+  rpc GetProductRatingStats(GetProductRatingStatsRequest) returns (ProductRatingStats);
+  rpc GetSellerDSR(GetSellerDSRRequest) returns (SellerDSR);
+}
+
+message Media {
+  string id = 1;
+  string url = 2;
+  string media_type = 3;
+  int32 sort_order = 4;
+}
+
+message Review {
+  string id = 1;
+  string order_id = 2;
+  string buyer_id = 3;
+  string seller_id = 4;
+  string product_id = 5;
+  string variant_id = 6;
+  int32 rating_description = 7;
+  int32 rating_service = 8;
+  int32 rating_delivery = 9;
+  string review_type = 10;
+  string content = 11;
+  bool is_anonymous = 12;
+  bool has_media = 13;
+  repeated Media media = 14;
+  repeated string nlp_tags = 15;
+  bool is_system_generated = 16;
+  google.protobuf.Timestamp created_at = 17;
+  google.protobuf.Timestamp updated_at = 18;
+  AppendReview append_review = 19;
+  repeated SellerReply replies = 20;
+}
+
+message AppendReview {
+  string id = 1;
+  string content = 2;
+  bool has_media = 3;
+  repeated Media media = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message SellerReply {
+  string id = 1;
+  string reply_type = 2;
+  string content = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+// Requests and Responses
+message CreateReviewRequest {
+  string order_id = 1;
+  string buyer_id = 2;
+  string seller_id = 3;
+  string product_id = 4;
+  string variant_id = 5;
+  int32 rating_description = 6;
+  int32 rating_service = 7;
+  int32 rating_delivery = 8;
+  string content = 9;
+  bool is_anonymous = 10;
+  repeated string media_urls = 11; 
+}
+
+message AppendReviewRequest {
+  string review_id = 1;
+  string buyer_id = 2;
+  string content = 3;
+  repeated string media_urls = 4;
+}
+
+message AppendReviewResponse {
+  string id = 1;
+  string review_id = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
+
+message UpdateReviewRequest {
+  string review_id = 1;
+  string buyer_id = 2;
+  int32 rating_description = 3;
+  int32 rating_service = 4;
+  int32 rating_delivery = 5;
+  string content = 6;
+}
+
+message DeleteReviewRequest {
+  string review_id = 1;
+  string buyer_id = 2;
+}
+
+message CreateSellerReplyRequest {
+  string review_id = 1;
+  string seller_id = 2;
+  string reply_type = 3; // "initial" | "append"
+  string content = 4;
+}
+
+message GetReviewRequest {
+  string id = 1;
+}
+
+message ListProductReviewsRequest {
+  string product_id = 1;
+  string filter_type = 2; // "ALL", "GOOD", "NEUTRAL", "BAD", "HAS_MEDIA", "APPEND"
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message ListProductReviewsResponse {
+  repeated Review reviews = 1;
+  int32 total = 2;
+}
+
+message ListSellerReviewsRequest {
+  string seller_id = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message ListSellerReviewsResponse {
+  repeated Review reviews = 1;
+  int32 total = 2;
+}
+
+message GetProductRatingStatsRequest {
+  string product_id = 1;
+}
+
+message ProductRatingStats {
+  float average_rating = 1;
+  int32 total_reviews = 2;
+  int32 good_count = 3;
+  int32 neutral_count = 4;
+  int32 bad_count = 5;
+  int32 has_media_count = 6;
+  int32 append_count = 7;
+  repeated string top_nlp_tags = 8;
+}
+
+message GetSellerDSRRequest {
+  string seller_id = 1;
+}
+
+message SellerDSR {
+  float avg_description = 1;
+  float avg_service = 2;
+  float avg_delivery = 3;
+  int32 reputation_score = 4;
+}

@@ -90,6 +90,21 @@ services:
       timeout: 5s
       retries: 5
 
+  postgres-reviews:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wemall_reviews
+      POSTGRES_USER: wemall
+      POSTGRES_PASSWORD: wemall_secret
+    ports: ['5438:5432']
+    volumes:
+      - pgdata-reviews:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U wemall -d wemall_reviews']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 
   # ── Redis ──────────────────────────────────────────────────────────────────
   redis:
@@ -207,12 +222,14 @@ services:
       REDIS_URL: redis:6379
       ENVIRONMENT: development
       NOTIFICATION_SERVICE_ADDR: notification-service:9007
+      REVIEW_SERVICE_ADDR: review-service:9009
     depends_on:
       - user-service
       - product-service
       - order-service
       - seller-service
       - notification-service
+      - review-service
     restart: unless-stopped
 
   notification-service:
@@ -260,6 +277,26 @@ services:
       - ./.tmp/media:/app/.tmp/media
     restart: unless-stopped
 
+  review-service:
+    build:
+      context: .
+      dockerfile: ./services/review-service/Dockerfile
+    ports: ['9009:9009']
+    environment:
+      DB_URL: postgres://wemall:wemall_secret@postgres-reviews:5432/wemall_reviews?sslmode=disable
+      GRPC_PORT: '9009'
+      NATS_URL: nats://nats:4222
+      ORDER_SERVICE_ADDR: order-service:9005
+      ENVIRONMENT: development
+    depends_on:
+      postgres-reviews:
+        condition: service_healthy
+      nats:
+        condition: service_started
+      order-service:
+        condition: service_started
+    restart: unless-stopped
+
   documentation-service:
     build:
       context: .
@@ -275,6 +312,7 @@ volumes:
   pgdata-sellers:
   pgdata-notifications:
   pgdata-media:
+  pgdata-reviews:
   redisdata:
   natsdata:
   meilidata:

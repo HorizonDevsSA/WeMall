@@ -22,7 +22,11 @@ func (r *Resolver) ProductVariant() generated.ProductVariantResolver {
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+// Seller returns generated.SellerResolver implementation.
+func (r *Resolver) Seller() generated.SellerResolver { return &sellerResolver{r} }
+
 type mutationResolver struct{ *Resolver }
 type productResolver struct{ *Resolver }
 type productVariantResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type sellerResolver struct{ *Resolver }

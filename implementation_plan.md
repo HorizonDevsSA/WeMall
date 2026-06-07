@@ -899,3 +899,30 @@ This gives you a platform built for real scale:
 | **Developer experience** | Single `make dev` spins up everything; GraphQL Playground for exploration |
 | **Observability** | OpenTelemetry traces flow through Gateway → gRPC → DB |
 | **Extensibility** | Add a Review Service or Recommendation Service without touching existing code |
+
+---
+
+# Implementation Plan: Media Service AWS IAM & CloudFront Signed URLs Updates
+
+## User Review Required
+- **Local Credentials Store**: The new AWS IAM user keys must be configured only in the root `.env` file (which is git-ignored by `.gitignore` to prevent leaking keys). Do not add these keys to any versioned file.
+- **AWS Session Token Removal**: Comment out or delete `AWS_SESSION_TOKEN` in the `.env` configuration. If `AWS_SESSION_TOKEN` is present, the AWS SDK will attempt to use it alongside the permanent IAM User keys (`AKIA...`), which will fail.
+
+## Proposed Changes
+
+### Media Service
+
+#### [MODIFY] [media.go](file:///Volumes/Untitled/WeMall/services/media-service/internal/service/media.go)
+- Modify the mock-mode detection on startup to run in real S3 mode when `AWS_ACCESS_KEY_ID` is set (even if the bucket is named `wemall-media-raw`).
+- Change CloudFront URL signing duration to 100 years (`time.Now().AddDate(100, 0, 0)`) to generate permanently signed URLs for private assets.
+
+#### [MODIFY] [.env](file:///Volumes/Untitled/WeMall/.env)
+- Update `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` with the permanent IAM User credentials.
+- Comment out or delete `AWS_SESSION_TOKEN`.
+
+## Verification Plan
+
+### Manual Verification
+1. **Container Rebuild & Startup**: Rebuild and restart the media service to load the new config.
+2. **Review Logs**: Run `docker compose logs -f media-service` and verify that the logs state `S3 client and presigner initialized successfully` instead of the local mock mode fallback warning.
+3. **E2E Upload & URL Generation**: Upload an image through the media service, confirm the upload, and verify that the returned variation URLs are signed CloudFront URLs with expiration timestamps set in the far future (~100 years).

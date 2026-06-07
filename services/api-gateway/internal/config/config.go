@@ -12,6 +12,7 @@ type Config struct {
 	OrderServiceAddr     string
 	InventoryServiceAddr string
 	NotificationServiceAddr string
+	ReviewServiceAddr    string
 	JWTSecret            string
 	Environment          string
 }
@@ -25,6 +26,7 @@ func Load() *Config {
 		OrderServiceAddr:     getEnv("ORDER_SERVICE_ADDR", "localhost:9005"),
 		InventoryServiceAddr: getEnv("INVENTORY_SERVICE_ADDR", "localhost:9006"),
 		NotificationServiceAddr: getEnv("NOTIFICATION_SERVICE_ADDR", "localhost:9007"),
+		ReviewServiceAddr:    getEnv("REVIEW_SERVICE_ADDR", "localhost:9009"),
 		JWTSecret:            getEnv("JWT_SECRET", "super_secret_jwt_key_change_in_production"),
 		Environment:          getEnv("ENVIRONMENT", "development"),
 	}

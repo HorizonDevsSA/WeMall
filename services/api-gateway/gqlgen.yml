@@ -38,6 +38,14 @@ models:
     fields:
       seller:
         resolver: true
+      reviews:
+        resolver: true
+      reviewStats:
+        resolver: true
+  Seller:
+    fields:
+      dsr:
+        resolver: true
   ProductVariant:
     fields:
       inventory:

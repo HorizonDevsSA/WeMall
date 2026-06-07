@@ -11,6 +11,7 @@ import (
 	productv1 "github.com/wemall/gen/product/v1"
 	sellerv1 "github.com/wemall/gen/seller/v1"
 	userv1 "github.com/wemall/gen/user/v1"
+	reviewv1 "github.com/wemall/gen/review/v1"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -665,4 +666,131 @@ func mapOrderProductType(pt orderv1.ProductType) model.ProductType {
 		return model.ProductTypeElectronics
 	}
 }
+
+// ── Review Mappers ───────────────────────────────────────────────────────────
+
+func mapReview(r *reviewv1.Review) *model.Review {
+	if r == nil {
+		return nil
+	}
+	mediaList := make([]*model.ReviewMedia, len(r.Media))
+	for i, m := range r.Media {
+		mediaList[i] = &model.ReviewMedia{
+			ID:        m.Id,
+			MediaURL:  m.Url,
+			MediaType: m.MediaType,
+		}
+	}
+	repliesList := make([]*model.SellerReply, len(r.Replies))
+	for i, rep := range r.Replies {
+		var createdAt time.Time
+		if rep.CreatedAt != nil {
+			createdAt = rep.CreatedAt.AsTime()
+		}
+		repliesList[i] = &model.SellerReply{
+			ID:        rep.Id,
+			ReplyType: rep.ReplyType,
+			Content:   rep.Content,
+			CreatedAt: createdAt,
+		}
+	}
+	var createdAt, updatedAt time.Time
+	if r.CreatedAt != nil {
+		createdAt = r.CreatedAt.AsTime()
+	}
+	if r.UpdatedAt != nil {
+		updatedAt = r.UpdatedAt.AsTime()
+	}
+	return &model.Review{
+		ID:                r.Id,
+		OrderID:           r.OrderId,
+		BuyerID:           r.BuyerId,
+		BuyerName:         "Buyer " + r.BuyerId,
+		BuyerAvatar:       nil,
+		RatingDescription: int(r.RatingDescription),
+		RatingService:     int(r.RatingService),
+		RatingDelivery:    int(r.RatingDelivery),
+		ReviewType:        r.ReviewType,
+		Content:           strPtr(r.Content),
+		IsAnonymous:       r.IsAnonymous,
+		HasMedia:          r.HasMedia,
+		Media:             mediaList,
+		NlpTags:           r.NlpTags,
+		IsSystemGenerated: r.IsSystemGenerated,
+		CreatedAt:         createdAt,
+		UpdatedAt:         updatedAt,
+		AppendReview:      mapAppendReview(r.AppendReview),
+		Replies:           repliesList,
+	}
+}
+
+func mapAppendReview(ar *reviewv1.AppendReview) *model.AppendReview {
+	if ar == nil {
+		return nil
+	}
+	mediaList := make([]*model.ReviewMedia, len(ar.Media))
+	for i, m := range ar.Media {
+		mediaList[i] = &model.ReviewMedia{
+			ID:        m.Id,
+			MediaURL:  m.Url,
+			MediaType: m.MediaType,
+		}
+	}
+	var createdAt time.Time
+	if ar.CreatedAt != nil {
+		createdAt = ar.CreatedAt.AsTime()
+	}
+	return &model.AppendReview{
+		ID:        ar.Id,
+		Content:   ar.Content,
+		HasMedia:  ar.HasMedia,
+		Media:     mediaList,
+		CreatedAt: createdAt,
+	}
+}
+
+func mapSellerReply(rep *reviewv1.SellerReply) *model.SellerReply {
+	if rep == nil {
+		return nil
+	}
+	var createdAt time.Time
+	if rep.CreatedAt != nil {
+		createdAt = rep.CreatedAt.AsTime()
+	}
+	return &model.SellerReply{
+		ID:        rep.Id,
+		ReplyType: rep.ReplyType,
+		Content:   rep.Content,
+		CreatedAt: createdAt,
+	}
+}
+
+func mapProductReviewStats(s *reviewv1.ProductRatingStats) *model.ProductReviewStats {
+	if s == nil {
+		return nil
+	}
+	return &model.ProductReviewStats{
+		AverageRating: float64(s.AverageRating),
+		TotalReviews:  int(s.TotalReviews),
+		GoodCount:     int(s.GoodCount),
+		NeutralCount:  int(s.NeutralCount),
+		BadCount:      int(s.BadCount),
+		HasMediaCount: int(s.HasMediaCount),
+		AppendCount:   int(s.AppendCount),
+		TopTags:       s.TopNlpTags,
+	}
+}
+
+func mapSellerDsr(d *reviewv1.SellerDSR) *model.SellerDsr {
+	if d == nil {
+		return nil
+	}
+	return &model.SellerDsr{
+		AvgDescription:  float64(d.AvgDescription),
+		AvgService:      float64(d.AvgService),
+		AvgDelivery:     float64(d.AvgDelivery),
+		ReputationScore: int(d.ReputationScore),
+	}
+}
+
 

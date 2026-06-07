@@ -4,11 +4,12 @@ use (
 	./gen
 	./pkg
 	./services/api-gateway
+	./services/documentation-service
 	./services/media-service
 	./services/notification-service
 	./services/order-service
 	./services/product-service
+	./services/review-service
 	./services/seller-service
 	./services/user-service
-	./services/documentation-service
 )
