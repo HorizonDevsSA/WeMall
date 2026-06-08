@@ -13,6 +13,7 @@ import (
 	productv1 "github.com/wemall/gen/product/v1"
 	sellerv1 "github.com/wemall/gen/seller/v1"
 	userv1 "github.com/wemall/gen/user/v1"
+	paymentv1 "github.com/wemall/gen/payment/v1"
 )
 
 // ── Auth Mutations ────────────────────────────────────────────────────────────
@@ -453,4 +454,56 @@ func productStatusToProto(s model.ProductStatus) string {
 	default:
 		return ""
 	}
+}
+
+// ── Payment Mutations ────────────────────────────────────────────────────────
+
+func (r *mutationResolver) InitiatePayment(ctx context.Context, orderID string, provider model.PaymentProvider) (*model.InitiatePaymentResponse, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	// 1. Fetch Order details to get the amount/currency (from order-service)
+	order, err := r.Clients.Order.GetOrder(ctx, &orderv1.GetOrderRequest{
+		Id:     orderID,
+		UserId: uid,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Call payment-service to create payment
+	resp, err := r.Clients.Payment.CreatePayment(ctx, &paymentv1.CreatePaymentRequest{
+		OrderId:  orderID,
+		UserId:   uid,
+		Amount:   order.Total,
+		Currency: order.Currency,
+		Provider: unmapPaymentProvider(provider),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.InitiatePaymentResponse{
+		Payment:      mapPayment(resp.Payment),
+		ClientSecret: &resp.ClientSecret,
+	}, nil
+}
+
+func (r *mutationResolver) ProcessPayment(ctx context.Context, paymentID string, token string) (*model.Payment, error) {
+	_, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	resp, err := r.Clients.Payment.ProcessPayment(ctx, &paymentv1.ProcessPaymentRequest{
+		PaymentId: paymentID,
+		Token:     token,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return mapPayment(resp.Payment), nil
 }

@@ -14,6 +14,7 @@ COPY services/media-service/go.mod    ./services/media-service/
 COPY services/notification-service/go.mod ./services/notification-service/
 COPY services/documentation-service/go.mod ./services/documentation-service/
 COPY services/review-service/go.mod ./services/review-service/
+COPY services/payment-service/go.mod ./services/payment-service/
 
 RUN go work sync
 

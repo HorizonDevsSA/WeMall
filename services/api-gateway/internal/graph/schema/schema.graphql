@@ -396,6 +396,7 @@ type Query {
   cart:   Cart! @hasRole(role: BUYER)
   order(id: ID!): Order! @hasRole(role: BUYER)
   orders(pageSize: Int, pageToken: String): OrderList! @hasRole(role: BUYER)
+  payment(id: ID!): Payment! @hasRole(role: BUYER)
 
   # Notifications
   notificationPreferences: [NotificationPreference!]! @hasRole(role: BUYER)
@@ -478,6 +479,10 @@ type Mutation {
   # Orders
   checkout(input: CheckoutInput!): Order! @hasRole(role: BUYER)
   cancelOrder(id: ID!): Order! @hasRole(role: BUYER)
+
+  # Payments
+  initiatePayment(orderId: ID!, provider: PaymentProvider!): InitiatePaymentResponse! @hasRole(role: BUYER)
+  processPayment(paymentId: ID!, token: String!): Payment! @hasRole(role: BUYER)
 
   # Notifications
   registerDeviceToken(token: String!, platform: String!, deviceName: String): Boolean! @hasRole(role: BUYER)
@@ -601,4 +606,34 @@ input SellerReplyInput {
   reviewId: ID!
   replyType: String!
   content: String!
+}
+
+enum PaymentProvider {
+  GOOGLE_PAY
+  STRIPE
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+type Payment {
+  id: ID!
+  orderId: ID!
+  userId: ID!
+  amount: Float!
+  currency: String!
+  provider: PaymentProvider!
+  status: PaymentStatus!
+  transactionId: String
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type InitiatePaymentResponse {
+  payment: Payment!
+  clientSecret: String
 }

@@ -105,6 +105,21 @@ services:
       timeout: 5s
       retries: 5
 
+  postgres-payments:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wemall_payments
+      POSTGRES_USER: wemall
+      POSTGRES_PASSWORD: wemall_secret
+    ports: ['5439:5432']
+    volumes:
+      - pgdata-payments:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U wemall -d wemall_payments']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 
   # ── Redis ──────────────────────────────────────────────────────────────────
   redis:
@@ -223,6 +238,7 @@ services:
       ENVIRONMENT: development
       NOTIFICATION_SERVICE_ADDR: notification-service:9007
       REVIEW_SERVICE_ADDR: review-service:9009
+      PAYMENT_SERVICE_ADDR: payment-service:9011
     depends_on:
       - user-service
       - product-service
@@ -230,6 +246,7 @@ services:
       - seller-service
       - notification-service
       - review-service
+      - payment-service
     restart: unless-stopped
 
   notification-service:
@@ -297,6 +314,25 @@ services:
         condition: service_started
     restart: unless-stopped
 
+  payment-service:
+    build:
+      context: .
+      dockerfile: ./services/payment-service/Dockerfile
+    ports: ['9011:9011']
+    environment:
+      DB_URL: postgres://wemall:wemall_secret@postgres-payments:5432/wemall_payments?sslmode=disable
+      GRPC_PORT: '9011'
+      NATS_URL: nats://nats:4222
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      GOOGLE_PAY_MERCHANT_ID: ${GOOGLE_PAY_MERCHANT_ID:-merchant_id_wemall}
+      ENVIRONMENT: development
+    depends_on:
+      postgres-payments:
+        condition: service_healthy
+      nats:
+        condition: service_started
+    restart: unless-stopped
+
   documentation-service:
     build:
       context: .
@@ -313,6 +349,7 @@ volumes:
   pgdata-notifications:
   pgdata-media:
   pgdata-reviews:
+  pgdata-payments:
   redisdata:
   natsdata:
   meilidata:

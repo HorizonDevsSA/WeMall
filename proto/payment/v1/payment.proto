@@ -1,0 +1,74 @@
+syntax = "proto3";
+package payment.v1;
+option go_package = "github.com/wemall/gen/payment/v1;paymentv1";
+
+import "google/protobuf/timestamp.proto";
+
+enum PaymentProvider {
+  PAYMENT_PROVIDER_UNSPECIFIED = 0;
+  PAYMENT_PROVIDER_GOOGLE_PAY  = 1;
+  PAYMENT_PROVIDER_STRIPE      = 2;
+}
+
+enum PaymentStatus {
+  PAYMENT_STATUS_UNSPECIFIED = 0;
+  PAYMENT_STATUS_PENDING     = 1;
+  PAYMENT_STATUS_COMPLETED   = 2;
+  PAYMENT_STATUS_FAILED      = 3;
+  PAYMENT_STATUS_REFUNDED    = 4;
+}
+
+message Payment {
+  string                    id             = 1;
+  string                    order_id       = 2;
+  string                    user_id        = 3;
+  double                    amount         = 4;
+  string                    currency       = 5;
+  PaymentProvider           provider       = 6;
+  PaymentStatus             status         = 7;
+  string                    transaction_id = 8;
+  google.protobuf.Timestamp created_at     = 9;
+  google.protobuf.Timestamp updated_at     = 10;
+}
+
+message CreatePaymentRequest {
+  string          order_id = 1;
+  string          user_id  = 2;
+  double          amount   = 3;
+  string          currency = 4;
+  PaymentProvider provider = 5;
+}
+
+message CreatePaymentResponse {
+  Payment payment       = 1;
+  string  client_secret = 2; // Stripe Client Secret or Google Pay parameter configuration
+}
+
+message ProcessPaymentRequest {
+  string payment_id = 1;
+  string token      = 2; // Token from Google Pay or Stripe token/payment method ID
+}
+
+message ProcessPaymentResponse {
+  Payment payment = 1;
+}
+
+message GetPaymentRequest {
+  string id = 1;
+}
+
+message RefundPaymentRequest {
+  string payment_id = 1;
+  double amount     = 2;
+}
+
+message RefundPaymentResponse {
+  Payment payment = 1;
+}
+
+service PaymentService {
+  rpc CreatePayment(CreatePaymentRequest) returns (CreatePaymentResponse);
+  rpc ProcessPayment(ProcessPaymentRequest) returns (ProcessPaymentResponse);
+  rpc GetPayment(GetPaymentRequest) returns (Payment);
+  rpc RefundPayment(RefundPaymentRequest) returns (RefundPaymentResponse);
+}

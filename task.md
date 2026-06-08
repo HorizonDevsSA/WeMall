@@ -106,6 +106,7 @@ All tasks done. Run `make dev` to start the full stack.
 
 ## Media Service Configuration & Verification Tasks
 
+- [ ] Verification & Testing
 - [x] Configure S3 keys and comment out session token in root `.env`
 - [x] Modify S3 mock-mode detection on startup in `media.go`
 - [x] Modify CloudFront URL signing expiration to 100 years in `media.go`

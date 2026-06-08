@@ -35,6 +35,11 @@ type CreateReviewInput struct {
 	MediaUrls         []string `json:"mediaUrls,omitempty"`
 }
 
+type InitiatePaymentResponse struct {
+	Payment      *Payment `json:"payment"`
+	ClientSecret *string  `json:"clientSecret,omitempty"`
+}
+
 type Mutation struct {
 }
 
@@ -52,6 +57,19 @@ type NotificationPreference struct {
 	Category     NotificationCategory `json:"category"`
 	EmailEnabled bool                 `json:"emailEnabled"`
 	PushEnabled  bool                 `json:"pushEnabled"`
+}
+
+type Payment struct {
+	ID            string          `json:"id"`
+	OrderID       string          `json:"orderId"`
+	UserID        string          `json:"userId"`
+	Amount        float64         `json:"amount"`
+	Currency      string          `json:"currency"`
+	Provider      PaymentProvider `json:"provider"`
+	Status        PaymentStatus   `json:"status"`
+	TransactionID *string         `json:"transactionId,omitempty"`
+	CreatedAt     time.Time       `json:"createdAt"`
+	UpdatedAt     time.Time       `json:"updatedAt"`
 }
 
 type ProductReviewConnection struct {
@@ -178,6 +196,92 @@ func (e *NotificationCategory) UnmarshalGQL(v interface{}) error {
 }
 
 func (e NotificationCategory) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type PaymentProvider string
+
+const (
+	PaymentProviderGooglePay PaymentProvider = "GOOGLE_PAY"
+	PaymentProviderStripe    PaymentProvider = "STRIPE"
+)
+
+var AllPaymentProvider = []PaymentProvider{
+	PaymentProviderGooglePay,
+	PaymentProviderStripe,
+}
+
+func (e PaymentProvider) IsValid() bool {
+	switch e {
+	case PaymentProviderGooglePay, PaymentProviderStripe:
+		return true
+	}
+	return false
+}
+
+func (e PaymentProvider) String() string {
+	return string(e)
+}
+
+func (e *PaymentProvider) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PaymentProvider(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid PaymentProvider", str)
+	}
+	return nil
+}
+
+func (e PaymentProvider) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type PaymentStatus string
+
+const (
+	PaymentStatusPending   PaymentStatus = "PENDING"
+	PaymentStatusCompleted PaymentStatus = "COMPLETED"
+	PaymentStatusFailed    PaymentStatus = "FAILED"
+	PaymentStatusRefunded  PaymentStatus = "REFUNDED"
+)
+
+var AllPaymentStatus = []PaymentStatus{
+	PaymentStatusPending,
+	PaymentStatusCompleted,
+	PaymentStatusFailed,
+	PaymentStatusRefunded,
+}
+
+func (e PaymentStatus) IsValid() bool {
+	switch e {
+	case PaymentStatusPending, PaymentStatusCompleted, PaymentStatusFailed, PaymentStatusRefunded:
+		return true
+	}
+	return false
+}
+
+func (e PaymentStatus) String() string {
+	return string(e)
+}
+
+func (e *PaymentStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PaymentStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid PaymentStatus", str)
+	}
+	return nil
+}
+
+func (e PaymentStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

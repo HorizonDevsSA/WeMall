@@ -12,6 +12,7 @@ import (
 	sellerv1 "github.com/wemall/gen/seller/v1"
 	userv1 "github.com/wemall/gen/user/v1"
 	reviewv1 "github.com/wemall/gen/review/v1"
+	paymentv1 "github.com/wemall/gen/payment/v1"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -790,6 +791,74 @@ func mapSellerDsr(d *reviewv1.SellerDSR) *model.SellerDsr {
 		AvgService:      float64(d.AvgService),
 		AvgDelivery:     float64(d.AvgDelivery),
 		ReputationScore: int(d.ReputationScore),
+	}
+}
+
+// ── Payment Mappers ──────────────────────────────────────────────────────────
+
+func mapPayment(p *paymentv1.Payment) *model.Payment {
+	if p == nil {
+		return nil
+	}
+	var createdAt, updatedAt time.Time
+	if p.CreatedAt != nil {
+		createdAt = p.CreatedAt.AsTime()
+	}
+	if p.UpdatedAt != nil {
+		updatedAt = p.UpdatedAt.AsTime()
+	}
+	txnID := ""
+	if p.TransactionId != "" {
+		txnID = p.TransactionId
+	}
+	return &model.Payment{
+		ID:            p.Id,
+		OrderID:       p.OrderId,
+		UserID:        p.UserId,
+		Amount:        p.Amount,
+		Currency:      p.Currency,
+		Provider:      mapPaymentProvider(p.Provider),
+		Status:        mapPaymentStatus(p.Status),
+		TransactionID: &txnID,
+		CreatedAt:     createdAt,
+		UpdatedAt:     updatedAt,
+	}
+}
+
+func mapPaymentProvider(p paymentv1.PaymentProvider) model.PaymentProvider {
+	switch p {
+	case paymentv1.PaymentProvider_PAYMENT_PROVIDER_GOOGLE_PAY:
+		return model.PaymentProviderGooglePay
+	case paymentv1.PaymentProvider_PAYMENT_PROVIDER_STRIPE:
+		return model.PaymentProviderStripe
+	default:
+		return model.PaymentProviderGooglePay
+	}
+}
+
+func mapPaymentStatus(s paymentv1.PaymentStatus) model.PaymentStatus {
+	switch s {
+	case paymentv1.PaymentStatus_PAYMENT_STATUS_PENDING:
+		return model.PaymentStatusPending
+	case paymentv1.PaymentStatus_PAYMENT_STATUS_COMPLETED:
+		return model.PaymentStatusCompleted
+	case paymentv1.PaymentStatus_PAYMENT_STATUS_FAILED:
+		return model.PaymentStatusFailed
+	case paymentv1.PaymentStatus_PAYMENT_STATUS_REFUNDED:
+		return model.PaymentStatusRefunded
+	default:
+		return model.PaymentStatusPending
+	}
+}
+
+func unmapPaymentProvider(p model.PaymentProvider) paymentv1.PaymentProvider {
+	switch p {
+	case model.PaymentProviderGooglePay:
+		return paymentv1.PaymentProvider_PAYMENT_PROVIDER_GOOGLE_PAY
+	case model.PaymentProviderStripe:
+		return paymentv1.PaymentProvider_PAYMENT_PROVIDER_STRIPE
+	default:
+		return paymentv1.PaymentProvider_PAYMENT_PROVIDER_UNSPECIFIED
 	}
 }
 

@@ -11,6 +11,7 @@ import (
 	productv1 "github.com/wemall/gen/product/v1"
 	sellerv1 "github.com/wemall/gen/seller/v1"
 	userv1 "github.com/wemall/gen/user/v1"
+	paymentv1 "github.com/wemall/gen/payment/v1"
 )
 
 // ── User Queries ──────────────────────────────────────────────────────────────
@@ -332,4 +333,18 @@ func (r *queryResolver) MyNotifications(ctx context.Context, limit *int, offset 
 		out[i] = mapNotificationLog(l)
 	}
 	return out, nil
+}
+
+// ── Payment Queries ──────────────────────────────────────────────────────────
+
+func (r *queryResolver) Payment(ctx context.Context, id string) (*model.Payment, error) {
+	_, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+	resp, err := r.Clients.Payment.GetPayment(ctx, &paymentv1.GetPaymentRequest{Id: id})
+	if err != nil {
+		return nil, err
+	}
+	return mapPayment(resp), nil
 }

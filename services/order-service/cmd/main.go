@@ -20,6 +20,7 @@ import (
 	"github.com/wemall/order-service/internal/db"
 	"github.com/wemall/order-service/internal/handler"
 	"github.com/wemall/order-service/internal/service"
+	"github.com/wemall/order-service/internal/worker"
 	"github.com/wemall/pkg/grpcutil"
 	"github.com/wemall/pkg/logger"
 )
@@ -83,6 +84,14 @@ func main() {
 	cartSvc := service.NewCartService(queries, productClient, sellerClient)
 	orderSvc := service.NewOrderService(queries, dbPool, productClient, sellerClient, nc)
 
+	// Start NATS background workers
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	bgWorker := worker.NewWorker(nc, queries, dbPool, log)
+	if err := bgWorker.Start(ctx); err != nil {
+		log.Fatal().Err(err).Msg("failed to start background workers")
+	}
+
 	// Initialize gRPC server
 	grpcServer := grpc.NewServer(grpcutil.UnaryServerOptions(log)...)
 	orderHandler := handler.NewOrderHandler(cartSvc, orderSvc)
@@ -100,6 +109,7 @@ func main() {
 		signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 		<-sigChan
 		log.Info().Msg("shutting down gRPC server...")
+		cancel()
 		grpcServer.GracefulStop()
 	}()
 

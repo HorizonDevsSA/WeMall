@@ -11,6 +11,7 @@ import (
 	notificationv1 "github.com/wemall/gen/notification/v1"
 	orderv1 "github.com/wemall/gen/order/v1"
 	productv1 "github.com/wemall/gen/product/v1"
+	paymentv1 "github.com/wemall/gen/payment/v1"
 	reviewv1 "github.com/wemall/gen/review/v1"
 	sellerv1 "github.com/wemall/gen/seller/v1"
 	userv1 "github.com/wemall/gen/user/v1"
@@ -25,6 +26,7 @@ type Clients struct {
 	Inventory    inventoryv1.InventoryServiceClient
 	Notification notificationv1.NotificationServiceClient
 	Review       reviewv1.ReviewServiceClient
+	Payment      paymentv1.PaymentServiceClient
 
 	userConn         *grpc.ClientConn
 	productConn      *grpc.ClientConn
@@ -33,10 +35,11 @@ type Clients struct {
 	inventoryConn    *grpc.ClientConn
 	notificationConn *grpc.ClientConn
 	reviewConn       *grpc.ClientConn
+	paymentConn      *grpc.ClientConn
 }
 
-// New dials user, product, order, seller, inventory, notification, and review services.
-func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificationAddr, reviewAddr string) (*Clients, error) {
+// New dials user, product, order, seller, inventory, notification, review, and payment services.
+func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificationAddr, reviewAddr, paymentAddr string) (*Clients, error) {
 	dial := func(addr string) (*grpc.ClientConn, error) {
 		conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
@@ -94,6 +97,17 @@ func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificati
 		nConn.Close()
 		return nil, err
 	}
+	payConn, err := dial(paymentAddr)
+	if err != nil {
+		uConn.Close()
+		pConn.Close()
+		oConn.Close()
+		sConn.Close()
+		iConn.Close()
+		nConn.Close()
+		rConn.Close()
+		return nil, err
+	}
 
 	return &Clients{
 		User:         userv1.NewUserServiceClient(uConn),
@@ -103,6 +117,7 @@ func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificati
 		Inventory:    inventoryv1.NewInventoryServiceClient(iConn),
 		Notification: notificationv1.NewNotificationServiceClient(nConn),
 		Review:       reviewv1.NewReviewServiceClient(rConn),
+		Payment:      paymentv1.NewPaymentServiceClient(payConn),
 		userConn:         uConn,
 		productConn:      pConn,
 		orderConn:        oConn,
@@ -110,16 +125,18 @@ func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificati
 		inventoryConn:    iConn,
 		notificationConn: nConn,
 		reviewConn:       rConn,
+		paymentConn:      payConn,
 	}, nil
 }
 
 // Close shuts down all gRPC connections.
 func (c *Clients) Close() {
-	c.userConn.Close()
-	c.productConn.Close()
-	c.orderConn.Close()
-	c.sellerConn.Close()
-	c.inventoryConn.Close()
-	c.notificationConn.Close()
-	c.reviewConn.Close()
+		c.userConn.Close()
+		c.productConn.Close()
+		c.orderConn.Close()
+		c.sellerConn.Close()
+		c.inventoryConn.Close()
+		c.notificationConn.Close()
+		c.reviewConn.Close()
+		c.paymentConn.Close()
 }
