@@ -1,0 +1,63 @@
+syntax = "proto3";
+package chat.v1;
+option go_package = "github.com/wemall/gen/chat/v1;chatv1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+message Thread {
+  string id = 1;
+  string buyer_id = 2;
+  string seller_id = 3;
+  string order_id = 4; // Optional
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message Message {
+  string id = 1;
+  string thread_id = 2;
+  string sender_id = 3;
+  string content = 4;
+  bool is_read = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message CreateThreadRequest {
+  string buyer_id = 1;
+  string seller_id = 2;
+  string order_id = 3;
+}
+
+message SendMessageRequest {
+  string thread_id = 1;
+  string sender_id = 2;
+  string content = 3;
+}
+
+message ListThreadsRequest {
+  string user_id = 1;
+  string role = 2; // "BUYER" or "SELLER"
+}
+
+message ListThreadsResponse {
+  repeated Thread threads = 1;
+}
+
+message ListMessagesRequest {
+  string thread_id = 1;
+  string page_token = 2;
+  int32 page_size = 3;
+}
+
+message ListMessagesResponse {
+  repeated Message messages = 1;
+  string next_page_token = 2;
+}
+
+service ChatService {
+  rpc CreateThread(CreateThreadRequest) returns (Thread);
+  rpc SendMessage(SendMessageRequest) returns (Message);
+  rpc ListThreads(ListThreadsRequest) returns (ListThreadsResponse);
+  rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse);
+}

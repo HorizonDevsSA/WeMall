@@ -13,4 +13,9 @@ use (
 	./services/seller-service
 	./services/user-service
 	./services/payment-service
+	./services/chat-service
+	./services/dispute-service
+	./services/admin-service
+	./services/promotion-service
+	./services/recommendation-service
 )

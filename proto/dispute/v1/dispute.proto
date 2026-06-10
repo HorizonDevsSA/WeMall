@@ -1,0 +1,98 @@
+syntax = "proto3";
+package dispute.v1;
+option go_package = "github.com/wemall/gen/dispute/v1;disputev1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+enum DisputeStatus {
+  DISPUTE_STATUS_UNSPECIFIED = 0;
+  DISPUTE_STATUS_OPEN = 1;
+  DISPUTE_STATUS_SELLER_REVIEW = 2;
+  DISPUTE_STATUS_ESCALATED = 3;
+  DISPUTE_STATUS_RESOLVED_REFUNDED = 4;
+  DISPUTE_STATUS_RESOLVED_REJECTED = 5;
+}
+
+message Dispute {
+  string id = 1;
+  string order_id = 2;
+  string buyer_id = 3;
+  string seller_id = 4;
+  string reason = 5;
+  DisputeStatus status = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message DisputeMessage {
+  string id = 1;
+  string dispute_id = 2;
+  string sender_id = 3;
+  string content = 4;
+  repeated string evidence_urls = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message OpenDisputeRequest {
+  string order_id = 1;
+  string reason = 2;
+  repeated string evidence_urls = 3;
+  string buyer_id = 4;
+}
+
+message OpenDisputeResponse {
+  Dispute dispute = 1;
+}
+
+message ReplyToDisputeRequest {
+  string dispute_id = 1;
+  string sender_id = 2;
+  string message = 3;
+  repeated string evidence_urls = 4;
+}
+
+message ReplyToDisputeResponse {
+  DisputeMessage message = 1;
+}
+
+message EscalateDisputeRequest {
+  string dispute_id = 1;
+}
+
+message ResolveDisputeRequest {
+  string dispute_id = 1;
+  DisputeStatus resolution = 2; // Must be RESOLVED_REFUNDED or RESOLVED_REJECTED
+  string admin_id = 3; // Provided by auth context
+}
+
+message GetDisputeRequest {
+  string dispute_id = 1;
+}
+
+message ListDisputesRequest {
+  string user_id = 1;
+  string role = 2; // "BUYER", "SELLER", "ADMIN"
+}
+
+message ListDisputesResponse {
+  repeated Dispute disputes = 1;
+}
+
+message ListDisputeMessagesRequest {
+  string dispute_id = 1;
+}
+
+message ListDisputeMessagesResponse {
+  repeated DisputeMessage messages = 1;
+}
+
+service DisputeService {
+  rpc OpenDispute(OpenDisputeRequest) returns (OpenDisputeResponse);
+  rpc ReplyToDispute(ReplyToDisputeRequest) returns (ReplyToDisputeResponse);
+  rpc EscalateDispute(EscalateDisputeRequest) returns (Dispute);
+  rpc ResolveDispute(ResolveDisputeRequest) returns (Dispute);
+  rpc GetDispute(GetDisputeRequest) returns (Dispute);
+  rpc ListDisputes(ListDisputesRequest) returns (ListDisputesResponse);
+  rpc ListDisputeMessages(ListDisputeMessagesRequest) returns (ListDisputeMessagesResponse);
+}

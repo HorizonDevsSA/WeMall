@@ -120,6 +120,81 @@ services:
       timeout: 5s
       retries: 5
 
+  postgres-chat:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wemall_chat
+      POSTGRES_USER: wemall
+      POSTGRES_PASSWORD: wemall_secret
+    ports: ['5440:5432']
+    volumes:
+      - pgdata-chat:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U wemall -d wemall_chat']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-dispute:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wemall_dispute
+      POSTGRES_USER: wemall
+      POSTGRES_PASSWORD: wemall_secret
+    ports: ['5441:5432']
+    volumes:
+      - pgdata-dispute:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U wemall -d wemall_dispute']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-admin:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wemall_admin
+      POSTGRES_USER: wemall
+      POSTGRES_PASSWORD: wemall_secret
+    ports: ['5442:5432']
+    volumes:
+      - pgdata-admin:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U wemall -d wemall_admin']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-promotion:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wemall_promotion
+      POSTGRES_USER: wemall
+      POSTGRES_PASSWORD: wemall_secret
+    ports: ['5443:5432']
+    volumes:
+      - pgdata-promotion:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U wemall -d wemall_promotion']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-recommendation:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wemall_recommendation
+      POSTGRES_USER: wemall
+      POSTGRES_PASSWORD: wemall_secret
+    ports: ['5444:5432']
+    volumes:
+      - pgdata-recommendation:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U wemall -d wemall_recommendation']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 
   # ── Redis ──────────────────────────────────────────────────────────────────
   redis:
@@ -239,6 +314,11 @@ services:
       NOTIFICATION_SERVICE_ADDR: notification-service:9007
       REVIEW_SERVICE_ADDR: review-service:9009
       PAYMENT_SERVICE_ADDR: payment-service:9011
+      CHAT_SERVICE_ADDR: chat-service:9012
+      DISPUTE_SERVICE_ADDR: dispute-service:9013
+      ADMIN_SERVICE_ADDR: admin-service:9014
+      PROMOTION_SERVICE_ADDR: promotion-service:9015
+      RECOMMENDATION_SERVICE_ADDR: recommendation-service:9016
     depends_on:
       - user-service
       - product-service
@@ -247,6 +327,11 @@ services:
       - notification-service
       - review-service
       - payment-service
+      - chat-service
+      - dispute-service
+      - admin-service
+      - promotion-service
+      - recommendation-service
     restart: unless-stopped
 
   notification-service:
@@ -341,6 +426,91 @@ services:
       - '8085:8085'
     restart: unless-stopped
 
+  chat-service:
+    build:
+      context: .
+      dockerfile: ./services/chat-service/Dockerfile
+    ports: ['9012:9012']
+    environment:
+      DB_URL: postgres://wemall:wemall_secret@postgres-chat:5432/wemall_chat?sslmode=disable
+      GRPC_PORT: '9012'
+      NATS_URL: nats://nats:4222
+      ENVIRONMENT: development
+    depends_on:
+      postgres-chat:
+        condition: service_healthy
+      nats:
+        condition: service_started
+    restart: unless-stopped
+
+  dispute-service:
+    build:
+      context: .
+      dockerfile: ./services/dispute-service/Dockerfile
+    ports: ['9013:9013']
+    environment:
+      DB_URL: postgres://wemall:wemall_secret@postgres-dispute:5432/wemall_dispute?sslmode=disable
+      GRPC_PORT: '9013'
+      NATS_URL: nats://nats:4222
+      ENVIRONMENT: development
+    depends_on:
+      postgres-dispute:
+        condition: service_healthy
+      nats:
+        condition: service_started
+    restart: unless-stopped
+
+  admin-service:
+    build:
+      context: .
+      dockerfile: ./services/admin-service/Dockerfile
+    ports: ['9014:9014']
+    environment:
+      DB_URL: postgres://wemall:wemall_secret@postgres-admin:5432/wemall_admin?sslmode=disable
+      GRPC_PORT: '9014'
+      NATS_URL: nats://nats:4222
+      ENVIRONMENT: development
+    depends_on:
+      postgres-admin:
+        condition: service_healthy
+      nats:
+        condition: service_started
+    restart: unless-stopped
+
+  promotion-service:
+    build:
+      context: .
+      dockerfile: ./services/promotion-service/Dockerfile
+    ports: ['9015:9015']
+    environment:
+      DB_URL: postgres://wemall:wemall_secret@postgres-promotion:5432/wemall_promotion?sslmode=disable
+      GRPC_PORT: '9015'
+      NATS_URL: nats://nats:4222
+      ENVIRONMENT: development
+    depends_on:
+      postgres-promotion:
+        condition: service_healthy
+      nats:
+        condition: service_started
+    restart: unless-stopped
+
+  recommendation-service:
+    build:
+      context: .
+      dockerfile: ./services/recommendation-service/Dockerfile
+    ports: ['9016:9016']
+    environment:
+      DB_URL: postgres://wemall:wemall_secret@postgres-recommendation:5432/wemall_recommendation?sslmode=disable
+      GRPC_PORT: '9016'
+      NATS_URL: nats://nats:4222
+      ENVIRONMENT: development
+    depends_on:
+      postgres-recommendation:
+        condition: service_healthy
+      nats:
+        condition: service_started
+    restart: unless-stopped
+
 volumes:
   pgdata-users:
   pgdata-products:
@@ -350,6 +520,11 @@ volumes:
   pgdata-media:
   pgdata-reviews:
   pgdata-payments:
+  pgdata-chat:
+  pgdata-dispute:
+  pgdata-admin:
+  pgdata-promotion:
+  pgdata-recommendation:
   redisdata:
   natsdata:
   meilidata:

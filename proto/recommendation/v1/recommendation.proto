@@ -1,0 +1,41 @@
+syntax = "proto3";
+package recommendation.v1;
+option go_package = "github.com/wemall/gen/recommendation/v1;recommendationv1";
+
+import "google/protobuf/empty.proto";
+
+message ProductSuggestion {
+  string product_id = 1;
+  double score = 2;
+}
+
+message GetFrequentlyBoughtTogetherRequest {
+  string product_id = 1;
+}
+
+message GetFrequentlyBoughtTogetherResponse {
+  repeated ProductSuggestion suggestions = 1;
+}
+
+message GetPersonalizedRecommendationsRequest {
+  string buyer_id = 1;
+}
+
+message GetPersonalizedRecommendationsResponse {
+  repeated ProductSuggestion suggestions = 1;
+}
+
+message RecordProductViewRequest {
+  string buyer_id = 1;
+  string product_id = 2;
+}
+
+message RecordProductViewResponse {
+  bool success = 1;
+}
+
+service RecommendationService {
+  rpc GetFrequentlyBoughtTogether(GetFrequentlyBoughtTogetherRequest) returns (GetFrequentlyBoughtTogetherResponse);
+  rpc GetPersonalizedRecommendations(GetPersonalizedRecommendationsRequest) returns (GetPersonalizedRecommendationsResponse);
+  rpc RecordProductView(RecordProductViewRequest) returns (RecordProductViewResponse);
+}

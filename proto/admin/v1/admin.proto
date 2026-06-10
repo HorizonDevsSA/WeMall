@@ -1,0 +1,31 @@
+syntax = "proto3";
+package admin.v1;
+option go_package = "github.com/wemall/gen/admin/v1;adminv1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+message PlatformMetrics {
+  int32 total_users = 1;
+  int32 total_sellers = 2;
+  int32 active_disputes = 3;
+  int32 total_orders = 4;
+}
+
+message SuspendSellerRequest {
+  string seller_id = 1;
+  string reason = 2;
+  string admin_id = 3;
+}
+
+message BanUserRequest {
+  string user_id = 1;
+  string reason = 2;
+  string admin_id = 3;
+}
+
+service AdminService {
+  rpc SuspendSeller(SuspendSellerRequest) returns (google.protobuf.Empty);
+  rpc BanUser(BanUserRequest) returns (google.protobuf.Empty);
+  rpc GetPlatformMetrics(google.protobuf.Empty) returns (PlatformMetrics);
+}

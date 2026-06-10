@@ -401,6 +401,25 @@ type Query {
   # Notifications
   notificationPreferences: [NotificationPreference!]! @hasRole(role: BUYER)
   myNotifications(limit: Int, offset: Int): [NotificationLog!]! @hasRole(role: BUYER)
+
+  # Chat
+  myChatThreads: ChatThreadList!
+  chatMessages(threadId: ID!, pageToken: String, pageSize: Int): ChatMessageList!
+
+  # Dispute
+  myDisputes: DisputeList!
+  dispute(id: ID!): Dispute!
+  disputeMessages(disputeId: ID!): DisputeMessageList!
+
+  # Admin
+  platformMetrics: PlatformMetrics! @hasRole(role: ADMIN)
+
+  # Promotion
+  activeFlashSales: [FlashSale!]!
+
+  # Recommendation
+  frequentlyBoughtTogether(productId: ID!): [Product!]!
+  personalizedRecommendations: [Product!]! @hasRole(role: BUYER)
 }
 
 type FollowedStoresList {
@@ -499,6 +518,27 @@ type Mutation {
   updateReview(input: UpdateReviewInput!): Review! @hasRole(role: BUYER)
   deleteReview(reviewId: ID!): Boolean! @hasRole(role: BUYER)
   createSellerReply(input: SellerReplyInput!): SellerReply! @hasRole(role: SELLER)
+
+  # Chat
+  createChatThread(sellerId: ID!, orderId: ID): ChatThread! @hasRole(role: BUYER)
+  sendChatMessage(threadId: ID!, content: String!): ChatMessage!
+
+  # Dispute
+  openDispute(orderId: ID!, reason: String!, evidenceUrls: [String!]): Dispute! @hasRole(role: BUYER)
+  replyToDispute(disputeId: ID!, message: String!, evidenceUrls: [String!]): DisputeMessage!
+  escalateDispute(disputeId: ID!): Dispute! @hasRole(role: BUYER)
+
+  # Admin
+  resolveDispute(disputeId: ID!, resolution: DisputeStatus!): Dispute! @hasRole(role: ADMIN)
+  suspendSeller(sellerId: ID!, reason: String!): Boolean! @hasRole(role: ADMIN)
+  banBuyer(buyerId: ID!, reason: String!): Boolean! @hasRole(role: ADMIN)
+
+  # Promotion
+  applyCoupon(code: String!, cartId: ID!): Cart! @hasRole(role: BUYER)
+  createCoupon(input: CreateCouponInput!): Coupon! @hasRole(role: SELLER)
+
+  # Recommendation
+  recordProductView(productId: ID!): Boolean!
 }
 
 enum ReviewFilterType {
@@ -636,4 +676,134 @@ type Payment {
 type InitiatePaymentResponse {
   payment: Payment!
   clientSecret: String
+}
+
+# ── Chat Types ────────────────────────────────────────────────────────────────
+
+type ChatThread {
+  id: ID!
+  buyerId: ID!
+  sellerId: ID!
+  orderId: ID
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type ChatMessage {
+  id: ID!
+  threadId: ID!
+  senderId: ID!
+  content: String!
+  isRead: Boolean!
+  createdAt: Time!
+}
+
+type ChatThreadList {
+  threads: [ChatThread!]!
+}
+
+type ChatMessageList {
+  messages: [ChatMessage!]!
+  nextPageToken: String
+}
+
+# ── Dispute Types ─────────────────────────────────────────────────────────────
+
+enum DisputeStatus {
+  OPEN
+  SELLER_REVIEW
+  ESCALATED
+  RESOLVED_REFUNDED
+  RESOLVED_REJECTED
+}
+
+type Dispute {
+  id: ID!
+  orderId: ID!
+  buyerId: ID!
+  sellerId: ID!
+  reason: String!
+  status: DisputeStatus!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type DisputeMessage {
+  id: ID!
+  disputeId: ID!
+  senderId: ID!
+  content: String!
+  evidenceUrls: [String!]
+  createdAt: Time!
+}
+
+type DisputeList {
+  disputes: [Dispute!]!
+}
+
+type DisputeMessageList {
+  messages: [DisputeMessage!]!
+}
+
+# ── Admin Types ───────────────────────────────────────────────────────────────
+
+type PlatformMetrics {
+  totalUsers: Int!
+  totalSellers: Int!
+  activeDisputes: Int!
+  totalOrders: Int!
+}
+
+# ── Promotion Types ───────────────────────────────────────────────────────────
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+enum FlashSaleStatus {
+  SCHEDULED
+  ACTIVE
+  ENDED
+}
+
+type Coupon {
+  id: ID!
+  code: String!
+  sellerId: ID
+  discountType: DiscountType!
+  discountValue: Float!
+  minOrderValue: Float!
+  maxDiscount: Float!
+  startDate: Time!
+  endDate: Time!
+  usageLimit: Int!
+  usageCount: Int!
+}
+
+type FlashSaleItem {
+  id: ID!
+  productId: ID!
+  discountPrice: Float!
+  stockLimit: Int!
+}
+
+type FlashSale {
+  id: ID!
+  name: String!
+  startTime: Time!
+  endTime: Time!
+  status: FlashSaleStatus!
+  items: [FlashSaleItem!]!
+}
+
+input CreateCouponInput {
+  code: String!
+  discountType: DiscountType!
+  discountValue: Float!
+  minOrderValue: Float!
+  maxDiscount: Float!
+  startDate: Time!
+  endDate: Time!
+  usageLimit: Int!
 }
