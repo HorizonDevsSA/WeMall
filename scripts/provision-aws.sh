@@ -6,9 +6,17 @@ echo "==========================================="
 echo "   WeMall AWS Automated Provisioning       "
 echo "==========================================="
 
-REGION="us-east-1"
-INSTANCE_TYPE="t3.large"
-AMI_ID="ami-0c7217cdde317cfec" # Ubuntu 22.04 LTS in us-east-1 (check for updates)
+REGION=$(aws configure get region)
+if [ -z "$REGION" ]; then
+    REGION="us-east-1"
+fi
+echo "Using region: $REGION"
+
+INSTANCE_TYPE="t3.micro"
+# Fetch latest Ubuntu 22.04 LTS AMI dynamically for the current region
+AMI_ID=$(aws ssm get-parameters --names /aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id --query 'Parameters[0].Value' --output text)
+echo "Resolved Ubuntu AMI: $AMI_ID"
+
 KEY_NAME="wemall-prod-key"
 SG_NAME="wemall-prod-sg"
 
@@ -19,8 +27,9 @@ if ! command -v aws &> /dev/null; then
 fi
 
 echo "Creating Key Pair ($KEY_NAME)..."
-aws ec2 create-key-pair --key-name $KEY_NAME --query 'KeyMaterial' --output text > $KEY_NAME.pem 2>/dev/null || echo "Key pair already exists locally or remotely. Skipping creation."
-chmod 400 $KEY_NAME.pem || true
+aws ec2 delete-key-pair --key-name $KEY_NAME 2>/dev/null || true
+aws ec2 create-key-pair --key-name $KEY_NAME --query 'KeyMaterial' --output text > $KEY_NAME.pem
+chmod 400 $KEY_NAME.pem
 
 echo "Creating Security Group ($SG_NAME)..."
 # Get VPC ID (default)
