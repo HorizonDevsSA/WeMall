@@ -1,0 +1,320 @@
+version: '3.8'
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  # ── Infrastructure ────────────────────────────────────────────────────────
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-wemall}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-wemall_secret}
+      POSTGRES_MULTIPLE_DATABASES: wemall_users,wemall_products,wemall_orders,wemall_sellers,wemall_notifications,wemall_media,wemall_reviews,wemall_payment,wemall_promotion,wemall_recommendation
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infrastructure/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
+    networks:
+      - wemall-net
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    logging: *default-logging
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-wemall_secret}
+    volumes:
+      - redisdata:/data
+    networks:
+      - wemall-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-wemall_secret}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    logging: *default-logging
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.6
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-wemall_master_key}
+      MEILI_ENV: "production"
+    volumes:
+      - meilidata:/meili_data
+    networks:
+      - wemall-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    logging: *default-logging
+
+  nats:
+    image: nats:2.10-alpine
+    restart: unless-stopped
+    command: ["-js"]
+    volumes:
+      - natsdata:/data
+    networks:
+      - wemall-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8222/healthz"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    logging: *default-logging
+
+  # ── Microservices ─────────────────────────────────────────────────────────
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    restart: unless-stopped
+    environment:
+      - PORT=8080
+      - USER_SERVICE_URL=user-service:50051
+      - PRODUCT_SERVICE_URL=product-service:50052
+      - ORDER_SERVICE_URL=order-service:50053
+      - SELLER_SERVICE_URL=seller-service:50054
+      - NOTIFICATION_SERVICE_URL=notification-service:50055
+      - MEDIA_SERVICE_URL=media-service:50056
+      - REVIEW_SERVICE_URL=review-service:50057
+      - PAYMENT_SERVICE_URL=payment-service:50058
+      - PROMOTION_SERVICE_URL=promotion-service:50059
+      - RECOMMENDATION_SERVICE_URL=recommendation-service:50060
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-wemall_secret}@redis:6379/0
+      - JWT_SECRET=${JWT_SECRET:-wemall_jwt_secret}
+    depends_on:
+      redis:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  user-service:
+    build:
+      context: .
+      dockerfile: services/user-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - PORT=50051
+      - DATABASE_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_users?sslmode=disable
+      - JWT_SECRET=${JWT_SECRET:-wemall_jwt_secret}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  product-service:
+    build:
+      context: .
+      dockerfile: services/product-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - PORT=50052
+      - DATABASE_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_products?sslmode=disable
+      - MEILI_URL=http://meilisearch:7700
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY:-wemall_master_key}
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      postgres:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  order-service:
+    build:
+      context: .
+      dockerfile: services/order-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - PORT=50053
+      - DATABASE_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_orders?sslmode=disable
+      - PRODUCT_SERVICE_URL=product-service:50052
+      - SELLER_SERVICE_URL=seller-service:50054
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  seller-service:
+    build:
+      context: .
+      dockerfile: services/seller-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - PORT=50054
+      - DATABASE_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_sellers?sslmode=disable
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: services/notification-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - PORT=50055
+      - DATABASE_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_notifications?sslmode=disable
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  media-service:
+    build:
+      context: .
+      dockerfile: services/media-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - PORT=50056
+      - HTTP_PORT=8087
+      - DATABASE_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_media?sslmode=disable
+      - STORAGE_BACKEND=local
+      - STORAGE_PATH=/app/uploads
+      - PUBLIC_URL=https://media.${DOMAIN:-wemall.com}
+    volumes:
+      - media_uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  review-service:
+    build:
+      context: .
+      dockerfile: services/review-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - PORT=50057
+      - DATABASE_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_reviews?sslmode=disable
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  payment-service:
+    build:
+      context: .
+      dockerfile: services/payment-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - PORT=50058
+      - DATABASE_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_payment?sslmode=disable
+      - NATS_URL=nats://nats:4222
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  promotion-service:
+    build:
+      context: .
+      dockerfile: services/promotion-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - PORT=50059
+      - DATABASE_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_promotion?sslmode=disable
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  recommendation-service:
+    build:
+      context: .
+      dockerfile: services/recommendation-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - PORT=50060
+      - DATABASE_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_recommendation?sslmode=disable
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+networks:
+  wemall-net:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:
+  pgdata:
+  redisdata:
+  meilidata:
+  natsdata:
+  media_uploads:

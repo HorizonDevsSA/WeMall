@@ -1,0 +1,7 @@
+{env.DOMAIN} {
+    reverse_proxy api-gateway:8080
+}
+
+media.{env.DOMAIN} {
+    reverse_proxy media-service:8087
+}
