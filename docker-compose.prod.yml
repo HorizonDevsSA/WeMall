@@ -98,16 +98,16 @@ services:
     restart: unless-stopped
     environment:
       - PORT=8080
-      - USER_SERVICE_URL=user-service:50051
-      - PRODUCT_SERVICE_URL=product-service:50052
-      - ORDER_SERVICE_URL=order-service:50053
-      - SELLER_SERVICE_URL=seller-service:50054
-      - NOTIFICATION_SERVICE_URL=notification-service:50055
-      - MEDIA_SERVICE_URL=media-service:50056
-      - REVIEW_SERVICE_URL=review-service:50057
-      - PAYMENT_SERVICE_URL=payment-service:50058
-      - PROMOTION_SERVICE_URL=promotion-service:50059
-      - RECOMMENDATION_SERVICE_URL=recommendation-service:50060
+      - USER_SERVICE_ADDR=user-service:50051
+      - PRODUCT_SERVICE_ADDR=product-service:50052
+      - ORDER_SERVICE_ADDR=order-service:50053
+      - SELLER_SERVICE_ADDR=seller-service:50054
+      - NOTIFICATION_SERVICE_ADDR=notification-service:50055
+      - MEDIA_SERVICE_ADDR=media-service:50056
+      - REVIEW_SERVICE_ADDR=review-service:50057
+      - PAYMENT_SERVICE_ADDR=payment-service:50058
+      - PROMOTION_SERVICE_ADDR=promotion-service:50059
+      - RECOMMENDATION_SERVICE_ADDR=recommendation-service:50060
       - REDIS_URL=redis://:${REDIS_PASSWORD:-wemall_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-wemall_jwt_secret}
     depends_on:
@@ -126,7 +126,7 @@ services:
     restart: unless-stopped
     environment:
       - PORT=50051
-      - DATABASE_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_users?sslmode=disable
+      - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_users?sslmode=disable
       - JWT_SECRET=${JWT_SECRET:-wemall_jwt_secret}
     depends_on:
       postgres:
@@ -142,7 +142,7 @@ services:
     restart: unless-stopped
     environment:
       - PORT=50052
-      - DATABASE_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_products?sslmode=disable
+      - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_products?sslmode=disable
       - MEILI_URL=http://meilisearch:7700
       - MEILI_MASTER_KEY=${MEILI_MASTER_KEY:-wemall_master_key}
       - NATS_URL=nats://nats:4222
@@ -164,7 +164,7 @@ services:
     restart: unless-stopped
     environment:
       - PORT=50053
-      - DATABASE_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_orders?sslmode=disable
+      - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_orders?sslmode=disable
       - PRODUCT_SERVICE_URL=product-service:50052
       - SELLER_SERVICE_URL=seller-service:50054
       - NATS_URL=nats://nats:4222
@@ -186,7 +186,7 @@ services:
     environment:
       - PORT=50056
       - HTTP_PORT=8087
-      - DATABASE_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_media?sslmode=disable
+      - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_media?sslmode=disable
       - STORAGE_BACKEND=local
       - STORAGE_PATH=/app/uploads
       - PUBLIC_URL=https://media.${DOMAIN:-wemall.com}
