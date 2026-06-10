@@ -485,7 +485,7 @@ func (s *MediaService) resolveVariantURL(mediaID, filename string, isPrivate boo
 		return fmt.Sprintf("%s/uploads/%s/%s", baseURL, mediaID, filename)
 	}
 
-	rawURL := fmt.Sprintf("%s/images/%s/%s", baseURL, mediaID, filename)
+	rawURL := fmt.Sprintf("%s/uploads/%s/%s", baseURL, mediaID, filename)
 
 	if isPrivate {
 		// Dynamic URL Signing
