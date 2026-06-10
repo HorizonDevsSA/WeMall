@@ -414,6 +414,16 @@ func (s *MediaService) mapRowToProto(row db.MediaAsset) *mediav1.MediaAsset {
 	// Parse timestamp using timestamppb
 	asset.CreatedAt = timestamppb.New(row.CreatedAt)
 
+	// ALWAYS provide the original URL as a fallback / immediate response
+	originalURL := s.resolveVariantURL(row.ID.String(), row.OriginalName, row.IsPrivate)
+	asset.Variants = &mediav1.MediaVariants{
+		TypeVariants: &mediav1.MediaVariants_Document{
+			Document: &mediav1.DocumentVariants{
+				OriginalUrl: originalURL,
+			},
+		},
+	}
+
 	// If variations have been populated, construct structured response
 	if row.Status == "completed" && len(row.Variants) > 0 {
 		var urlMap map[string]string
@@ -471,11 +481,11 @@ func (s *MediaService) resolveVariantURL(mediaID, filename string, isPrivate boo
 		baseURL = s.cfg.AWSCloudFrontPublic
 	}
 
-	rawURL := fmt.Sprintf("%s/images/%s/%s", baseURL, mediaID, filename)
 	if s.isMockMode {
-		// Mock local asset link
-		return fmt.Sprintf("http://localhost:%s/uploads/%s/%s", s.cfg.HTTPPort, mediaID, filename)
+		return fmt.Sprintf("%s/uploads/%s/%s", baseURL, mediaID, filename)
 	}
+
+	rawURL := fmt.Sprintf("%s/images/%s/%s", baseURL, mediaID, filename)
 
 	if isPrivate {
 		// Dynamic URL Signing

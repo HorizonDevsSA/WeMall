@@ -189,7 +189,7 @@ services:
       - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_media?sslmode=disable
       - STORAGE_BACKEND=local
       - STORAGE_PATH=/app/uploads
-      - PUBLIC_URL=https://media.${DOMAIN:-wemall.com}
+      - AWS_CLOUDFRONT_PUBLIC_URL=https://media.${DOMAIN:-wemall.com}
     volumes:
       - media_uploads:/app/uploads
     depends_on:
