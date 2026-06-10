@@ -87,9 +87,36 @@ message ListActiveFlashSalesResponse {
   repeated FlashSale sales = 1;
 }
 
+message ListCouponsRequest {
+  string seller_id = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListCouponsResponse {
+  repeated Coupon coupons = 1;
+  string next_page_token = 2;
+}
+
+message CreateFlashSaleRequest {
+  string name = 1;
+  google.protobuf.Timestamp start_time = 2;
+  google.protobuf.Timestamp end_time = 3;
+}
+
+message AddFlashSaleItemRequest {
+  string flash_sale_id = 1;
+  string product_id = 2;
+  double discount_price = 3;
+  int32 stock_limit = 4;
+}
+
 service PromotionService {
   rpc ValidateCoupon(ValidateCouponRequest) returns (ValidateCouponResponse);
   rpc ApplyCoupon(ApplyCouponRequest) returns (ApplyCouponResponse);
   rpc CreateCoupon(CreateCouponRequest) returns (Coupon);
+  rpc ListCoupons(ListCouponsRequest) returns (ListCouponsResponse);
+  rpc CreateFlashSale(CreateFlashSaleRequest) returns (FlashSale);
+  rpc AddFlashSaleItem(AddFlashSaleItemRequest) returns (FlashSaleItem);
   rpc ListActiveFlashSales(google.protobuf.Empty) returns (ListActiveFlashSalesResponse);
 }

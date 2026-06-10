@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -126,10 +127,11 @@ func getProductBatchRowToTranslation(row db.GetProductBatchRow) db.ProductWithTr
 type ProductService struct {
 	q    *db.Queries
 	pool *pgxpool.Pool
+	nc   *nats.Conn
 }
 
-func NewProductService(q *db.Queries, pool *pgxpool.Pool) *ProductService {
-	return &ProductService{q: q, pool: pool}
+func NewProductService(q *db.Queries, pool *pgxpool.Pool, nc *nats.Conn) *ProductService {
+	return &ProductService{q: q, pool: pool, nc: nc}
 }
 
 // ── Categories ───────────────────────────────────────────────────────────────
@@ -364,6 +366,19 @@ func (s *ProductService) CreateProduct(ctx context.Context, req *productv1.Creat
 
 	if err := tx.Commit(ctx); err != nil {
 		return nil, fmt.Errorf("commit product: %w", err)
+	}
+
+	// 5. Publish NATS event for newly created product
+	if s.nc != nil {
+		eventData := map[string]string{
+			"product_id": productID.String(),
+			"seller_id":  req.SellerId,
+			"title":      req.Title,
+			"image_url":  "", // Images are added separately
+		}
+		if b, err := json.Marshal(eventData); err == nil {
+			_ = s.nc.Publish("wemall.product.created", b)
+		}
 	}
 
 	return s.GetProduct(ctx, productID.String(), "", lang)

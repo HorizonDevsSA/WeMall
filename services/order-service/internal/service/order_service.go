@@ -308,6 +308,7 @@ func (s *OrderService) Checkout(ctx context.Context, userID uuid.UUID, input *or
 			"user_id":      userID.String(),
 			"total":        total,
 			"currency":     input.Currency,
+			"product_ids":  productIDs,
 		}
 		eventBytes, _ := json.Marshal(event)
 		_ = s.nc.Publish("wemall.order.created", eventBytes)

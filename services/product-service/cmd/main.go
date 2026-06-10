@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nats-io/nats.go"
 	"google.golang.org/grpc"
 
 
@@ -47,11 +48,24 @@ func main() {
 	}
 	log.Info().Msg("database connected successfully")
 
+	// Connect to NATS
+	natsURL := os.Getenv("NATS_URL")
+	if natsURL == "" {
+		natsURL = "nats://localhost:4222"
+	}
+	nc, err := nats.Connect(natsURL)
+	if err != nil {
+		log.Warn().Err(err).Msg("failed to connect to NATS, event publishing will be disabled")
+	} else {
+		log.Info().Msg("NATS connected successfully")
+		defer nc.Close()
+	}
+
 	// Initialize database queries
 	queries := db.New(dbPool)
 
 	// Initialize services
-	productSvc := service.NewProductService(queries, dbPool)
+	productSvc := service.NewProductService(queries, dbPool, nc)
 
 	// Initialize gRPC server
 	grpcServer := grpc.NewServer(grpcutil.UnaryServerOptions(log)...)
