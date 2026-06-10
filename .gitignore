@@ -58,3 +58,4 @@ debug
 *.sw?
 .cursor/
 *~
+firebase-service-account.json
