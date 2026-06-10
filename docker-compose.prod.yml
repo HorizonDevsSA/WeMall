@@ -76,7 +76,7 @@ services:
   nats:
     image: nats:2.10-alpine
     restart: unless-stopped
-    command: ["-js"]
+    command: ["-js", "-m", "8222"]
     volumes:
       - natsdata:/data
     networks:
