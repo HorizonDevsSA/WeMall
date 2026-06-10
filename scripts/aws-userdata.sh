@@ -75,7 +75,7 @@ chown -R ubuntu:ubuntu /home/ubuntu/WeMall
 
 # 8. Start the Application sequentially to avoid OOM killer
 echo "Building microservices sequentially..."
-su - ubuntu -c "cd /home/ubuntu/WeMall && for svc in api-gateway user-service product-service order-service seller-service notification-service media-service documentation-service review-service payment-service chat-service dispute-service admin-service promotion-service recommendation-service; do docker compose -f docker-compose.prod.yml build \$svc; done"
+su - ubuntu -c "cd /home/ubuntu/WeMall && for svc in api-gateway user-service product-service order-service media-service; do docker compose -f docker-compose.prod.yml build \$svc; done"
 
 echo "Starting Docker Compose..."
 su - ubuntu -c "cd /home/ubuntu/WeMall && docker compose -f docker-compose.prod.yml up -d"
