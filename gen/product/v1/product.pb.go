@@ -1347,6 +1347,7 @@ type CreateVariantInput struct {
 	Price           float64                `protobuf:"fixed64,3,opt,name=price,proto3" json:"price,omitempty"`
 	ComparePrice    float64                `protobuf:"fixed64,4,opt,name=compare_price,json=comparePrice,proto3" json:"compare_price,omitempty"`
 	InitialQuantity int32                  `protobuf:"varint,5,opt,name=initial_quantity,json=initialQuantity,proto3" json:"initial_quantity,omitempty"`
+	ImageUrl        string                 `protobuf:"bytes,6,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1416,6 +1417,13 @@ func (x *CreateVariantInput) GetInitialQuantity() int32 {
 	return 0
 }
 
+func (x *CreateVariantInput) GetImageUrl() string {
+	if x != nil {
+		return x.ImageUrl
+	}
+	return ""
+}
+
 type CreateProductRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SellerId      string                 `protobuf:"bytes,1,opt,name=seller_id,json=sellerId,proto3" json:"seller_id,omitempty"`
@@ -1431,6 +1439,9 @@ type CreateProductRequest struct {
 	Latitude      float64                `protobuf:"fixed64,11,opt,name=latitude,proto3" json:"latitude,omitempty"`
 	Longitude     float64                `protobuf:"fixed64,12,opt,name=longitude,proto3" json:"longitude,omitempty"`
 	ProductType   ProductType            `protobuf:"varint,13,opt,name=product_type,json=productType,proto3,enum=product.v1.ProductType" json:"product_type,omitempty"`
+	ImageUrl      string                 `protobuf:"bytes,14,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	ThumbnailUrl  string                 `protobuf:"bytes,15,opt,name=thumbnail_url,json=thumbnailUrl,proto3" json:"thumbnail_url,omitempty"`
+	Images        []string               `protobuf:"bytes,16,rep,name=images,proto3" json:"images,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1556,6 +1567,27 @@ func (x *CreateProductRequest) GetProductType() ProductType {
 	return ProductType_PRODUCT_TYPE_UNSPECIFIED
 }
 
+func (x *CreateProductRequest) GetImageUrl() string {
+	if x != nil {
+		return x.ImageUrl
+	}
+	return ""
+}
+
+func (x *CreateProductRequest) GetThumbnailUrl() string {
+	if x != nil {
+		return x.ThumbnailUrl
+	}
+	return ""
+}
+
+func (x *CreateProductRequest) GetImages() []string {
+	if x != nil {
+		return x.Images
+	}
+	return nil
+}
+
 type UpdateProductRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -1566,6 +1598,9 @@ type UpdateProductRequest struct {
 	Brand         string                 `protobuf:"bytes,6,opt,name=brand,proto3" json:"brand,omitempty"`
 	Language      string                 `protobuf:"bytes,7,opt,name=language,proto3" json:"language,omitempty"`
 	Status        ProductStatus          `protobuf:"varint,8,opt,name=status,proto3,enum=product.v1.ProductStatus" json:"status,omitempty"`
+	ImageUrl      string                 `protobuf:"bytes,9,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	ThumbnailUrl  string                 `protobuf:"bytes,10,opt,name=thumbnail_url,json=thumbnailUrl,proto3" json:"thumbnail_url,omitempty"`
+	Images        []string               `protobuf:"bytes,11,rep,name=images,proto3" json:"images,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1654,6 +1689,27 @@ func (x *UpdateProductRequest) GetStatus() ProductStatus {
 		return x.Status
 	}
 	return ProductStatus_PRODUCT_STATUS_UNSPECIFIED
+}
+
+func (x *UpdateProductRequest) GetImageUrl() string {
+	if x != nil {
+		return x.ImageUrl
+	}
+	return ""
+}
+
+func (x *UpdateProductRequest) GetThumbnailUrl() string {
+	if x != nil {
+		return x.ThumbnailUrl
+	}
+	return ""
+}
+
+func (x *UpdateProductRequest) GetImages() []string {
+	if x != nil {
+		return x.Images
+	}
+	return nil
 }
 
 type DeleteProductRequest struct {
@@ -2098,13 +2154,14 @@ const file_product_v1_product_proto_rawDesc = "" +
 	"\bvariants\x18\x01 \x03(\v21.product.v1.GetVariantBatchResponse.VariantsEntryR\bvariants\x1aW\n" +
 	"\rVariantsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x120\n" +
-	"\x05value\x18\x02 \x01(\v2\x1a.product.v1.ProductVariantR\x05value:\x028\x01\"\xbf\x01\n" +
+	"\x05value\x18\x02 \x01(\v2\x1a.product.v1.ProductVariantR\x05value:\x028\x01\"\xdc\x01\n" +
 	"\x12CreateVariantInput\x12\x10\n" +
 	"\x03sku\x18\x01 \x01(\tR\x03sku\x121\n" +
 	"\aoptions\x18\x02 \x01(\v2\x17.google.protobuf.StructR\aoptions\x12\x14\n" +
 	"\x05price\x18\x03 \x01(\x01R\x05price\x12#\n" +
 	"\rcompare_price\x18\x04 \x01(\x01R\fcomparePrice\x12)\n" +
-	"\x10initial_quantity\x18\x05 \x01(\x05R\x0finitialQuantity\"\xe4\x03\n" +
+	"\x10initial_quantity\x18\x05 \x01(\x05R\x0finitialQuantity\x12\x1b\n" +
+	"\timage_url\x18\x06 \x01(\tR\bimageUrl\"\xbe\x04\n" +
 	"\x14CreateProductRequest\x12\x1b\n" +
 	"\tseller_id\x18\x01 \x01(\tR\bsellerId\x12\x1f\n" +
 	"\vcategory_id\x18\x02 \x01(\tR\n" +
@@ -2122,7 +2179,10 @@ const file_product_v1_product_proto_rawDesc = "" +
 	" \x01(\tR\blanguage\x12\x1a\n" +
 	"\blatitude\x18\v \x01(\x01R\blatitude\x12\x1c\n" +
 	"\tlongitude\x18\f \x01(\x01R\tlongitude\x12:\n" +
-	"\fproduct_type\x18\r \x01(\x0e2\x17.product.v1.ProductTypeR\vproductType\"\x99\x02\n" +
+	"\fproduct_type\x18\r \x01(\x0e2\x17.product.v1.ProductTypeR\vproductType\x12\x1b\n" +
+	"\timage_url\x18\x0e \x01(\tR\bimageUrl\x12#\n" +
+	"\rthumbnail_url\x18\x0f \x01(\tR\fthumbnailUrl\x12\x16\n" +
+	"\x06images\x18\x10 \x03(\tR\x06images\"\xf3\x02\n" +
 	"\x14UpdateProductRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tseller_id\x18\x02 \x01(\tR\bsellerId\x12\x14\n" +
@@ -2133,7 +2193,11 @@ const file_product_v1_product_proto_rawDesc = "" +
 	"attributes\x12\x14\n" +
 	"\x05brand\x18\x06 \x01(\tR\x05brand\x12\x1a\n" +
 	"\blanguage\x18\a \x01(\tR\blanguage\x121\n" +
-	"\x06status\x18\b \x01(\x0e2\x19.product.v1.ProductStatusR\x06status\"C\n" +
+	"\x06status\x18\b \x01(\x0e2\x19.product.v1.ProductStatusR\x06status\x12\x1b\n" +
+	"\timage_url\x18\t \x01(\tR\bimageUrl\x12#\n" +
+	"\rthumbnail_url\x18\n" +
+	" \x01(\tR\fthumbnailUrl\x12\x16\n" +
+	"\x06images\x18\v \x03(\tR\x06images\"C\n" +
 	"\x14DeleteProductRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tseller_id\x18\x02 \x01(\tR\bsellerId\"\xd2\x01\n" +

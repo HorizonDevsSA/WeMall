@@ -171,6 +171,7 @@ message CreateVariantInput {
   double                 price            = 3;
   double                 compare_price    = 4;
   int32                  initial_quantity = 5;
+  string                 image_url        = 6;
 }
 
 message CreateProductRequest {
@@ -187,17 +188,23 @@ message CreateProductRequest {
   double                    latitude       = 11;
   double                    longitude      = 12;
   ProductType               product_type   = 13;
+  string                    image_url      = 14;
+  string                    thumbnail_url  = 15;
+  repeated string           images         = 16;
 }
 
 message UpdateProductRequest {
-  string                 id          = 1;
-  string                 seller_id   = 2;
-  string                 title       = 3;
-  string                 description = 4;
-  google.protobuf.Struct attributes  = 5;
-  string                 brand       = 6;
-  string                 language    = 7;
-  ProductStatus          status      = 8;
+  string                 id            = 1;
+  string                 seller_id     = 2;
+  string                 title         = 3;
+  string                 description   = 4;
+  google.protobuf.Struct attributes    = 5;
+  string                 brand         = 6;
+  string                 language      = 7;
+  ProductStatus          status        = 8;
+  string                 image_url     = 9;
+  string                 thumbnail_url = 10;
+  repeated string        images        = 11;
 }
 
 message DeleteProductRequest {

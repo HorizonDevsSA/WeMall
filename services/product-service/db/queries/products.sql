@@ -1,7 +1,7 @@
 -- name: CreateProduct :one
-INSERT INTO products (seller_id, category_id, slug, attributes, brand, origin_country, status, min_price, max_price, location, product_type)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, ST_SetSRID(ST_MakePoint($11::float, $10::float), 4326)::geography, $12::product_type)
-RETURNING id, seller_id, category_id, slug, attributes, brand, origin_country, status, rating, review_count, sold_count, view_count, min_price, max_price, created_at, updated_at, deleted_at, product_type, ST_Y(location::geometry)::float AS latitude, ST_X(location::geometry)::float AS longitude;
+INSERT INTO products (seller_id, category_id, slug, attributes, brand, origin_country, status, min_price, max_price, location, product_type, image_url, thumbnail_url)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, ST_SetSRID(ST_MakePoint($11::float, $10::float), 4326)::geography, $12::product_type, $13, $14)
+RETURNING id, seller_id, category_id, slug, attributes, brand, origin_country, status, rating, review_count, sold_count, view_count, min_price, max_price, image_url, thumbnail_url, created_at, updated_at, deleted_at, product_type, ST_Y(location::geometry)::float AS latitude, ST_X(location::geometry)::float AS longitude;
 
 -- name: CreateProductTranslation :exec
 INSERT INTO product_translations (product_id, language, title, description)
@@ -12,6 +12,7 @@ ON CONFLICT (product_id, language) DO UPDATE SET title = EXCLUDED.title, descrip
 SELECT
     p.id, p.seller_id, p.category_id, p.slug, p.attributes, p.brand, p.origin_country,
     p.status, p.rating, p.review_count, p.sold_count, p.view_count, p.min_price, p.max_price,
+    p.image_url, p.thumbnail_url,
     p.created_at, p.updated_at, p.deleted_at, p.product_type,
     ST_Y(p.location::geometry)::float AS latitude,
     ST_X(p.location::geometry)::float AS longitude,
@@ -26,6 +27,7 @@ WHERE p.id = $2 AND p.deleted_at IS NULL;
 SELECT
     p.id, p.seller_id, p.category_id, p.slug, p.attributes, p.brand, p.origin_country,
     p.status, p.rating, p.review_count, p.sold_count, p.view_count, p.min_price, p.max_price,
+    p.image_url, p.thumbnail_url,
     p.created_at, p.updated_at, p.deleted_at, p.product_type,
     ST_Y(p.location::geometry)::float AS latitude,
     ST_X(p.location::geometry)::float AS longitude,
@@ -40,6 +42,7 @@ WHERE p.slug = $2 AND p.deleted_at IS NULL;
 SELECT
     p.id, p.seller_id, p.category_id, p.slug, p.attributes, p.brand, p.origin_country,
     p.status, p.rating, p.review_count, p.sold_count, p.view_count, p.min_price, p.max_price,
+    p.image_url, p.thumbnail_url,
     p.created_at, p.updated_at, p.deleted_at, p.product_type,
     ST_Y(p.location::geometry)::float AS latitude,
     ST_X(p.location::geometry)::float AS longitude,
@@ -54,6 +57,7 @@ WHERE p.id = ANY($2::uuid[]) AND p.deleted_at IS NULL;
 SELECT 
     p.id, p.seller_id, p.category_id, p.slug, p.attributes, p.brand, p.origin_country,
     p.status, p.rating, p.review_count, p.sold_count, p.view_count, p.min_price, p.max_price,
+    p.image_url, p.thumbnail_url,
     p.created_at, p.updated_at, p.deleted_at, p.product_type,
     ST_Y(p.location::geometry)::float AS latitude,
     ST_X(p.location::geometry)::float AS longitude,
@@ -61,7 +65,7 @@ SELECT
     COALESCE(t.title, t_en.title, '')       AS title,
     COALESCE(t.description, t_en.description) AS description
 FROM products p
-LEFT JOIN product_translations t    ON t.product_id = p.id AND t.language = @language::text
+LEFT JOIN product_translations t    ON t.product_id = p.id AND @language::text = t.language
 LEFT JOIN product_translations t_en ON t_en.product_id = p.id AND t_en.language = 'en'
 WHERE p.deleted_at IS NULL
   AND p.status = 'active'
@@ -77,9 +81,11 @@ WHERE p.deleted_at IS NULL
 
 -- name: UpdateProduct :exec
 UPDATE products SET
-    brand      = COALESCE(NULLIF(@brand::text, ''), brand),
-    status     = COALESCE(NULLIF(@status::text, '')::product_status, status),
-    updated_at = NOW()
+    brand         = COALESCE(NULLIF(@brand::text, ''), brand),
+    status        = COALESCE(NULLIF(@status::text, '')::product_status, status),
+    image_url     = COALESCE(NULLIF(@image_url::text, ''), image_url),
+    thumbnail_url = COALESCE(NULLIF(@thumbnail_url::text, ''), thumbnail_url),
+    updated_at    = NOW()
 WHERE id = @id AND deleted_at IS NULL;
 
 -- name: DeleteProduct :exec
@@ -129,3 +135,7 @@ SELECT t.id, t.name, t.slug
 FROM tags t
 JOIN product_tags pt ON pt.tag_id = t.id
 WHERE pt.product_id = $1;
+
+-- name: DeleteProductImages :exec
+DELETE FROM product_images
+WHERE product_id = $1;

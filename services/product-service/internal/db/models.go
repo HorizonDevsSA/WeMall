@@ -150,6 +150,8 @@ type Product struct {
 	ViewCount     int32          `json:"view_count"`
 	MinPrice      pgtype.Numeric `json:"min_price"`
 	MaxPrice      pgtype.Numeric `json:"max_price"`
+	ImageUrl      *string        `json:"image_url"`
+	ThumbnailUrl  *string        `json:"thumbnail_url"`
 	CreatedAt     time.Time      `json:"created_at"`
 	UpdatedAt     time.Time      `json:"updated_at"`
 	DeletedAt     *time.Time     `json:"deleted_at"`

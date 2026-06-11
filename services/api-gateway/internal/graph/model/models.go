@@ -317,15 +317,21 @@ type CreateProductInput struct {
 	Tags          []string               `json:"tags"`
 	Language      *string                `json:"language"`
 	ProductType   *ProductType           `json:"productType"`
+	ImageURL      *string                `json:"imageUrl"`
+	ThumbnailURL  *string                `json:"thumbnailUrl"`
+	Images        []string               `json:"images"`
 }
 
 type UpdateProductInput struct {
-	Title       *string                `json:"title"`
-	Description *string                `json:"description"`
-	Attributes  map[string]interface{} `json:"attributes"`
-	Brand       *string                `json:"brand"`
-	Status      *ProductStatus         `json:"status"`
-	Language    *string                `json:"language"`
+	Title        *string                `json:"title"`
+	Description  *string                `json:"description"`
+	Attributes   map[string]interface{} `json:"attributes"`
+	Brand        *string                `json:"brand"`
+	Status       *ProductStatus         `json:"status"`
+	Language     *string                `json:"language"`
+	ImageURL     *string                `json:"imageUrl"`
+	ThumbnailURL *string                `json:"thumbnailUrl"`
+	Images       []string               `json:"images"`
 }
 
 type AddressInput struct {

@@ -15,6 +15,8 @@ CREATE TABLE products (
     view_count      INTEGER NOT NULL DEFAULT 0,
     min_price       NUMERIC(12,2),
     max_price       NUMERIC(12,2),
+    image_url       TEXT,
+    thumbnail_url   TEXT,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at      TIMESTAMPTZ

@@ -105,6 +105,7 @@ func (q *Queries) ListProducts(ctx context.Context, filter ProductFilter, limit 
 	sqlParts := []string{
 		"SELECT p.id, p.seller_id, p.category_id, p.slug, p.attributes, p.brand, p.origin_country,",
 		"       p.status, p.rating, p.review_count, p.sold_count, p.view_count, p.min_price, p.max_price,",
+		"       p.image_url, p.thumbnail_url,",
 		"       p.created_at, p.updated_at, p.deleted_at, p.product_type,",
 		"       ST_Y(p.location::geometry)::float AS latitude,",
 		"       ST_X(p.location::geometry)::float AS longitude,",
@@ -152,6 +153,8 @@ func (q *Queries) ListProducts(ctx context.Context, filter ProductFilter, limit 
 			&i.ViewCount,
 			&i.MinPrice,
 			&i.MaxPrice,
+			&i.ImageUrl,
+			&i.ThumbnailUrl,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,

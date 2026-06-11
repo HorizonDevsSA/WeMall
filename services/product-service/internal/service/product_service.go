@@ -59,6 +59,8 @@ func getProductByIDRowToTranslation(row db.GetProductByIDRow) db.ProductWithTran
 		ViewCount:     row.ViewCount,
 		MinPrice:      row.MinPrice,
 		MaxPrice:      row.MaxPrice,
+		ImageUrl:      row.ImageUrl,
+		ThumbnailUrl:  row.ThumbnailUrl,
 		CreatedAt:     row.CreatedAt,
 		UpdatedAt:     row.UpdatedAt,
 		DeletedAt:     row.DeletedAt,
@@ -86,6 +88,8 @@ func getProductBySlugRowToTranslation(row db.GetProductBySlugRow) db.ProductWith
 		ViewCount:     row.ViewCount,
 		MinPrice:      row.MinPrice,
 		MaxPrice:      row.MaxPrice,
+		ImageUrl:      row.ImageUrl,
+		ThumbnailUrl:  row.ThumbnailUrl,
 		CreatedAt:     row.CreatedAt,
 		UpdatedAt:     row.UpdatedAt,
 		DeletedAt:     row.DeletedAt,
@@ -113,6 +117,8 @@ func getProductBatchRowToTranslation(row db.GetProductBatchRow) db.ProductWithTr
 		ViewCount:     row.ViewCount,
 		MinPrice:      row.MinPrice,
 		MaxPrice:      row.MaxPrice,
+		ImageUrl:      row.ImageUrl,
+		ThumbnailUrl:  row.ThumbnailUrl,
 		CreatedAt:     row.CreatedAt,
 		UpdatedAt:     row.UpdatedAt,
 		DeletedAt:     row.DeletedAt,
@@ -289,6 +295,8 @@ func (s *ProductService) CreateProduct(ctx context.Context, req *productv1.Creat
 		Column10:      req.Latitude,
 		Column11:      req.Longitude,
 		Column12:      productTypeToString(req.ProductType),
+		ImageUrl:      &req.ImageUrl,
+		ThumbnailUrl:  &req.ThumbnailUrl,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("create product: %w", err)
@@ -319,9 +327,28 @@ func (s *ProductService) CreateProduct(ctx context.Context, req *productv1.Creat
 		})
 	}
 
+	// Create Product Images
+	for i, imgUrl := range req.Images {
+		isPrimary := i == 0
+		_, err = qtx.CreateProductImage(ctx, db.CreateProductImageParams{
+			ProductID: productID,
+			Url:       imgUrl,
+			AltText:   nil,
+			SortOrder: int32(i),
+			IsPrimary: isPrimary,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("create product image: %w", err)
+		}
+	}
+
 	// Create Variants
 	for _, v := range req.Variants {
 		optsJSON := structToJSON(v.Options)
+		var imgPtr *string
+		if v.ImageUrl != "" {
+			imgPtr = &v.ImageUrl
+		}
 		variant, err := qtx.CreateProductVariant(ctx, db.CreateProductVariantParams{
 			ProductID:    productID,
 			Sku:          v.Sku,
@@ -329,7 +356,7 @@ func (s *ProductService) CreateProduct(ctx context.Context, req *productv1.Creat
 			Price:        float64ToNumeric(v.Price),
 			ComparePrice: float64ToNumeric(v.ComparePrice),
 			WeightGrams:  nil, // weightGrams not present in proto input
-			ImageUrl:     nil, // imageUrl not present in proto input
+			ImageUrl:     imgPtr,
 			IsDefault:    false,
 		})
 		if err != nil {
@@ -374,7 +401,7 @@ func (s *ProductService) CreateProduct(ctx context.Context, req *productv1.Creat
 			"product_id": productID.String(),
 			"seller_id":  req.SellerId,
 			"title":      req.Title,
-			"image_url":  "", // Images are added separately
+			"image_url":  req.ImageUrl,
 		}
 		if b, err := json.Marshal(eventData); err == nil {
 			_ = s.nc.Publish("wemall.product.created", b)
@@ -427,12 +454,34 @@ func (s *ProductService) UpdateProduct(ctx context.Context, req *productv1.Updat
 	}
 
 	err = qtx.UpdateProduct(ctx, db.UpdateProductParams{
-		ID:     productUID,
-		Brand:  req.Brand,
-		Status: statusStr,
+		ID:           productUID,
+		Brand:        req.Brand,
+		Status:       statusStr,
+		ImageUrl:     req.ImageUrl,
+		ThumbnailUrl: req.ThumbnailUrl,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("update product: %w", err)
+	}
+
+	// Update product images: Delete existing and re-insert new
+	err = qtx.DeleteProductImages(ctx, productUID)
+	if err != nil {
+		return nil, fmt.Errorf("delete product images: %w", err)
+	}
+
+	for i, imgUrl := range req.Images {
+		isPrimary := i == 0
+		_, err = qtx.CreateProductImage(ctx, db.CreateProductImageParams{
+			ProductID: productUID,
+			Url:       imgUrl,
+			AltText:   nil,
+			SortOrder: int32(i),
+			IsPrimary: isPrimary,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("create product image: %w", err)
+		}
 	}
 
 	// Update translation
@@ -659,6 +708,8 @@ func (s *ProductService) ListNearbyProducts(ctx context.Context, req *productv1.
 			ViewCount:     row.ViewCount,
 			MinPrice:      row.MinPrice,
 			MaxPrice:      row.MaxPrice,
+			ImageUrl:      row.ImageUrl,
+			ThumbnailUrl:  row.ThumbnailUrl,
 			CreatedAt:     row.CreatedAt,
 			UpdatedAt:     row.UpdatedAt,
 			DeletedAt:     row.DeletedAt,
@@ -848,22 +899,38 @@ func assembleProduct(p *db.ProductWithTranslation, variants []db.ProductVariant,
 	}
 
 	var imageUrl, thumbnail string
-	for _, img := range iList {
-		if img.IsPrimary {
-			imageUrl = img.Url
-			thumbnail = img.Url
-			break
-		}
+	if p.ImageUrl != nil && *p.ImageUrl != "" {
+		imageUrl = *p.ImageUrl
 	}
-	if imageUrl == "" && len(iList) > 0 {
-		imageUrl = iList[0].Url
-		thumbnail = iList[0].Url
+	if p.ThumbnailUrl != nil && *p.ThumbnailUrl != "" {
+		thumbnail = *p.ThumbnailUrl
+	}
+
+	// Fallback logic if still empty:
+	if imageUrl == "" {
+		for _, img := range iList {
+			if img.IsPrimary {
+				imageUrl = img.Url
+				if thumbnail == "" {
+					thumbnail = img.Url
+				}
+				break
+			}
+		}
+		if imageUrl == "" && len(iList) > 0 {
+			imageUrl = iList[0].Url
+			if thumbnail == "" {
+				thumbnail = iList[0].Url
+			}
+		}
 	}
 	if imageUrl == "" {
 		for _, v := range vList {
 			if v.IsDefault && v.ImageUrl != "" {
 				imageUrl = v.ImageUrl
-				thumbnail = v.ImageUrl
+				if thumbnail == "" {
+					thumbnail = v.ImageUrl
+				}
 				break
 			}
 		}
@@ -872,7 +939,9 @@ func assembleProduct(p *db.ProductWithTranslation, variants []db.ProductVariant,
 		for _, v := range vList {
 			if v.ImageUrl != "" {
 				imageUrl = v.ImageUrl
-				thumbnail = v.ImageUrl
+				if thumbnail == "" {
+					thumbnail = v.ImageUrl
+				}
 				break
 			}
 		}
@@ -1093,6 +1162,7 @@ func (s *ProductService) ListRecommendedProducts(ctx context.Context, req *produ
 	querySQL := `
 		SELECT p.id, p.seller_id, p.category_id, p.slug, p.attributes, p.brand, p.origin_country,
 		       p.status, p.rating, p.review_count, p.sold_count, p.view_count, p.min_price, p.max_price,
+		       p.image_url, p.thumbnail_url,
 		       p.created_at, p.updated_at, p.deleted_at, p.product_type,
 		       ST_Y(p.location::geometry)::float AS latitude,
 		       ST_X(p.location::geometry)::float AS longitude,
@@ -1129,6 +1199,8 @@ func (s *ProductService) ListRecommendedProducts(ctx context.Context, req *produ
 			&i.ViewCount,
 			&i.MinPrice,
 			&i.MaxPrice,
+			&i.ImageUrl,
+			&i.ThumbnailUrl,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,

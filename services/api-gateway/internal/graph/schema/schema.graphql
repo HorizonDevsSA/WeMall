@@ -308,15 +308,21 @@ input CreateProductInput {
   tags:          [String!]
   language:      String
   productType:   ProductType
+  imageUrl:      String
+  thumbnailUrl:  String
+  images:        [String!]
 }
 
 input UpdateProductInput {
-  title:       String
-  description: String
-  attributes:  JSON
-  brand:       String
-  status:      ProductStatus
-  language:    String
+  title:        String
+  description:  String
+  attributes:   JSON
+  brand:        String
+  status:       ProductStatus
+  language:     String
+  imageUrl:     String
+  thumbnailUrl: String
+  images:       [String!]
 }
 
 input AddressInput {

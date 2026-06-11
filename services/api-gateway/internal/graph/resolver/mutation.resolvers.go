@@ -132,6 +132,9 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.Create
 		OriginCountry: derefStr(input.OriginCountry), Variants: variants, Tags: input.Tags, Language: derefStr(input.Language),
 		Latitude: sellerStore.Latitude, Longitude: sellerStore.Longitude,
 		ProductType: unmapProductType(input.ProductType),
+		ImageUrl:     derefStr(input.ImageURL),
+		ThumbnailUrl: derefStr(input.ThumbnailURL),
+		Images:       input.Images,
 	})
 	if err != nil {
 		return nil, err
@@ -162,6 +165,9 @@ func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input m
 		Id: id, SellerId: storeID, Title: derefStr(input.Title), Description: derefStr(input.Description),
 		Attributes: attrs, Brand: derefStr(input.Brand), Language: derefStr(input.Language),
 		Status: productv1.ProductStatus(productv1.ProductStatus_value["PRODUCT_STATUS_"+statusStr]),
+		ImageUrl:     derefStr(input.ImageURL),
+		ThumbnailUrl: derefStr(input.ThumbnailURL),
+		Images:       input.Images,
 	})
 	if err != nil {
 		return nil, err

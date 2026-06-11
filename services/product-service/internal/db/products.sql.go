@@ -61,9 +61,9 @@ func (q *Queries) CountNearbyProducts(ctx context.Context, arg CountNearbyProduc
 }
 
 const createProduct = `-- name: CreateProduct :one
-INSERT INTO products (seller_id, category_id, slug, attributes, brand, origin_country, status, min_price, max_price, location, product_type)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, ST_SetSRID(ST_MakePoint($11::float, $10::float), 4326)::geography, $12::product_type)
-RETURNING id, seller_id, category_id, slug, attributes, brand, origin_country, status, rating, review_count, sold_count, view_count, min_price, max_price, created_at, updated_at, deleted_at, product_type, ST_Y(location::geometry)::float AS latitude, ST_X(location::geometry)::float AS longitude
+INSERT INTO products (seller_id, category_id, slug, attributes, brand, origin_country, status, min_price, max_price, location, product_type, image_url, thumbnail_url)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, ST_SetSRID(ST_MakePoint($11::float, $10::float), 4326)::geography, $12::product_type, $13, $14)
+RETURNING id, seller_id, category_id, slug, attributes, brand, origin_country, status, rating, review_count, sold_count, view_count, min_price, max_price, image_url, thumbnail_url, created_at, updated_at, deleted_at, product_type, ST_Y(location::geometry)::float AS latitude, ST_X(location::geometry)::float AS longitude
 `
 
 type CreateProductParams struct {
@@ -79,6 +79,8 @@ type CreateProductParams struct {
 	Column10      float64        `json:"column_10"`
 	Column11      float64        `json:"column_11"`
 	Column12      string         `json:"column_12"`
+	ImageUrl      *string        `json:"image_url"`
+	ThumbnailUrl  *string        `json:"thumbnail_url"`
 }
 
 type CreateProductRow struct {
@@ -96,6 +98,8 @@ type CreateProductRow struct {
 	ViewCount     int32          `json:"view_count"`
 	MinPrice      pgtype.Numeric `json:"min_price"`
 	MaxPrice      pgtype.Numeric `json:"max_price"`
+	ImageUrl      *string        `json:"image_url"`
+	ThumbnailUrl  *string        `json:"thumbnail_url"`
 	CreatedAt     time.Time      `json:"created_at"`
 	UpdatedAt     time.Time      `json:"updated_at"`
 	DeletedAt     *time.Time     `json:"deleted_at"`
@@ -106,9 +110,9 @@ type CreateProductRow struct {
 
 // CreateProduct
 //
-//	INSERT INTO products (seller_id, category_id, slug, attributes, brand, origin_country, status, min_price, max_price, location, product_type)
-//	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, ST_SetSRID(ST_MakePoint($11::float, $10::float), 4326)::geography, $12::product_type)
-//	RETURNING id, seller_id, category_id, slug, attributes, brand, origin_country, status, rating, review_count, sold_count, view_count, min_price, max_price, created_at, updated_at, deleted_at, product_type, ST_Y(location::geometry)::float AS latitude, ST_X(location::geometry)::float AS longitude
+//	INSERT INTO products (seller_id, category_id, slug, attributes, brand, origin_country, status, min_price, max_price, location, product_type, image_url, thumbnail_url)
+//	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, ST_SetSRID(ST_MakePoint($11::float, $10::float), 4326)::geography, $12::product_type, $13, $14)
+//	RETURNING id, seller_id, category_id, slug, attributes, brand, origin_country, status, rating, review_count, sold_count, view_count, min_price, max_price, image_url, thumbnail_url, created_at, updated_at, deleted_at, product_type, ST_Y(location::geometry)::float AS latitude, ST_X(location::geometry)::float AS longitude
 func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (CreateProductRow, error) {
 	row := q.db.QueryRow(ctx, createProduct,
 		arg.SellerID,
@@ -123,6 +127,8 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (C
 		arg.Column10,
 		arg.Column11,
 		arg.Column12,
+		arg.ImageUrl,
+		arg.ThumbnailUrl,
 	)
 	var i CreateProductRow
 	err := row.Scan(
@@ -140,6 +146,8 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (C
 		&i.ViewCount,
 		&i.MinPrice,
 		&i.MaxPrice,
+		&i.ImageUrl,
+		&i.ThumbnailUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -312,10 +320,25 @@ func (q *Queries) DeleteProduct(ctx context.Context, arg DeleteProductParams) er
 	return err
 }
 
+const deleteProductImages = `-- name: DeleteProductImages :exec
+DELETE FROM product_images
+WHERE product_id = $1
+`
+
+// DeleteProductImages
+//
+//	DELETE FROM product_images
+//	WHERE product_id = $1
+func (q *Queries) DeleteProductImages(ctx context.Context, productID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteProductImages, productID)
+	return err
+}
+
 const getProductBatch = `-- name: GetProductBatch :many
 SELECT
     p.id, p.seller_id, p.category_id, p.slug, p.attributes, p.brand, p.origin_country,
     p.status, p.rating, p.review_count, p.sold_count, p.view_count, p.min_price, p.max_price,
+    p.image_url, p.thumbnail_url,
     p.created_at, p.updated_at, p.deleted_at, p.product_type,
     ST_Y(p.location::geometry)::float AS latitude,
     ST_X(p.location::geometry)::float AS longitude,
@@ -347,6 +370,8 @@ type GetProductBatchRow struct {
 	ViewCount     int32          `json:"view_count"`
 	MinPrice      pgtype.Numeric `json:"min_price"`
 	MaxPrice      pgtype.Numeric `json:"max_price"`
+	ImageUrl      *string        `json:"image_url"`
+	ThumbnailUrl  *string        `json:"thumbnail_url"`
 	CreatedAt     time.Time      `json:"created_at"`
 	UpdatedAt     time.Time      `json:"updated_at"`
 	DeletedAt     *time.Time     `json:"deleted_at"`
@@ -362,6 +387,7 @@ type GetProductBatchRow struct {
 //	SELECT
 //	    p.id, p.seller_id, p.category_id, p.slug, p.attributes, p.brand, p.origin_country,
 //	    p.status, p.rating, p.review_count, p.sold_count, p.view_count, p.min_price, p.max_price,
+//	    p.image_url, p.thumbnail_url,
 //	    p.created_at, p.updated_at, p.deleted_at, p.product_type,
 //	    ST_Y(p.location::geometry)::float AS latitude,
 //	    ST_X(p.location::geometry)::float AS longitude,
@@ -395,6 +421,8 @@ func (q *Queries) GetProductBatch(ctx context.Context, arg GetProductBatchParams
 			&i.ViewCount,
 			&i.MinPrice,
 			&i.MaxPrice,
+			&i.ImageUrl,
+			&i.ThumbnailUrl,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
@@ -418,6 +446,7 @@ const getProductByID = `-- name: GetProductByID :one
 SELECT
     p.id, p.seller_id, p.category_id, p.slug, p.attributes, p.brand, p.origin_country,
     p.status, p.rating, p.review_count, p.sold_count, p.view_count, p.min_price, p.max_price,
+    p.image_url, p.thumbnail_url,
     p.created_at, p.updated_at, p.deleted_at, p.product_type,
     ST_Y(p.location::geometry)::float AS latitude,
     ST_X(p.location::geometry)::float AS longitude,
@@ -449,6 +478,8 @@ type GetProductByIDRow struct {
 	ViewCount     int32          `json:"view_count"`
 	MinPrice      pgtype.Numeric `json:"min_price"`
 	MaxPrice      pgtype.Numeric `json:"max_price"`
+	ImageUrl      *string        `json:"image_url"`
+	ThumbnailUrl  *string        `json:"thumbnail_url"`
 	CreatedAt     time.Time      `json:"created_at"`
 	UpdatedAt     time.Time      `json:"updated_at"`
 	DeletedAt     *time.Time     `json:"deleted_at"`
@@ -464,6 +495,7 @@ type GetProductByIDRow struct {
 //	SELECT
 //	    p.id, p.seller_id, p.category_id, p.slug, p.attributes, p.brand, p.origin_country,
 //	    p.status, p.rating, p.review_count, p.sold_count, p.view_count, p.min_price, p.max_price,
+//	    p.image_url, p.thumbnail_url,
 //	    p.created_at, p.updated_at, p.deleted_at, p.product_type,
 //	    ST_Y(p.location::geometry)::float AS latitude,
 //	    ST_X(p.location::geometry)::float AS longitude,
@@ -491,6 +523,8 @@ func (q *Queries) GetProductByID(ctx context.Context, arg GetProductByIDParams) 
 		&i.ViewCount,
 		&i.MinPrice,
 		&i.MaxPrice,
+		&i.ImageUrl,
+		&i.ThumbnailUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -507,6 +541,7 @@ const getProductBySlug = `-- name: GetProductBySlug :one
 SELECT
     p.id, p.seller_id, p.category_id, p.slug, p.attributes, p.brand, p.origin_country,
     p.status, p.rating, p.review_count, p.sold_count, p.view_count, p.min_price, p.max_price,
+    p.image_url, p.thumbnail_url,
     p.created_at, p.updated_at, p.deleted_at, p.product_type,
     ST_Y(p.location::geometry)::float AS latitude,
     ST_X(p.location::geometry)::float AS longitude,
@@ -538,6 +573,8 @@ type GetProductBySlugRow struct {
 	ViewCount     int32          `json:"view_count"`
 	MinPrice      pgtype.Numeric `json:"min_price"`
 	MaxPrice      pgtype.Numeric `json:"max_price"`
+	ImageUrl      *string        `json:"image_url"`
+	ThumbnailUrl  *string        `json:"thumbnail_url"`
 	CreatedAt     time.Time      `json:"created_at"`
 	UpdatedAt     time.Time      `json:"updated_at"`
 	DeletedAt     *time.Time     `json:"deleted_at"`
@@ -553,6 +590,7 @@ type GetProductBySlugRow struct {
 //	SELECT
 //	    p.id, p.seller_id, p.category_id, p.slug, p.attributes, p.brand, p.origin_country,
 //	    p.status, p.rating, p.review_count, p.sold_count, p.view_count, p.min_price, p.max_price,
+//	    p.image_url, p.thumbnail_url,
 //	    p.created_at, p.updated_at, p.deleted_at, p.product_type,
 //	    ST_Y(p.location::geometry)::float AS latitude,
 //	    ST_X(p.location::geometry)::float AS longitude,
@@ -580,6 +618,8 @@ func (q *Queries) GetProductBySlug(ctx context.Context, arg GetProductBySlugPara
 		&i.ViewCount,
 		&i.MinPrice,
 		&i.MaxPrice,
+		&i.ImageUrl,
+		&i.ThumbnailUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -758,6 +798,7 @@ const listNearbyProducts = `-- name: ListNearbyProducts :many
 SELECT 
     p.id, p.seller_id, p.category_id, p.slug, p.attributes, p.brand, p.origin_country,
     p.status, p.rating, p.review_count, p.sold_count, p.view_count, p.min_price, p.max_price,
+    p.image_url, p.thumbnail_url,
     p.created_at, p.updated_at, p.deleted_at, p.product_type,
     ST_Y(p.location::geometry)::float AS latitude,
     ST_X(p.location::geometry)::float AS longitude,
@@ -765,7 +806,7 @@ SELECT
     COALESCE(t.title, t_en.title, '')       AS title,
     COALESCE(t.description, t_en.description) AS description
 FROM products p
-LEFT JOIN product_translations t    ON t.product_id = p.id AND t.language = $3::text
+LEFT JOIN product_translations t    ON t.product_id = p.id AND $3::text = t.language
 LEFT JOIN product_translations t_en ON t_en.product_id = p.id AND t_en.language = 'en'
 WHERE p.deleted_at IS NULL
   AND p.status = 'active'
@@ -798,6 +839,8 @@ type ListNearbyProductsRow struct {
 	ViewCount      int32          `json:"view_count"`
 	MinPrice       pgtype.Numeric `json:"min_price"`
 	MaxPrice       pgtype.Numeric `json:"max_price"`
+	ImageUrl       *string        `json:"image_url"`
+	ThumbnailUrl   *string        `json:"thumbnail_url"`
 	CreatedAt      time.Time      `json:"created_at"`
 	UpdatedAt      time.Time      `json:"updated_at"`
 	DeletedAt      *time.Time     `json:"deleted_at"`
@@ -814,6 +857,7 @@ type ListNearbyProductsRow struct {
 //	SELECT
 //	    p.id, p.seller_id, p.category_id, p.slug, p.attributes, p.brand, p.origin_country,
 //	    p.status, p.rating, p.review_count, p.sold_count, p.view_count, p.min_price, p.max_price,
+//	    p.image_url, p.thumbnail_url,
 //	    p.created_at, p.updated_at, p.deleted_at, p.product_type,
 //	    ST_Y(p.location::geometry)::float AS latitude,
 //	    ST_X(p.location::geometry)::float AS longitude,
@@ -821,7 +865,7 @@ type ListNearbyProductsRow struct {
 //	    COALESCE(t.title, t_en.title, '')       AS title,
 //	    COALESCE(t.description, t_en.description) AS description
 //	FROM products p
-//	LEFT JOIN product_translations t    ON t.product_id = p.id AND t.language = $3::text
+//	LEFT JOIN product_translations t    ON t.product_id = p.id AND $3::text = t.language
 //	LEFT JOIN product_translations t_en ON t_en.product_id = p.id AND t_en.language = 'en'
 //	WHERE p.deleted_at IS NULL
 //	  AND p.status = 'active'
@@ -859,6 +903,8 @@ func (q *Queries) ListNearbyProducts(ctx context.Context, arg ListNearbyProducts
 			&i.ViewCount,
 			&i.MinPrice,
 			&i.MaxPrice,
+			&i.ImageUrl,
+			&i.ThumbnailUrl,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
@@ -881,26 +927,38 @@ func (q *Queries) ListNearbyProducts(ctx context.Context, arg ListNearbyProducts
 
 const updateProduct = `-- name: UpdateProduct :exec
 UPDATE products SET
-    brand      = COALESCE(NULLIF($1::text, ''), brand),
-    status     = COALESCE(NULLIF($2::text, '')::product_status, status),
-    updated_at = NOW()
-WHERE id = $3 AND deleted_at IS NULL
+    brand         = COALESCE(NULLIF($1::text, ''), brand),
+    status        = COALESCE(NULLIF($2::text, '')::product_status, status),
+    image_url     = COALESCE(NULLIF($3::text, ''), image_url),
+    thumbnail_url = COALESCE(NULLIF($4::text, ''), thumbnail_url),
+    updated_at    = NOW()
+WHERE id = $5 AND deleted_at IS NULL
 `
 
 type UpdateProductParams struct {
-	Brand  string    `json:"brand"`
-	Status string    `json:"status"`
-	ID     uuid.UUID `json:"id"`
+	Brand        string    `json:"brand"`
+	Status       string    `json:"status"`
+	ImageUrl     string    `json:"image_url"`
+	ThumbnailUrl string    `json:"thumbnail_url"`
+	ID           uuid.UUID `json:"id"`
 }
 
 // UpdateProduct
 //
 //	UPDATE products SET
-//	    brand      = COALESCE(NULLIF($1::text, ''), brand),
-//	    status     = COALESCE(NULLIF($2::text, '')::product_status, status),
-//	    updated_at = NOW()
-//	WHERE id = $3 AND deleted_at IS NULL
+//	    brand         = COALESCE(NULLIF($1::text, ''), brand),
+//	    status        = COALESCE(NULLIF($2::text, '')::product_status, status),
+//	    image_url     = COALESCE(NULLIF($3::text, ''), image_url),
+//	    thumbnail_url = COALESCE(NULLIF($4::text, ''), thumbnail_url),
+//	    updated_at    = NOW()
+//	WHERE id = $5 AND deleted_at IS NULL
 func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) error {
-	_, err := q.db.Exec(ctx, updateProduct, arg.Brand, arg.Status, arg.ID)
+	_, err := q.db.Exec(ctx, updateProduct,
+		arg.Brand,
+		arg.Status,
+		arg.ImageUrl,
+		arg.ThumbnailUrl,
+		arg.ID,
+	)
 	return err
 }

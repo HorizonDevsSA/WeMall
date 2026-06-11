@@ -1,0 +1,192 @@
+version: '3.8'
+
+# WeMall – Product Flow Test Stack
+# Deploys: api-gateway, user-service, seller-service, product-service
+# + shared infra: postgres (consolidated), redis, nats, meilisearch
+# Runs on wemall-net (isolated from other docker workloads on this host)
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "5m"
+    max-file: "2"
+
+services:
+  # ── Infrastructure ──────────────────────────────────────────────────────────
+
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: wemall-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-wemall}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-wemall_secret}
+      POSTGRES_MULTIPLE_DATABASES: wemall_users,wemall_products,wemall_sellers
+    volumes:
+      - wemall_pgdata:/var/lib/postgresql/data
+      - ./infrastructure/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
+    networks:
+      - wemall-net
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-wemall}']
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    logging: *default-logging
+
+  redis:
+    image: redis:7-alpine
+    container_name: wemall-redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-wemall_secret}
+    volumes:
+      - wemall_redisdata:/data
+    networks:
+      - wemall-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-wemall_secret}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    logging: *default-logging
+
+  nats:
+    image: nats:2.10-alpine
+    container_name: wemall-nats
+    restart: unless-stopped
+    command: ["-js"]
+    networks:
+      - wemall-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8222/healthz"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    logging: *default-logging
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.6
+    container_name: wemall-meilisearch
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-wemall_master_key}
+      MEILI_ENV: "production"
+    volumes:
+      - wemall_meilidata:/meili_data
+    networks:
+      - wemall-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:7700/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    logging: *default-logging
+
+  # ── Microservices ───────────────────────────────────────────────────────────
+
+  user-service:
+    build:
+      context: .
+      dockerfile: services/user-service/Dockerfile
+    container_name: wemall-user-service
+    restart: unless-stopped
+    environment:
+      PORT: "50051"
+      DB_URL: postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_users?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URL: ${GOOGLE_REDIRECT_URL:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      AFRICAS_TALKING_API_KEY: ${AFRICAS_TALKING_API_KEY:-}
+      AFRICAS_TALKING_USERNAME: ${AFRICAS_TALKING_USERNAME:-}
+      ENVIRONMENT: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  seller-service:
+    build:
+      context: .
+      dockerfile: services/seller-service/Dockerfile
+    container_name: wemall-seller-service
+    restart: unless-stopped
+    environment:
+      PORT: "50054"
+      DB_URL: postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_sellers?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  product-service:
+    build:
+      context: .
+      dockerfile: services/product-service/Dockerfile
+    container_name: wemall-product-service
+    restart: unless-stopped
+    environment:
+      PORT: "50052"
+      DB_URL: postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_products?sslmode=disable
+      MEILI_URL: http://meilisearch:7700
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-wemall_master_key}
+      NATS_URL: nats://nats:4222
+    depends_on:
+      postgres:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    container_name: wemall-api-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"   # Exposed directly — port 80/443 owned by existing Caddy
+    environment:
+      PORT: "8080"
+      USER_SERVICE_ADDR: user-service:50051
+      PRODUCT_SERVICE_ADDR: product-service:50052
+      ORDER_SERVICE_ADDR: ""
+      SELLER_SERVICE_ADDR: seller-service:50054
+      NOTIFICATION_SERVICE_ADDR: ""
+      REVIEW_SERVICE_ADDR: ""
+      PAYMENT_SERVICE_ADDR: ""
+      PROMOTION_SERVICE_ADDR: ""
+      RECOMMENDATION_SERVICE_ADDR: ""
+      REDIS_URL: redis://:${REDIS_PASSWORD:-wemall_secret}@redis:6379/0
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - redis
+      - user-service
+      - seller-service
+      - product-service
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+networks:
+  wemall-net:
+    name: wemall-net
+    driver: bridge
+
+volumes:
+  wemall_pgdata:
+  wemall_redisdata:
+  wemall_meilidata:
