@@ -30,7 +30,7 @@ services:
     environment:
       POSTGRES_USER: ${DB_USER:-wemall}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-wemall_secret}
-      POSTGRES_MULTIPLE_DATABASES: wemall_users,wemall_products,wemall_orders,wemall_sellers,wemall_notifications,wemall_media,wemall_reviews,wemall_payment,wemall_promotion,wemall_recommendation
+      POSTGRES_MULTIPLE_DATABASES: wemall_users,wemall_products,wemall_orders,wemall_sellers,wemall_notifications,wemall_reviews,wemall_payment,wemall_promotion,wemall_recommendation
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./infrastructure/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
@@ -103,7 +103,6 @@ services:
       - ORDER_SERVICE_ADDR=order-service:50053
       - SELLER_SERVICE_ADDR=seller-service:50054
       - NOTIFICATION_SERVICE_ADDR=notification-service:50055
-      - MEDIA_SERVICE_ADDR=media-service:50056
       - REVIEW_SERVICE_ADDR=review-service:50057
       - PAYMENT_SERVICE_ADDR=payment-service:50058
       - PROMOTION_SERVICE_ADDR=promotion-service:50059
@@ -178,29 +177,6 @@ services:
     logging: *default-logging
 
 
-  media-service:
-    build:
-      context: .
-      dockerfile: services/media-service/Dockerfile
-    restart: unless-stopped
-    environment:
-      - PORT=50056
-      - HTTP_PORT=8087
-      - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_media?sslmode=disable
-      - AWS_CLOUDFRONT_PUBLIC_URL=https://${DOMAIN:-wemall.com}
-      - AWS_CLOUDFRONT_PRIVATE_URL=https://private.${DOMAIN:-wemall.com}
-      - AWS_S3_RAW_BUCKET=wemall-media-raw
-      - AWS_REGION=us-east-1
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-    depends_on:
-      postgres:
-        condition: service_healthy
-      nats:
-        condition: service_healthy
-    networks:
-      - wemall-net
-    logging: *default-logging
 
 
 networks:
@@ -214,4 +190,3 @@ volumes:
   redisdata:
   meilidata:
   natsdata:
-  media_uploads:

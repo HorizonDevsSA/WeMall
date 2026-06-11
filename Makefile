@@ -1,6 +1,6 @@
 .PHONY: dev dev-d dev-down dev-clean proto migrate-up migrate-down seed generate generate-gql test build tools help
 
-SERVICES := user-service seller-service product-service order-service notification-service media-service review-service payment-service chat-service dispute-service admin-service promotion-service recommendation-service api-gateway
+SERVICES := user-service seller-service product-service order-service notification-service review-service payment-service chat-service dispute-service admin-service promotion-service recommendation-service api-gateway
 
 ## ── Infrastructure ─────────────────────────────────────────────────────────
 dev: ## Start all services (docker compose up --build)
@@ -28,7 +28,7 @@ proto-lint: ## Lint proto files
 ## ── Database ────────────────────────────────────────────────────────────────
 migrate-up: ## Run all migrations (or: make migrate-up svc=user-service)
 	@if [ -z "$(svc)" ]; then \
-		for s in user-service seller-service product-service order-service notification-service media-service review-service payment-service chat-service dispute-service admin-service promotion-service recommendation-service; do \
+		for s in user-service seller-service product-service order-service notification-service review-service payment-service chat-service dispute-service admin-service promotion-service recommendation-service; do \
 			echo "\n▶ Migrating $$s..."; \
 			$(MAKE) migrate-up svc=$$s; \
 		done; \
@@ -54,7 +54,7 @@ seed: ## Seed categories into product-service DB
 
 ## ── Code Generation ─────────────────────────────────────────────────────────
 generate: ## Run sqlc generation for all services
-	@for s in user-service seller-service product-service order-service notification-service media-service review-service payment-service chat-service dispute-service admin-service promotion-service recommendation-service; do \
+	@for s in user-service seller-service product-service order-service notification-service review-service payment-service chat-service dispute-service admin-service promotion-service recommendation-service; do \
 		echo "\n▶ sqlc generate for $$s..."; \
 		cd services/$$s && sqlc generate && cd ../..; \
 	done

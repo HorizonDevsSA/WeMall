@@ -75,20 +75,6 @@ services:
       timeout: 5s
       retries: 5
 
-  postgres-media:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: wemall_media
-      POSTGRES_USER: wemall
-      POSTGRES_PASSWORD: wemall_secret
-    ports: ['5437:5432']
-    volumes:
-      - pgdata-media:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U wemall -d wemall_media']
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
   postgres-reviews:
     image: postgres:16-alpine
@@ -355,29 +341,6 @@ services:
         condition: service_started
     restart: unless-stopped
 
-  media-service:
-    build:
-      context: .
-      dockerfile: ./services/media-service/Dockerfile
-    ports:
-      - '8087:8087'
-      - '50057:50057'
-    env_file: .env
-    environment:
-      DB_URL: postgres://wemall:wemall_secret@postgres-media:5432/wemall_media?sslmode=disable
-      HTTP_PORT: '8087'
-      GRPC_PORT: '50057'
-      NATS_URL: nats://nats:4222
-      ENVIRONMENT: ${ENVIRONMENT:-development}
-      AWS_CLOUDFRONT_PRIVATE_KEY_PEM: ${AWS_CLOUDFRONT_PRIVATE_KEY_PEM}
-    depends_on:
-      postgres-media:
-        condition: service_healthy
-      nats:
-        condition: service_started
-    volumes:
-      - ./.tmp/media:/app/.tmp/media
-    restart: unless-stopped
 
   review-service:
     build:
@@ -517,7 +480,6 @@ volumes:
   pgdata-orders:
   pgdata-sellers:
   pgdata-notifications:
-  pgdata-media:
   pgdata-reviews:
   pgdata-payments:
   pgdata-chat:
