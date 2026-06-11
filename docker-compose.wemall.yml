@@ -58,7 +58,7 @@ services:
     networks:
       - wemall-net
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8222/healthz"]
+      test: ["CMD", "sh", "-c", "nc -z localhost 4222"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -76,7 +76,7 @@ services:
     networks:
       - wemall-net
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:7700/health"]
+      test: ["CMD", "curl", "-sf", "http://localhost:7700/health"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -91,7 +91,7 @@ services:
     container_name: wemall-user-service
     restart: unless-stopped
     environment:
-      PORT: "50051"
+      GRPC_PORT: "9001"
       DB_URL: postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_users?sslmode=disable
       JWT_SECRET: ${JWT_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-}
@@ -119,7 +119,7 @@ services:
     container_name: wemall-seller-service
     restart: unless-stopped
     environment:
-      PORT: "50054"
+      GRPC_PORT: "9002"
       DB_URL: postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_sellers?sslmode=disable
     depends_on:
       postgres:
@@ -135,7 +135,7 @@ services:
     container_name: wemall-product-service
     restart: unless-stopped
     environment:
-      PORT: "50052"
+      GRPC_PORT: "9003"
       DB_URL: postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_products?sslmode=disable
       MEILI_URL: http://meilisearch:7700
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-wemall_master_key}
@@ -144,9 +144,9 @@ services:
       postgres:
         condition: service_healthy
       meilisearch:
-        condition: service_healthy
+        condition: service_started
       nats:
-        condition: service_healthy
+        condition: service_started
     networks:
       - wemall-net
     logging: *default-logging
@@ -161,10 +161,10 @@ services:
       - "8080:8080"   # Exposed directly — port 80/443 owned by existing Caddy
     environment:
       PORT: "8080"
-      USER_SERVICE_ADDR: user-service:50051
-      PRODUCT_SERVICE_ADDR: product-service:50052
+      USER_SERVICE_ADDR: user-service:9001
+      PRODUCT_SERVICE_ADDR: product-service:9003
       ORDER_SERVICE_ADDR: ""
-      SELLER_SERVICE_ADDR: seller-service:50054
+      SELLER_SERVICE_ADDR: seller-service:9002
       NOTIFICATION_SERVICE_ADDR: ""
       REVIEW_SERVICE_ADDR: ""
       PAYMENT_SERVICE_ADDR: ""
