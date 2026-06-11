@@ -291,10 +291,11 @@ input ProductFilterInput {
 }
 
 input VariantInput {
-  sku:          String!
-  options:      JSON!
-  price:        Float!
-  comparePrice: Float
+  sku:             String!
+  options:         JSON!
+  price:           Float!
+  comparePrice:    Float
+  initialQuantity: Int
 }
 
 input CreateProductInput {

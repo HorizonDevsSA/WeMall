@@ -1,0 +1,8 @@
+./mappers.go
+./mutation.resolvers.go
+./product.resolvers.go
+./query.resolvers.go
+./resolver.go
+./review.resolvers.go
+./schema.resolvers.go
+./subscription.resolvers.go

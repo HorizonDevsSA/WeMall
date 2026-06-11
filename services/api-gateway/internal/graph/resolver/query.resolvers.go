@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"context"
+	"errors"
 
 	"github.com/wemall/api-gateway/internal/graph/gqlerrors"
 	"github.com/wemall/api-gateway/internal/graph/model"
@@ -347,4 +348,42 @@ func (r *queryResolver) Payment(ctx context.Context, id string) (*model.Payment,
 		return nil, err
 	}
 	return mapPayment(resp), nil
+}
+
+// ── Scaffolded Queries (Placeholder implementations) ─────────────────────────
+
+func (r *queryResolver) MyChatThreads(ctx context.Context) (*model.ChatThreadList, error) {
+	return nil, errors.New("chat service not implemented")
+}
+
+func (r *queryResolver) ChatMessages(ctx context.Context, threadID string, pageToken *string, pageSize *int) (*model.ChatMessageList, error) {
+	return nil, errors.New("chat service not implemented")
+}
+
+func (r *queryResolver) MyDisputes(ctx context.Context) (*model.DisputeList, error) {
+	return nil, errors.New("dispute service not implemented")
+}
+
+func (r *queryResolver) Dispute(ctx context.Context, id string) (*model.Dispute, error) {
+	return nil, errors.New("dispute service not implemented")
+}
+
+func (r *queryResolver) DisputeMessages(ctx context.Context, disputeID string) (*model.DisputeMessageList, error) {
+	return nil, errors.New("dispute service not implemented")
+}
+
+func (r *queryResolver) PlatformMetrics(ctx context.Context) (*model.PlatformMetrics, error) {
+	return nil, errors.New("admin service not implemented")
+}
+
+func (r *queryResolver) ActiveFlashSales(ctx context.Context) ([]*model.FlashSale, error) {
+	return nil, errors.New("promotion service not implemented")
+}
+
+func (r *queryResolver) FrequentlyBoughtTogether(ctx context.Context, productID string) ([]*model.Product, error) {
+	return nil, errors.New("recommendation service not implemented")
+}
+
+func (r *queryResolver) PersonalizedRecommendations(ctx context.Context) ([]*model.Product, error) {
+	return nil, errors.New("recommendation service not implemented")
 }

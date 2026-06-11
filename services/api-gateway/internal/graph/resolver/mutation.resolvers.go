@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"context"
+	"errors"
 
 	"github.com/wemall/api-gateway/internal/graph/gqlerrors"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -123,7 +124,17 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.Create
 	variants := make([]*productv1.CreateVariantInput, len(input.Variants))
 	for i, v := range input.Variants {
 		opts, _ := structpb.NewStruct(jsonToMap(v.Options))
-		variants[i] = &productv1.CreateVariantInput{Sku: v.Sku, Options: opts, Price: v.Price, ComparePrice: derefFloat(v.ComparePrice)}
+		var initQty int32 = 0
+		if v.InitialQuantity != nil {
+			initQty = int32(*v.InitialQuantity)
+		}
+		variants[i] = &productv1.CreateVariantInput{
+			Sku:             v.Sku,
+			Options:         opts,
+			Price:           v.Price,
+			ComparePrice:    derefFloat(v.ComparePrice),
+			InitialQuantity: initQty,
+		}
 	}
 	attrs, _ := structpb.NewStruct(jsonToMap(input.Attributes))
 	resp, err := r.Clients.Product.CreateProduct(ctx, &productv1.CreateProductRequest{
@@ -512,4 +523,50 @@ func (r *mutationResolver) ProcessPayment(ctx context.Context, paymentID string,
 	}
 
 	return mapPayment(resp.Payment), nil
+}
+
+// ── Scaffolded Mutations (Placeholder implementations) ───────────────────────
+
+func (r *mutationResolver) CreateChatThread(ctx context.Context, sellerID string, orderID *string) (*model.ChatThread, error) {
+	return nil, errors.New("chat service not implemented")
+}
+
+func (r *mutationResolver) SendChatMessage(ctx context.Context, threadID string, content string) (*model.ChatMessage, error) {
+	return nil, errors.New("chat service not implemented")
+}
+
+func (r *mutationResolver) OpenDispute(ctx context.Context, orderID string, reason string, evidenceUrls []string) (*model.Dispute, error) {
+	return nil, errors.New("dispute service not implemented")
+}
+
+func (r *mutationResolver) ReplyToDispute(ctx context.Context, disputeID string, message string, evidenceUrls []string) (*model.DisputeMessage, error) {
+	return nil, errors.New("dispute service not implemented")
+}
+
+func (r *mutationResolver) EscalateDispute(ctx context.Context, disputeID string) (*model.Dispute, error) {
+	return nil, errors.New("dispute service not implemented")
+}
+
+func (r *mutationResolver) ResolveDispute(ctx context.Context, disputeID string, resolution model.DisputeStatus) (*model.Dispute, error) {
+	return nil, errors.New("admin service not implemented")
+}
+
+func (r *mutationResolver) SuspendSeller(ctx context.Context, sellerID string, reason string) (bool, error) {
+	return false, errors.New("admin service not implemented")
+}
+
+func (r *mutationResolver) BanBuyer(ctx context.Context, buyerID string, reason string) (bool, error) {
+	return false, errors.New("admin service not implemented")
+}
+
+func (r *mutationResolver) ApplyCoupon(ctx context.Context, code string, cartID string) (*model.Cart, error) {
+	return nil, errors.New("promotion service not implemented")
+}
+
+func (r *mutationResolver) CreateCoupon(ctx context.Context, input model.CreateCouponInput) (*model.Coupon, error) {
+	return nil, errors.New("promotion service not implemented")
+}
+
+func (r *mutationResolver) RecordProductView(ctx context.Context, productID string) (bool, error) {
+	return false, errors.New("recommendation service not implemented")
 }

@@ -3818,10 +3818,11 @@ input ProductFilterInput {
 }
 
 input VariantInput {
-  sku:          String!
-  options:      JSON!
-  price:        Float!
-  comparePrice: Float
+  sku:             String!
+  options:         JSON!
+  price:           Float!
+  comparePrice:    Float
+  initialQuantity: Int
 }
 
 input CreateProductInput {
@@ -27517,7 +27518,7 @@ func (ec *executionContext) unmarshalInputVariantInput(ctx context.Context, obj 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"sku", "options", "price", "comparePrice"}
+	fieldsInOrder := [...]string{"sku", "options", "price", "comparePrice", "initialQuantity"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -27552,6 +27553,13 @@ func (ec *executionContext) unmarshalInputVariantInput(ctx context.Context, obj 
 				return it, err
 			}
 			it.ComparePrice = data
+		case "initialQuantity":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("initialQuantity"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.InitialQuantity = data
 		}
 	}
 

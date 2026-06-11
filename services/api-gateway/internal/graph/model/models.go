@@ -300,10 +300,11 @@ type ProductFilterInput struct {
 }
 
 type VariantInput struct {
-	Sku          string                 `json:"sku"`
-	Options      map[string]interface{} `json:"options"`
-	Price        float64                `json:"price"`
-	ComparePrice *float64               `json:"comparePrice"`
+	Sku             string                 `json:"sku"`
+	Options         map[string]interface{} `json:"options"`
+	Price           float64                `json:"price"`
+	ComparePrice    *float64               `json:"comparePrice"`
+	InitialQuantity *int                   `json:"initialQuantity"`
 }
 
 type CreateProductInput struct {
