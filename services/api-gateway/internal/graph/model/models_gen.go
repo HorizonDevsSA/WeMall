@@ -23,6 +23,58 @@ type AppendReviewInput struct {
 	MediaUrls []string `json:"mediaUrls,omitempty"`
 }
 
+type ChatMessage struct {
+	ID        string    `json:"id"`
+	ThreadID  string    `json:"threadId"`
+	SenderID  string    `json:"senderId"`
+	Content   string    `json:"content"`
+	IsRead    bool      `json:"isRead"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type ChatMessageList struct {
+	Messages      []*ChatMessage `json:"messages"`
+	NextPageToken *string        `json:"nextPageToken,omitempty"`
+}
+
+type ChatThread struct {
+	ID        string    `json:"id"`
+	BuyerID   string    `json:"buyerId"`
+	SellerID  string    `json:"sellerId"`
+	OrderID   *string   `json:"orderId,omitempty"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+type ChatThreadList struct {
+	Threads []*ChatThread `json:"threads"`
+}
+
+type Coupon struct {
+	ID            string       `json:"id"`
+	Code          string       `json:"code"`
+	SellerID      *string      `json:"sellerId,omitempty"`
+	DiscountType  DiscountType `json:"discountType"`
+	DiscountValue float64      `json:"discountValue"`
+	MinOrderValue float64      `json:"minOrderValue"`
+	MaxDiscount   float64      `json:"maxDiscount"`
+	StartDate     time.Time    `json:"startDate"`
+	EndDate       time.Time    `json:"endDate"`
+	UsageLimit    int          `json:"usageLimit"`
+	UsageCount    int          `json:"usageCount"`
+}
+
+type CreateCouponInput struct {
+	Code          string       `json:"code"`
+	DiscountType  DiscountType `json:"discountType"`
+	DiscountValue float64      `json:"discountValue"`
+	MinOrderValue float64      `json:"minOrderValue"`
+	MaxDiscount   float64      `json:"maxDiscount"`
+	StartDate     time.Time    `json:"startDate"`
+	EndDate       time.Time    `json:"endDate"`
+	UsageLimit    int          `json:"usageLimit"`
+}
+
 type CreateReviewInput struct {
 	OrderID           string   `json:"orderId"`
 	ProductID         string   `json:"productId"`
@@ -33,6 +85,50 @@ type CreateReviewInput struct {
 	Content           *string  `json:"content,omitempty"`
 	IsAnonymous       *bool    `json:"isAnonymous,omitempty"`
 	MediaUrls         []string `json:"mediaUrls,omitempty"`
+}
+
+type Dispute struct {
+	ID        string        `json:"id"`
+	OrderID   string        `json:"orderId"`
+	BuyerID   string        `json:"buyerId"`
+	SellerID  string        `json:"sellerId"`
+	Reason    string        `json:"reason"`
+	Status    DisputeStatus `json:"status"`
+	CreatedAt time.Time     `json:"createdAt"`
+	UpdatedAt time.Time     `json:"updatedAt"`
+}
+
+type DisputeList struct {
+	Disputes []*Dispute `json:"disputes"`
+}
+
+type DisputeMessage struct {
+	ID           string    `json:"id"`
+	DisputeID    string    `json:"disputeId"`
+	SenderID     string    `json:"senderId"`
+	Content      string    `json:"content"`
+	EvidenceUrls []string  `json:"evidenceUrls,omitempty"`
+	CreatedAt    time.Time `json:"createdAt"`
+}
+
+type DisputeMessageList struct {
+	Messages []*DisputeMessage `json:"messages"`
+}
+
+type FlashSale struct {
+	ID        string           `json:"id"`
+	Name      string           `json:"name"`
+	StartTime time.Time        `json:"startTime"`
+	EndTime   time.Time        `json:"endTime"`
+	Status    FlashSaleStatus  `json:"status"`
+	Items     []*FlashSaleItem `json:"items"`
+}
+
+type FlashSaleItem struct {
+	ID            string  `json:"id"`
+	ProductID     string  `json:"productId"`
+	DiscountPrice float64 `json:"discountPrice"`
+	StockLimit    int     `json:"stockLimit"`
 }
 
 type InitiatePaymentResponse struct {
@@ -70,6 +166,13 @@ type Payment struct {
 	TransactionID *string         `json:"transactionId,omitempty"`
 	CreatedAt     time.Time       `json:"createdAt"`
 	UpdatedAt     time.Time       `json:"updatedAt"`
+}
+
+type PlatformMetrics struct {
+	TotalUsers     int `json:"totalUsers"`
+	TotalSellers   int `json:"totalSellers"`
+	ActiveDisputes int `json:"activeDisputes"`
+	TotalOrders    int `json:"totalOrders"`
 }
 
 type ProductReviewConnection struct {
@@ -150,6 +253,137 @@ type UpdateReviewInput struct {
 	RatingService     int     `json:"ratingService"`
 	RatingDelivery    int     `json:"ratingDelivery"`
 	Content           *string `json:"content,omitempty"`
+}
+
+type DiscountType string
+
+const (
+	DiscountTypePercentage  DiscountType = "PERCENTAGE"
+	DiscountTypeFixedAmount DiscountType = "FIXED_AMOUNT"
+)
+
+var AllDiscountType = []DiscountType{
+	DiscountTypePercentage,
+	DiscountTypeFixedAmount,
+}
+
+func (e DiscountType) IsValid() bool {
+	switch e {
+	case DiscountTypePercentage, DiscountTypeFixedAmount:
+		return true
+	}
+	return false
+}
+
+func (e DiscountType) String() string {
+	return string(e)
+}
+
+func (e *DiscountType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DiscountType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DiscountType", str)
+	}
+	return nil
+}
+
+func (e DiscountType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type DisputeStatus string
+
+const (
+	DisputeStatusOpen             DisputeStatus = "OPEN"
+	DisputeStatusSellerReview     DisputeStatus = "SELLER_REVIEW"
+	DisputeStatusEscalated        DisputeStatus = "ESCALATED"
+	DisputeStatusResolvedRefunded DisputeStatus = "RESOLVED_REFUNDED"
+	DisputeStatusResolvedRejected DisputeStatus = "RESOLVED_REJECTED"
+)
+
+var AllDisputeStatus = []DisputeStatus{
+	DisputeStatusOpen,
+	DisputeStatusSellerReview,
+	DisputeStatusEscalated,
+	DisputeStatusResolvedRefunded,
+	DisputeStatusResolvedRejected,
+}
+
+func (e DisputeStatus) IsValid() bool {
+	switch e {
+	case DisputeStatusOpen, DisputeStatusSellerReview, DisputeStatusEscalated, DisputeStatusResolvedRefunded, DisputeStatusResolvedRejected:
+		return true
+	}
+	return false
+}
+
+func (e DisputeStatus) String() string {
+	return string(e)
+}
+
+func (e *DisputeStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DisputeStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DisputeStatus", str)
+	}
+	return nil
+}
+
+func (e DisputeStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type FlashSaleStatus string
+
+const (
+	FlashSaleStatusScheduled FlashSaleStatus = "SCHEDULED"
+	FlashSaleStatusActive    FlashSaleStatus = "ACTIVE"
+	FlashSaleStatusEnded     FlashSaleStatus = "ENDED"
+)
+
+var AllFlashSaleStatus = []FlashSaleStatus{
+	FlashSaleStatusScheduled,
+	FlashSaleStatusActive,
+	FlashSaleStatusEnded,
+}
+
+func (e FlashSaleStatus) IsValid() bool {
+	switch e {
+	case FlashSaleStatusScheduled, FlashSaleStatusActive, FlashSaleStatusEnded:
+		return true
+	}
+	return false
+}
+
+func (e FlashSaleStatus) String() string {
+	return string(e)
+}
+
+func (e *FlashSaleStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = FlashSaleStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid FlashSaleStatus", str)
+	}
+	return nil
+}
+
+func (e FlashSaleStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type NotificationCategory string
