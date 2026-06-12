@@ -30,7 +30,7 @@ services:
     environment:
       POSTGRES_USER: ${DB_USER:-wemall}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-wemall_secret}
-      POSTGRES_MULTIPLE_DATABASES: wemall_users,wemall_products,wemall_orders,wemall_sellers,wemall_notifications,wemall_reviews,wemall_payment,wemall_promotion,wemall_recommendation
+      POSTGRES_MULTIPLE_DATABASES: wemall_users,wemall_products,wemall_orders,wemall_sellers,wemall_notifications,wemall_reviews,wemall_payments,wemall_chat,wemall_dispute,wemall_admin,wemall_promotion,wemall_recommendation
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./infrastructure/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
@@ -98,21 +98,28 @@ services:
     restart: unless-stopped
     environment:
       - PORT=8080
-      - USER_SERVICE_ADDR=user-service:50051
-      - PRODUCT_SERVICE_ADDR=product-service:50052
-      - ORDER_SERVICE_ADDR=order-service:50053
-      - SELLER_SERVICE_ADDR=seller-service:50054
-      - NOTIFICATION_SERVICE_ADDR=notification-service:50055
-      - REVIEW_SERVICE_ADDR=review-service:50057
-      - PAYMENT_SERVICE_ADDR=payment-service:50058
-      - PROMOTION_SERVICE_ADDR=promotion-service:50059
-      - RECOMMENDATION_SERVICE_ADDR=recommendation-service:50060
+      - USER_SERVICE_ADDR=user-service:9001
+      - PRODUCT_SERVICE_ADDR=product-service:9003
+      - ORDER_SERVICE_ADDR=order-service:9005
+      - SELLER_SERVICE_ADDR=seller-service:9002
+      - INVENTORY_SERVICE_ADDR=product-service:9003
+      - NOTIFICATION_SERVICE_ADDR=notification-service:9007
+      - REVIEW_SERVICE_ADDR=review-service:9009
+      - PAYMENT_SERVICE_ADDR=payment-service:9011
+      - ADMIN_SERVICE_ADDR=admin-service:9014
       - REDIS_URL=redis://:${REDIS_PASSWORD:-wemall_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-wemall_jwt_secret}
+      - ENVIRONMENT=production
     depends_on:
       redis:
         condition: service_healthy
       user-service:
+        condition: service_started
+      product-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+      seller-service:
         condition: service_started
     networks:
       - wemall-net
@@ -124,9 +131,26 @@ services:
       dockerfile: services/user-service/Dockerfile
     restart: unless-stopped
     environment:
-      - PORT=50051
+      - GRPC_PORT=9001
       - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_users?sslmode=disable
       - JWT_SECRET=${JWT_SECRET:-wemall_jwt_secret}
+      - ENVIRONMENT=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  seller-service:
+    build:
+      context: .
+      dockerfile: services/seller-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - GRPC_PORT=9002
+      - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_sellers?sslmode=disable
+      - ENVIRONMENT=production
     depends_on:
       postgres:
         condition: service_healthy
@@ -140,11 +164,13 @@ services:
       dockerfile: services/product-service/Dockerfile
     restart: unless-stopped
     environment:
-      - PORT=50052
+      - GRPC_PORT=9003
       - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_products?sslmode=disable
       - MEILI_URL=http://meilisearch:7700
       - MEILI_MASTER_KEY=${MEILI_MASTER_KEY:-wemall_master_key}
       - NATS_URL=nats://nats:4222
+      - SELLER_SERVICE_ADDR=seller-service:9002
+      - ENVIRONMENT=production
     depends_on:
       postgres:
         condition: service_healthy
@@ -162,11 +188,12 @@ services:
       dockerfile: services/order-service/Dockerfile
     restart: unless-stopped
     environment:
-      - PORT=50053
+      - GRPC_PORT=9005
       - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_orders?sslmode=disable
-      - PRODUCT_SERVICE_URL=product-service:50052
-      - SELLER_SERVICE_URL=seller-service:50054
+      - PRODUCT_SERVICE_ADDR=product-service:9003
+      - SELLER_SERVICE_ADDR=seller-service:9002
       - NATS_URL=nats://nats:4222
+      - ENVIRONMENT=production
     depends_on:
       postgres:
         condition: service_healthy
@@ -176,8 +203,184 @@ services:
       - wemall-net
     logging: *default-logging
 
+  notification-service:
+    build:
+      context: .
+      dockerfile: services/notification-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - GRPC_PORT=9007
+      - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_notifications?sslmode=disable
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-wemall_secret}@redis:6379/0
+      - NATS_URL=nats://nats:4222
+      - SELLER_SERVICE_ADDR=seller-service:9002
+      - ENVIRONMENT=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
 
+  review-service:
+    build:
+      context: .
+      dockerfile: services/review-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - GRPC_PORT=9009
+      - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_reviews?sslmode=disable
+      - NATS_URL=nats://nats:4222
+      - ORDER_SERVICE_ADDR=order-service:9005
+      - ENVIRONMENT=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      order-service:
+        condition: service_started
+    networks:
+      - wemall-net
+    logging: *default-logging
 
+  payment-service:
+    build:
+      context: .
+      dockerfile: services/payment-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - GRPC_PORT=9011
+      - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_payments?sslmode=disable
+      - NATS_URL=nats://nats:4222
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - GOOGLE_PAY_MERCHANT_ID=${GOOGLE_PAY_MERCHANT_ID:-merchant_id_wemall}
+      - ENVIRONMENT=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  chat-service:
+    build:
+      context: .
+      dockerfile: services/chat-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - GRPC_PORT=9012
+      - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_chat?sslmode=disable
+      - NATS_URL=nats://nats:4222
+      - ENVIRONMENT=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  dispute-service:
+    build:
+      context: .
+      dockerfile: services/dispute-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - GRPC_PORT=9013
+      - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_dispute?sslmode=disable
+      - NATS_URL=nats://nats:4222
+      - ENVIRONMENT=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  admin-service:
+    build:
+      context: .
+      dockerfile: services/admin-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - GRPC_PORT=9014
+      - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_admin?sslmode=disable
+      - USERS_DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_users?sslmode=disable
+      - SELLERS_DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_sellers?sslmode=disable
+      - DISPUTES_DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_dispute?sslmode=disable
+      - ORDERS_DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_orders?sslmode=disable
+      - SELLER_SERVICE_ADDR=seller-service:9002
+      - NATS_URL=nats://nats:4222
+      - ENVIRONMENT=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      seller-service:
+        condition: service_started
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  promotion-service:
+    build:
+      context: .
+      dockerfile: services/promotion-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - GRPC_PORT=9015
+      - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_promotion?sslmode=disable
+      - NATS_URL=nats://nats:4222
+      - ENVIRONMENT=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  recommendation-service:
+    build:
+      context: .
+      dockerfile: services/recommendation-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - GRPC_PORT=9016
+      - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_recommendation?sslmode=disable
+      - NATS_URL=nats://nats:4222
+      - ENVIRONMENT=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  documentation-service:
+    build:
+      context: .
+      dockerfile: services/documentation-service/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+    networks:
+      - wemall-net
+    logging: *default-logging
 
 networks:
   wemall-net:

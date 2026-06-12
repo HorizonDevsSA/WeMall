@@ -1,11 +1,11 @@
-# AWS t3.large Deployment Plan for WeMall
+# AWS c7i-flex.large Deployment Plan for WeMall
 
-This document outlines a flawless, step-by-step plan to deploy the WeMall application onto a single AWS `t3.large` instance, with all databases and services hosted internally on the same machine.
+This document outlines a flawless, step-by-step plan to deploy the WeMall application onto a single AWS `c7i-flex.large` instance, with all databases and services hosted internally on the same machine.
 
 ## 1. Architecture & Resource Considerations
 
 > [!WARNING]
-> A `t3.large` instance provides 2 vCPUs and 8 GiB of RAM. 
+> A `c7i-flex.large` instance provides 2 vCPUs and 8 GiB of RAM. 
 > The current `docker-compose.yml` runs **8 separate PostgreSQL containers**, plus Redis, Meilisearch, NATS, and 10 microservices. Running 8 separate Postgres containers will introduce significant RAM and CPU overhead, potentially starving the machine. 
 > **Recommendation:** We will consolidate the 8 PostgreSQL databases into a **single PostgreSQL container** that contains multiple logical databases (`wemall_users`, `wemall_products`, etc.).
 
@@ -19,9 +19,9 @@ This document outlines a flawless, step-by-step plan to deploy the WeMall applic
 ## 2. Infrastructure Provisioning (AWS)
 
 1. **Launch EC2 Instance:**
-   - **Type:** `t3.large` (2 vCPUs, 8 GiB RAM).
+   - **Type:** `c7i-flex.large` (2 vCPUs, 8 GiB RAM).
    - **OS:** Ubuntu 22.04 LTS or 24.04 LTS.
-   - **Storage:** Allocate at least 50 GB gp3 EBS volume (Databases + Docker images require significant space).
+   - **Storage:** Allocate at least 40 GB gp3 EBS volume (Databases + Docker images require significant space).
 2. **Configure Security Group:**
    - Allow **SSH (Port 22)** from your IP address only.
    - Allow **HTTP (Port 80)** from Anywhere (0.0.0.0/0).
@@ -137,7 +137,7 @@ To ensure long-term stability on a single instance:
 1. **Automated Database Backups (Cron):**
    - Create a daily cron job that runs `pg_dump` against the Postgres container and uploads the archive to an AWS S3 bucket using the AWS CLI.
 2. **Swap File Configuration:**
-   - Since `t3.large` has 8GB RAM and you are running a heavy microservice stack, configuring a **4GB Swap file** is critical to prevent Out-Of-Memory (OOM) kills during traffic spikes.
+   - Since `c7i-flex.large` has 8GB RAM and you are running a heavy microservice stack, configuring a **4GB Swap file** is critical to prevent Out-Of-Memory (OOM) kills during traffic spikes.
    ```bash
    sudo fallocate -l 4G /swapfile
    sudo chmod 600 /swapfile
@@ -146,6 +146,6 @@ To ensure long-term stability on a single instance:
    echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
    ```
 3. **CI/CD Integration:**
-   - Set up GitHub Actions to SSH into the `t3.large` machine, pull the latest changes, and restart the specific updated containers seamlessly.
+   - Set up GitHub Actions to SSH into the `c7i-flex.large` machine, pull the latest changes, and restart the specific updated containers seamlessly.
 4. **Monitoring:**
    - Install the **CloudWatch Agent** on the EC2 instance to monitor memory usage and disk space, setting up alarms if memory usage exceeds 85% or disk space exceeds 80%.

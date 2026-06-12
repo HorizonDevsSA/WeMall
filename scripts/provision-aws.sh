@@ -12,7 +12,7 @@ if [ -z "$REGION" ]; then
 fi
 echo "Using region: $REGION"
 
-INSTANCE_TYPE="t3.micro"
+INSTANCE_TYPE="c7i-flex.large"
 # Fetch latest Ubuntu 22.04 LTS AMI dynamically for the current region
 AMI_ID=$(aws ssm get-parameters --names /aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id --query 'Parameters[0].Value' --output text)
 echo "Resolved Ubuntu AMI: $AMI_ID"
@@ -53,7 +53,7 @@ INSTANCE_ID=$(aws ec2 run-instances \
     --instance-type $INSTANCE_TYPE \
     --key-name $KEY_NAME \
     --security-group-ids $SG_ID \
-    --block-device-mappings '[{"DeviceName":"/dev/sda1","Ebs":{"VolumeSize":30,"VolumeType":"gp3"}}]' \
+    --block-device-mappings '[{"DeviceName":"/dev/sda1","Ebs":{"VolumeSize":40,"VolumeType":"gp3"}}]' \
     --user-data file://scripts/aws-userdata.sh \
     --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=WeMall-Prod}]' \
     --query 'Instances[0].InstanceId' \
