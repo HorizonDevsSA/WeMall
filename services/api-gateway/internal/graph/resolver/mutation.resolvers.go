@@ -9,6 +9,7 @@ import (
 
 	"github.com/wemall/api-gateway/internal/graph/model"
 	"github.com/wemall/api-gateway/internal/middleware"
+	adminv1 "github.com/wemall/gen/admin/v1"
 	notificationv1 "github.com/wemall/gen/notification/v1"
 	orderv1 "github.com/wemall/gen/order/v1"
 	productv1 "github.com/wemall/gen/product/v1"
@@ -552,11 +553,35 @@ func (r *mutationResolver) ResolveDispute(ctx context.Context, disputeID string,
 }
 
 func (r *mutationResolver) SuspendSeller(ctx context.Context, sellerID string, reason string) (bool, error) {
-	return false, errors.New("admin service not implemented")
+	adminID, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return false, gqlerrors.Unauthenticated("authentication required")
+	}
+	_, err := r.Clients.Admin.SuspendSeller(ctx, &adminv1.SuspendSellerRequest{
+		SellerId: sellerID,
+		Reason:   reason,
+		AdminId:  adminID,
+	})
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *mutationResolver) BanBuyer(ctx context.Context, buyerID string, reason string) (bool, error) {
-	return false, errors.New("admin service not implemented")
+	adminID, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return false, gqlerrors.Unauthenticated("authentication required")
+	}
+	_, err := r.Clients.Admin.BanUser(ctx, &adminv1.BanUserRequest{
+		UserId:  buyerID,
+		Reason:  reason,
+		AdminId: adminID,
+	})
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *mutationResolver) ApplyCoupon(ctx context.Context, code string, cartID string) (*model.Cart, error) {

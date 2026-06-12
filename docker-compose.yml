@@ -430,6 +430,11 @@ services:
     ports: ['9014:9014']
     environment:
       DB_URL: postgres://wemall:wemall_secret@postgres-admin:5432/wemall_admin?sslmode=disable
+      USERS_DB_URL: postgres://wemall:wemall_secret@postgres-users:5432/wemall_users?sslmode=disable
+      SELLERS_DB_URL: postgres://wemall:wemall_secret@postgres-sellers:5432/wemall_sellers?sslmode=disable
+      DISPUTES_DB_URL: postgres://wemall:wemall_secret@postgres-dispute:5432/wemall_dispute?sslmode=disable
+      ORDERS_DB_URL: postgres://wemall:wemall_secret@postgres-orders:5432/wemall_orders?sslmode=disable
+      SELLER_SERVICE_ADDR: seller-service:9002
       GRPC_PORT: '9014'
       NATS_URL: nats://nats:4222
       ENVIRONMENT: development
@@ -437,6 +442,8 @@ services:
       postgres-admin:
         condition: service_healthy
       nats:
+        condition: service_started
+      seller-service:
         condition: service_started
     restart: unless-stopped
 

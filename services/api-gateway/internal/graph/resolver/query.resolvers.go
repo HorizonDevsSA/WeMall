@@ -13,6 +13,7 @@ import (
 	sellerv1 "github.com/wemall/gen/seller/v1"
 	userv1 "github.com/wemall/gen/user/v1"
 	paymentv1 "github.com/wemall/gen/payment/v1"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // ── User Queries ──────────────────────────────────────────────────────────────
@@ -373,7 +374,16 @@ func (r *queryResolver) DisputeMessages(ctx context.Context, disputeID string) (
 }
 
 func (r *queryResolver) PlatformMetrics(ctx context.Context) (*model.PlatformMetrics, error) {
-	return nil, errors.New("admin service not implemented")
+	resp, err := r.Clients.Admin.GetPlatformMetrics(ctx, &emptypb.Empty{})
+	if err != nil {
+		return nil, err
+	}
+	return &model.PlatformMetrics{
+		TotalUsers:     int(resp.TotalUsers),
+		TotalSellers:   int(resp.TotalSellers),
+		ActiveDisputes: int(resp.ActiveDisputes),
+		TotalOrders:    int(resp.TotalOrders),
+	}, nil
 }
 
 func (r *queryResolver) ActiveFlashSales(ctx context.Context) ([]*model.FlashSale, error) {
