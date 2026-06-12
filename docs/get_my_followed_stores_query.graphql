@@ -1,0 +1,12 @@
+query GetMyFollowedStores($pageSize: Int, $pageToken: String) {
+  myFollowedStores(pageSize: $pageSize, pageToken: $pageToken) {
+    sellers {
+      id
+      storeName
+      storeSlug
+      logoUrl
+    }
+    nextPageToken
+    total
+  }
+}

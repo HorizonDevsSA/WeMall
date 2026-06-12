@@ -1,0 +1,8 @@
+mutation CreateSellerReply($input: SellerReplyInput!) {
+  createSellerReply(input: $input) {
+    id
+    replyType
+    content
+    createdAt
+  }
+}

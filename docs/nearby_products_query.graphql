@@ -1,0 +1,22 @@
+query GetNearbyProducts($latitude: Float!, $longitude: Float!, $radiusMeters: Float!, $pageSize: Int, $pageToken: String) {
+  nearbyProducts(
+    latitude: $latitude
+    longitude: $longitude
+    radiusMeters: $radiusMeters
+    pageSize: $pageSize
+    pageToken: $pageToken
+  ) {
+    product {
+      id
+      title
+      slug
+      minPrice
+      maxPrice
+      thumbnail
+      imageUrl
+      rating
+      soldCount
+    }
+    distance
+  }
+}

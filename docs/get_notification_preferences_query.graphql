@@ -1,0 +1,7 @@
+query GetNotificationPreferences {
+  notificationPreferences {
+    category
+    emailEnabled
+    pushEnabled
+  }
+}

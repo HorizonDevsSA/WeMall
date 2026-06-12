@@ -1,0 +1,22 @@
+query GetStoreProducts($sellerId: ID!, $pageSize: Int, $pageToken: String, $language: String) {
+  products(
+    filter: { sellerId: $sellerId }
+    pageSize: $pageSize
+    pageToken: $pageToken
+    language: $language
+  ) {
+    products {
+      id
+      title
+      slug
+      minPrice
+      maxPrice
+      thumbnail
+      imageUrl
+      rating
+      soldCount
+    }
+    nextPageToken
+    total
+  }
+}

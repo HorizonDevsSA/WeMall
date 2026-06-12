@@ -1,0 +1,7 @@
+mutation UpdateNotificationPreferences($category: NotificationCategory!, $emailEnabled: Boolean!, $pushEnabled: Boolean!) {
+  updateNotificationPreferences(category: $category, emailEnabled: $emailEnabled, pushEnabled: $pushEnabled) {
+    category
+    emailEnabled
+    pushEnabled
+  }
+}

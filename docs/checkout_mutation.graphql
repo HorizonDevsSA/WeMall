@@ -1,0 +1,16 @@
+mutation Checkout($input: CheckoutInput!) {
+  checkout(input: $input) {
+    id
+    orderNumber
+    userId
+    status
+    subtotal
+    shippingFee
+    discountAmount
+    total
+    currency
+    shippingAddress
+    notes
+    createdAt
+  }
+}

@@ -1,0 +1,27 @@
+query ListProducts($filter: ProductFilterInput, $pageSize: Int, $pageToken: String, $language: String) {
+  products(filter: $filter, pageSize: $pageSize, pageToken: $pageToken, language: $language) {
+    products {
+      id
+      sellerId
+      categoryId
+      title
+      slug
+      description
+      brand
+      originCountry
+      status
+      rating
+      reviewCount
+      soldCount
+      minPrice
+      maxPrice
+      thumbnail
+      imageUrl
+      createdAt
+      updatedAt
+      productType
+    }
+    nextPageToken
+    total
+  }
+}

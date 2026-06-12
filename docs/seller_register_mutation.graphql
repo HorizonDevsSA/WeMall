@@ -1,0 +1,14 @@
+mutation SellerRegister($email: String!, $password: String!, $fullName: String!) {
+  sellerRegister(email: $email, password: $password, fullName: $fullName) {
+    accessToken
+    refreshToken
+    user {
+      id
+      email
+      fullName
+      role
+      isVerified
+      createdAt
+    }
+  }
+}

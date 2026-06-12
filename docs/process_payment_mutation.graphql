@@ -1,0 +1,8 @@
+mutation ProcessPayment($paymentId: ID!, $token: String!) {
+  processPayment(paymentId: $paymentId, token: $token) {
+    id
+    orderId
+    status
+    transactionId
+  }
+}

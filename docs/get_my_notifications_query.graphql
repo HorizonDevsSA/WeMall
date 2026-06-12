@@ -1,0 +1,11 @@
+query GetMyNotifications($limit: Int, $offset: Int) {
+  myNotifications(limit: $limit, offset: $offset) {
+    id
+    category
+    channel
+    title
+    content
+    status
+    createdAt
+  }
+}

@@ -1,0 +1,10 @@
+query GetFrequentlyBoughtTogether($productId: ID!) {
+  frequentlyBoughtTogether(productId: $productId) {
+    id
+    title
+    slug
+    minPrice
+    maxPrice
+    thumbnail
+  }
+}

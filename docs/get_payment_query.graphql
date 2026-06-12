@@ -1,0 +1,14 @@
+query GetPayment($id: ID!) {
+  payment(id: $id) {
+    id
+    orderId
+    userId
+    amount
+    currency
+    provider
+    status
+    transactionId
+    createdAt
+    updatedAt
+  }
+}

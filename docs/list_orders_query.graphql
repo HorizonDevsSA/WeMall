@@ -1,0 +1,14 @@
+query ListOrders($pageSize: Int, $pageToken: String) {
+  orders(pageSize: $pageSize, pageToken: $pageToken) {
+    orders {
+      id
+      orderNumber
+      status
+      total
+      currency
+      createdAt
+    }
+    nextPageToken
+    total
+  }
+}

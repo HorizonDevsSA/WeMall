@@ -1,0 +1,15 @@
+mutation BuyerGoogleAuth($code: String!, $redirectUri: String) {
+  buyerGoogleAuth(code: $code, redirectUri: $redirectUri) {
+    accessToken
+    refreshToken
+    user {
+      id
+      email
+      phone
+      fullName
+      role
+      isVerified
+      createdAt
+    }
+  }
+}

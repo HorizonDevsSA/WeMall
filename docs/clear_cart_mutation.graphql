@@ -1,0 +1,7 @@
+mutation ClearCart {
+  clearCart {
+    id
+    itemCount
+    subtotal
+  }
+}

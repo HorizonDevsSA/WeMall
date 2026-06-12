@@ -1,0 +1,17 @@
+query GetRecommendedProducts($pageSize: Int, $pageToken: String, $language: String) {
+  recommendedProducts(pageSize: $pageSize, pageToken: $pageToken, language: $language) {
+    products {
+      id
+      title
+      slug
+      minPrice
+      maxPrice
+      thumbnail
+      imageUrl
+      rating
+      soldCount
+    }
+    nextPageToken
+    total
+  }
+}

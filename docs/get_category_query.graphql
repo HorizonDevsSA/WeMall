@@ -1,0 +1,19 @@
+query GetCategory($slug: String!, $language: String) {
+  category(slug: $slug, language: $language) {
+    id
+    parentId
+    name
+    slug
+    iconUrl
+    bannerUrl
+    level
+    sortOrder
+    attributeSchema
+    children {
+      id
+      name
+      slug
+      level
+    }
+  }
+}

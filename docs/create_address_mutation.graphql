@@ -1,0 +1,16 @@
+mutation CreateAddress($input: AddressInput!) {
+  createAddress(input: $input) {
+    id
+    userId
+    label
+    fullName
+    phone
+    addressLine1
+    addressLine2
+    city
+    state
+    postalCode
+    country
+    isDefault
+  }
+}

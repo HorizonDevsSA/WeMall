@@ -1,0 +1,12 @@
+mutation UpdateProfile($fullName: String, $avatarUrl: String) {
+  updateProfile(fullName: $fullName, avatarUrl: $avatarUrl) {
+    id
+    email
+    phone
+    fullName
+    avatarUrl
+    role
+    isVerified
+    createdAt
+  }
+}

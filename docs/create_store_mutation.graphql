@@ -1,0 +1,13 @@
+mutation CreateStore($input: CreateStoreInput!) {
+  createStore(input: $input) {
+    id
+    userId
+    storeName
+    storeSlug
+    logoUrl
+    bannerUrl
+    description
+    status
+    isVerified
+  }
+}

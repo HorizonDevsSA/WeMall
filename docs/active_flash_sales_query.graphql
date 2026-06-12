@@ -1,0 +1,15 @@
+query GetActiveFlashSales {
+  activeFlashSales {
+    id
+    name
+    startTime
+    endTime
+    status
+    items {
+      id
+      productId
+      discountPrice
+      stockLimit
+    }
+  }
+}

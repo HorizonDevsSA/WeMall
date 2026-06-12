@@ -1,0 +1,10 @@
+mutation ReplyToDispute($disputeId: ID!, $message: String!, $evidenceUrls: [String!]) {
+  replyToDispute(disputeId: $disputeId, message: $message, evidenceUrls: $evidenceUrls) {
+    id
+    disputeId
+    senderId
+    content
+    evidenceUrls
+    createdAt
+  }
+}

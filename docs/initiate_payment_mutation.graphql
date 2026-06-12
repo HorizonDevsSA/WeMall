@@ -1,0 +1,13 @@
+mutation InitiatePayment($orderId: ID!, $provider: PaymentProvider!) {
+  initiatePayment(orderId: $orderId, provider: $provider) {
+    payment {
+      id
+      orderId
+      amount
+      currency
+      provider
+      status
+    }
+    clientSecret
+  }
+}

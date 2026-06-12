@@ -1,0 +1,3 @@
+mutation RecordProductView($productId: ID!) {
+  recordProductView(productId: $productId)
+}

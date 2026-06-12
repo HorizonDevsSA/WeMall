@@ -1,0 +1,15 @@
+mutation BuyerVerifyOTP($phone: String!, $otp: String!) {
+  buyerVerifyOTP(phone: $phone, otp: $otp) {
+    accessToken
+    refreshToken
+    user {
+      id
+      email
+      phone
+      fullName
+      role
+      isVerified
+      createdAt
+    }
+  }
+}

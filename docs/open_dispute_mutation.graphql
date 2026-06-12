@@ -1,0 +1,11 @@
+mutation OpenDispute($orderId: ID!, $reason: String!, $evidenceUrls: [String!]) {
+  openDispute(orderId: $orderId, reason: $reason, evidenceUrls: $evidenceUrls) {
+    id
+    orderId
+    buyerId
+    sellerId
+    reason
+    status
+    createdAt
+  }
+}

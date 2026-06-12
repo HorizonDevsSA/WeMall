@@ -1,0 +1,12 @@
+query GetDisputeMessages($disputeId: ID!) {
+  disputeMessages(disputeId: $disputeId) {
+    messages {
+      id
+      disputeId
+      senderId
+      content
+      evidenceUrls
+      createdAt
+    }
+  }
+}

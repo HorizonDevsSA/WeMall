@@ -1,0 +1,21 @@
+query GetCart {
+  cart {
+    id
+    userId
+    itemCount
+    subtotal
+    items {
+      id
+      variantId
+      productId
+      quantity
+      unitPrice
+      productTitle
+      variation
+      variationThumbnail
+      sellerId
+      storeTitle
+      storeLogo
+    }
+  }
+}

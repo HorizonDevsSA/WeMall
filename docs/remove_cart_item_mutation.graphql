@@ -1,0 +1,7 @@
+mutation RemoveCartItem($itemId: ID!) {
+  removeCartItem(itemId: $itemId) {
+    id
+    itemCount
+    subtotal
+  }
+}

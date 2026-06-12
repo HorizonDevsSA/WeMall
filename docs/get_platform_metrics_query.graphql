@@ -1,0 +1,8 @@
+query GetPlatformMetrics {
+  platformMetrics {
+    totalUsers
+    totalSellers
+    activeDisputes
+    totalOrders
+  }
+}

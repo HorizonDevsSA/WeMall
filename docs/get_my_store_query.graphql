@@ -1,0 +1,19 @@
+query GetMyStore {
+  myStore {
+    id
+    userId
+    storeName
+    storeSlug
+    logoUrl
+    bannerUrl
+    description
+    rating
+    totalSales
+    isVerified
+    status
+    latitude
+    longitude
+    createdAt
+    updatedAt
+  }
+}

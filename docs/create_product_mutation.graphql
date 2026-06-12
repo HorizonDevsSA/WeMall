@@ -1,0 +1,27 @@
+mutation CreateProduct($input: CreateProductInput!) {
+  createProduct(input: $input) {
+    id
+    sellerId
+    categoryId
+    title
+    slug
+    description
+    brand
+    originCountry
+    status
+    minPrice
+    maxPrice
+    productType
+    variants {
+      id
+      sku
+      price
+      comparePrice
+    }
+    images {
+      id
+      url
+      isPrimary
+    }
+  }
+}

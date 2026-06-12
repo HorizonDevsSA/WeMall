@@ -1,0 +1,19 @@
+query GetStoreProfile($id: ID!) {
+  seller(id: $id) {
+    id
+    userId
+    storeName
+    storeSlug
+    logoUrl
+    bannerUrl
+    description
+    rating
+    totalSales
+    isVerified
+    status
+    latitude
+    longitude
+    createdAt
+    updatedAt
+  }
+}

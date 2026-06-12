@@ -1,0 +1,6 @@
+mutation ResolveDispute($disputeId: ID!, $resolution: DisputeStatus!) {
+  resolveDispute(disputeId: $disputeId, resolution: $resolution) {
+    id
+    status
+  }
+}

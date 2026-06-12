@@ -1,0 +1,10 @@
+mutation CreateCoupon($input: CreateCouponInput!) {
+  createCoupon(input: $input) {
+    id
+    code
+    discountType
+    discountValue
+    minOrderValue
+    maxDiscount
+  }
+}

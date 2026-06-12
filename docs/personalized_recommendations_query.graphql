@@ -1,0 +1,10 @@
+query GetPersonalizedRecommendations {
+  personalizedRecommendations {
+    id
+    title
+    slug
+    minPrice
+    maxPrice
+    thumbnail
+  }
+}

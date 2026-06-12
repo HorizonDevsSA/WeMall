@@ -1,0 +1,12 @@
+query GetMyProfile {
+  me {
+    id
+    email
+    phone
+    fullName
+    avatarUrl
+    role
+    isVerified
+    createdAt
+  }
+}

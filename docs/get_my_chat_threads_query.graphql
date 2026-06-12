@@ -1,0 +1,11 @@
+query GetMyChatThreads {
+  myChatThreads {
+    threads {
+      id
+      buyerId
+      sellerId
+      orderId
+      createdAt
+    }
+  }
+}

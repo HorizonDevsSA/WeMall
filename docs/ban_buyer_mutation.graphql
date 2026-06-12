@@ -1,0 +1,3 @@
+mutation BanBuyer($buyerId: ID!, $reason: String!) {
+  banBuyer(buyerId: $buyerId, reason: $reason)
+}

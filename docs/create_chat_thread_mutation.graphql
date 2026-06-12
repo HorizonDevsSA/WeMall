@@ -1,0 +1,9 @@
+mutation CreateChatThread($sellerId: ID!, $orderId: ID) {
+  createChatThread(sellerId: $sellerId, orderId: $orderId) {
+    id
+    buyerId
+    sellerId
+    orderId
+    createdAt
+  }
+}

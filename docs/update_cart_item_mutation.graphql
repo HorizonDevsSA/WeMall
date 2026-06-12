@@ -1,0 +1,12 @@
+mutation UpdateCartItem($itemId: ID!, $quantity: Int!) {
+  updateCartItem(itemId: $itemId, quantity: $quantity) {
+    id
+    itemCount
+    subtotal
+    items {
+      id
+      quantity
+      unitPrice
+    }
+  }
+}

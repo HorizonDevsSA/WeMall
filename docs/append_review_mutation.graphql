@@ -1,0 +1,7 @@
+mutation AppendReview($input: AppendReviewInput!) {
+  appendReview(input: $input) {
+    id
+    content
+    createdAt
+  }
+}

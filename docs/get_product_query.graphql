@@ -1,0 +1,83 @@
+query GetProduct($id: ID!, $language: String) {
+  product(id: $id, language: $language) {
+    id
+    sellerId
+    categoryId
+    title
+    slug
+    description
+    attributes
+    brand
+    originCountry
+    status
+    rating
+    reviewCount
+    soldCount
+    minPrice
+    maxPrice
+    tags
+    createdAt
+    updatedAt
+    latitude
+    longitude
+    distance
+    productType
+    thumbnail
+    imageUrl
+    variants {
+      id
+      productId
+      sku
+      options
+      price
+      comparePrice
+      imageUrl
+      isDefault
+      inventory {
+        quantity
+        updatedAt
+      }
+    }
+    images {
+      id
+      productId
+      url
+      altText
+      sortOrder
+      isPrimary
+    }
+    seller {
+      id
+      userId
+      storeName
+      storeSlug
+      logoUrl
+      bannerUrl
+      description
+      rating
+      totalSales
+      isVerified
+      status
+      latitude
+      longitude
+      createdAt
+      updatedAt
+      dsr {
+        avgDescription
+        avgService
+        avgDelivery
+        reputationScore
+      }
+    }
+    reviewStats {
+      averageRating
+      totalReviews
+      goodCount
+      neutralCount
+      badCount
+      hasMediaCount
+      appendCount
+      topTags
+    }
+  }
+}

@@ -1,0 +1,13 @@
+query GetChatMessages($threadId: ID!, $pageToken: String, $pageSize: Int) {
+  chatMessages(threadId: $threadId, pageToken: $pageToken, pageSize: $pageSize) {
+    messages {
+      id
+      threadId
+      senderId
+      content
+      isRead
+      createdAt
+    }
+    nextPageToken
+  }
+}

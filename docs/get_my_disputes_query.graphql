@@ -1,0 +1,11 @@
+query GetMyDisputes {
+  myDisputes {
+    disputes {
+      id
+      orderId
+      reason
+      status
+      createdAt
+    }
+  }
+}

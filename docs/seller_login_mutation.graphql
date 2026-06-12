@@ -1,0 +1,14 @@
+mutation SellerLogin($email: String!, $password: String!) {
+  sellerLogin(email: $email, password: $password) {
+    accessToken
+    refreshToken
+    user {
+      id
+      email
+      fullName
+      role
+      isVerified
+      createdAt
+    }
+  }
+}

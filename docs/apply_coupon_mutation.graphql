@@ -1,0 +1,6 @@
+mutation ApplyCoupon($code: String!, $cartId: ID!) {
+  applyCoupon(code: $code, cartId: $cartId) {
+    id
+    subtotal
+  }
+}

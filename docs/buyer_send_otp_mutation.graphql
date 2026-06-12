@@ -1,0 +1,6 @@
+mutation BuyerSendOTP($phone: String!) {
+  buyerSendOTP(phone: $phone) {
+    message
+    requestId
+  }
+}

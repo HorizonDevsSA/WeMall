@@ -1,0 +1,6 @@
+mutation EscalateDispute($disputeId: ID!) {
+  escalateDispute(disputeId: $disputeId) {
+    id
+    status
+  }
+}

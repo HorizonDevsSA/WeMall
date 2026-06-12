@@ -1,0 +1,25 @@
+query GetOrder($id: ID!) {
+  order(id: $id) {
+    id
+    orderNumber
+    status
+    subtotal
+    shippingFee
+    discountAmount
+    total
+    currency
+    shippingAddress
+    notes
+    createdAt
+    items {
+      id
+      variantId
+      productId
+      quantity
+      unitPrice
+      productTitle
+      variation
+      storeTitle
+    }
+  }
+}

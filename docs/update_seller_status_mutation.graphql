@@ -1,0 +1,8 @@
+mutation UpdateSellerStatus($sellerId: ID!, $status: SellerStatus!) {
+  updateSellerStatus(sellerId: $sellerId, status: $status) {
+    id
+    storeName
+    status
+    isVerified
+  }
+}

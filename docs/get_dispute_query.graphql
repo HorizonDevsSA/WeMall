@@ -1,0 +1,12 @@
+query GetDispute($id: ID!) {
+  dispute(id: $id) {
+    id
+    orderId
+    buyerId
+    sellerId
+    reason
+    status
+    createdAt
+    updatedAt
+  }
+}

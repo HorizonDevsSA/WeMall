@@ -1,0 +1,13 @@
+mutation AddToCart($variantId: ID!, $quantity: Int!) {
+  addToCart(variantId: $variantId, quantity: $quantity) {
+    id
+    itemCount
+    subtotal
+    items {
+      id
+      variantId
+      quantity
+      unitPrice
+    }
+  }
+}

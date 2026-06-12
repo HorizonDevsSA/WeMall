@@ -1,0 +1,3 @@
+mutation SuspendSeller($sellerId: ID!, $reason: String!) {
+  suspendSeller(sellerId: $sellerId, reason: $reason)
+}

@@ -1,0 +1,10 @@
+mutation SendChatMessage($threadId: ID!, $content: String!) {
+  sendChatMessage(threadId: $threadId, content: $content) {
+    id
+    threadId
+    senderId
+    content
+    isRead
+    createdAt
+  }
+}
