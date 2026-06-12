@@ -46,8 +46,18 @@ type Client struct {
 }
 
 func NewClient(redisAddr string) *Client {
+	var opt asynq.RedisConnOpt
+	var err error
+	if len(redisAddr) >= 8 && (redisAddr[:8] == "redis://" || redisAddr[:9] == "rediss://") {
+		opt, err = asynq.ParseRedisURI(redisAddr)
+		if err != nil {
+			opt = asynq.RedisClientOpt{Addr: "localhost:6379"}
+		}
+	} else {
+		opt = asynq.RedisClientOpt{Addr: redisAddr}
+	}
 	return &Client{
-		client: asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr}),
+		client: asynq.NewClient(opt),
 	}
 }
 

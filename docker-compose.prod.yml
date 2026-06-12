@@ -215,6 +215,9 @@ services:
       - NATS_URL=nats://nats:4222
       - SELLER_SERVICE_ADDR=seller-service:9002
       - ENVIRONMENT=production
+      - FIREBASE_CREDENTIALS_PATH=/app/firebase-service-account.json
+    volumes:
+      - ./services/notification-service/firebase-service-account.json:/app/firebase-service-account.json
     depends_on:
       postgres:
         condition: service_healthy
@@ -339,8 +342,8 @@ services:
       dockerfile: services/promotion-service/Dockerfile
     restart: unless-stopped
     environment:
-      - GRPC_PORT=9015
-      - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_promotion?sslmode=disable
+      - PORT=9015
+      - DATABASE_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_promotion?sslmode=disable
       - NATS_URL=nats://nats:4222
       - ENVIRONMENT=production
     depends_on:
@@ -358,8 +361,8 @@ services:
       dockerfile: services/recommendation-service/Dockerfile
     restart: unless-stopped
     environment:
-      - GRPC_PORT=9016
-      - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_recommendation?sslmode=disable
+      - PORT=9016
+      - DATABASE_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_recommendation?sslmode=disable
       - NATS_URL=nats://nats:4222
       - ENVIRONMENT=production
     depends_on:

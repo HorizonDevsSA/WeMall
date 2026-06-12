@@ -27,8 +27,20 @@ type Worker struct {
 }
 
 func NewWorker(redisAddr string, concurrency int, dbPool *pgxpool.Pool, smtp *email.SMTPProvider, fcm *push.FCMProvider, logger zerolog.Logger) *Worker {
+	var opt asynq.RedisConnOpt
+	var err error
+	if len(redisAddr) >= 8 && (redisAddr[:8] == "redis://" || redisAddr[:9] == "rediss://") {
+		opt, err = asynq.ParseRedisURI(redisAddr)
+		if err != nil {
+			logger.Error().Err(err).Msg("failed to parse Redis URI, using default localhost:6379")
+			opt = asynq.RedisClientOpt{Addr: "localhost:6379"}
+		}
+	} else {
+		opt = asynq.RedisClientOpt{Addr: redisAddr}
+	}
+
 	server := asynq.NewServer(
-		asynq.RedisClientOpt{Addr: redisAddr},
+		opt,
 		asynq.Config{
 			Concurrency: concurrency,
 			Queues: map[string]int{
