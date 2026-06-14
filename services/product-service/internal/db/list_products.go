@@ -44,7 +44,7 @@ func (q *Queries) ListProducts(ctx context.Context, filter ProductFilter, limit 
 		if catUID, err := uuid.Parse(*filter.CategoryID); err == nil {
 			argCount++
 			args = append(args, catUID)
-			wheres = append(wheres, fmt.Sprintf("p.category_id = $%d", argCount))
+			wheres = append(wheres, fmt.Sprintf("p.category_id IN (WITH RECURSIVE subcategories AS (SELECT id FROM categories WHERE id = $%d UNION SELECT c.id FROM categories c INNER JOIN subcategories s ON c.parent_id = s.id) SELECT id FROM subcategories)", argCount))
 		}
 	}
 

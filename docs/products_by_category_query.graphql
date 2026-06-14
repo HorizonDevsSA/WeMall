@@ -1,0 +1,17 @@
+query GetProductsByCategory($filter: ProductFilterInput, $pageSize: Int, $pageToken: String, $language: String) {
+  products(filter: $filter, pageSize: $pageSize, pageToken: $pageToken, language: $language) {
+    products {
+      id
+      title
+      slug
+      minPrice
+      maxPrice
+      thumbnail
+      imageUrl
+      rating
+      soldCount
+    }
+    nextPageToken
+    total
+  }
+}
