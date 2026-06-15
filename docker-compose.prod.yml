@@ -107,6 +107,7 @@ services:
       - REVIEW_SERVICE_ADDR=review-service:9009
       - PAYMENT_SERVICE_ADDR=payment-service:9011
       - ADMIN_SERVICE_ADDR=admin-service:9014
+      - PROMOTION_SERVICE_ADDR=promotion-service:9015
       - REDIS_URL=redis://:${REDIS_PASSWORD:-wemall_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-wemall_jwt_secret}
       - ENVIRONMENT=production
@@ -120,6 +121,8 @@ services:
       order-service:
         condition: service_started
       seller-service:
+        condition: service_started
+      promotion-service:
         condition: service_started
     networks:
       - wemall-net
