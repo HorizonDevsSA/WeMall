@@ -13,6 +13,7 @@ import (
 	userv1 "github.com/wemall/gen/user/v1"
 	reviewv1 "github.com/wemall/gen/review/v1"
 	paymentv1 "github.com/wemall/gen/payment/v1"
+	promotionv1 "github.com/wemall/gen/promotion/v1"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -859,6 +860,94 @@ func unmapPaymentProvider(p model.PaymentProvider) paymentv1.PaymentProvider {
 		return paymentv1.PaymentProvider_PAYMENT_PROVIDER_STRIPE
 	default:
 		return paymentv1.PaymentProvider_PAYMENT_PROVIDER_UNSPECIFIED
+	}
+}
+
+// ── Promotion Mappers ──────────────────────────────────────────────────────────
+
+func mapCoupon(c *promotionv1.Coupon) *model.Coupon {
+	if c == nil {
+		return nil
+	}
+	var startDate, endDate time.Time
+	if c.StartDate != nil {
+		startDate = c.StartDate.AsTime()
+	}
+	if c.EndDate != nil {
+		endDate = c.EndDate.AsTime()
+	}
+
+	var discType model.DiscountType
+	switch c.DiscountType {
+	case promotionv1.DiscountType_DISCOUNT_TYPE_PERCENTAGE:
+		discType = model.DiscountTypePercentage
+	case promotionv1.DiscountType_DISCOUNT_TYPE_FIXED_AMOUNT:
+		discType = model.DiscountTypeFixedAmount
+	default:
+		discType = model.DiscountTypePercentage
+	}
+
+	return &model.Coupon{
+		ID:            c.Id,
+		Code:          c.Code,
+		SellerID:      strPtr(c.SellerId),
+		DiscountType:  discType,
+		DiscountValue: c.DiscountValue,
+		MinOrderValue: c.MinOrderValue,
+		MaxDiscount:   c.MaxDiscount,
+		StartDate:     startDate,
+		EndDate:       endDate,
+		UsageLimit:    int(c.UsageLimit),
+		UsageCount:    int(c.UsageCount),
+	}
+}
+
+func mapFlashSale(fs *promotionv1.FlashSale) *model.FlashSale {
+	if fs == nil {
+		return nil
+	}
+	var startTime, endTime time.Time
+	if fs.StartTime != nil {
+		startTime = fs.StartTime.AsTime()
+	}
+	if fs.EndTime != nil {
+		endTime = fs.EndTime.AsTime()
+	}
+
+	status := model.FlashSaleStatusScheduled
+	switch fs.Status {
+	case promotionv1.FlashSaleStatus_FLASH_SALE_STATUS_ACTIVE:
+		status = model.FlashSaleStatusActive
+	case promotionv1.FlashSaleStatus_FLASH_SALE_STATUS_ENDED:
+		status = model.FlashSaleStatusEnded
+	case promotionv1.FlashSaleStatus_FLASH_SALE_STATUS_SCHEDULED:
+		status = model.FlashSaleStatusScheduled
+	}
+
+	items := make([]*model.FlashSaleItem, len(fs.Items))
+	for i, it := range fs.Items {
+		items[i] = mapFlashSaleItem(it)
+	}
+
+	return &model.FlashSale{
+		ID:        fs.Id,
+		Name:      fs.Name,
+		StartTime: startTime,
+		EndTime:   endTime,
+		Status:    status,
+		Items:     items,
+	}
+}
+
+func mapFlashSaleItem(item *promotionv1.FlashSaleItem) *model.FlashSaleItem {
+	if item == nil {
+		return nil
+	}
+	return &model.FlashSaleItem{
+		ID:            item.Id,
+		ProductID:     item.ProductId,
+		DiscountPrice: item.DiscountPrice,
+		StockLimit:    int(item.StockLimit),
 	}
 }
 

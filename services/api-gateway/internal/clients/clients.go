@@ -7,12 +7,13 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	adminv1 "github.com/wemall/gen/admin/v1"
 	inventoryv1 "github.com/wemall/gen/inventory/v1"
 	notificationv1 "github.com/wemall/gen/notification/v1"
 	orderv1 "github.com/wemall/gen/order/v1"
-	productv1 "github.com/wemall/gen/product/v1"
-	adminv1 "github.com/wemall/gen/admin/v1"
 	paymentv1 "github.com/wemall/gen/payment/v1"
+	productv1 "github.com/wemall/gen/product/v1"
+	promotionv1 "github.com/wemall/gen/promotion/v1"
 	reviewv1 "github.com/wemall/gen/review/v1"
 	sellerv1 "github.com/wemall/gen/seller/v1"
 	userv1 "github.com/wemall/gen/user/v1"
@@ -29,6 +30,7 @@ type Clients struct {
 	Review       reviewv1.ReviewServiceClient
 	Payment      paymentv1.PaymentServiceClient
 	Admin        adminv1.AdminServiceClient
+	Promotion    promotionv1.PromotionServiceClient
 
 	userConn         *grpc.ClientConn
 	productConn      *grpc.ClientConn
@@ -39,10 +41,11 @@ type Clients struct {
 	reviewConn       *grpc.ClientConn
 	paymentConn      *grpc.ClientConn
 	adminConn        *grpc.ClientConn
+	promotionConn    *grpc.ClientConn
 }
 
-// New dials user, product, order, seller, inventory, notification, review, payment, and admin services.
-func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificationAddr, reviewAddr, paymentAddr, adminAddr string) (*Clients, error) {
+// New dials user, product, order, seller, inventory, notification, review, payment, admin, and promotion services.
+func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificationAddr, reviewAddr, paymentAddr, adminAddr, promotionAddr string) (*Clients, error) {
 	dial := func(addr string) (*grpc.ClientConn, error) {
 		conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
@@ -123,6 +126,19 @@ func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificati
 		payConn.Close()
 		return nil, err
 	}
+	promoConn, err := dial(promotionAddr)
+	if err != nil {
+		uConn.Close()
+		pConn.Close()
+		oConn.Close()
+		sConn.Close()
+		iConn.Close()
+		nConn.Close()
+		rConn.Close()
+		payConn.Close()
+		admConn.Close()
+		return nil, err
+	}
 
 	return &Clients{
 		User:         userv1.NewUserServiceClient(uConn),
@@ -134,6 +150,7 @@ func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificati
 		Review:       reviewv1.NewReviewServiceClient(rConn),
 		Payment:      paymentv1.NewPaymentServiceClient(payConn),
 		Admin:        adminv1.NewAdminServiceClient(admConn),
+		Promotion:    promotionv1.NewPromotionServiceClient(promoConn),
 		userConn:         uConn,
 		productConn:      pConn,
 		orderConn:        oConn,
@@ -143,18 +160,20 @@ func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificati
 		reviewConn:       rConn,
 		paymentConn:      payConn,
 		adminConn:        admConn,
+		promotionConn:    promoConn,
 	}, nil
 }
 
 // Close shuts down all gRPC connections.
 func (c *Clients) Close() {
-		c.userConn.Close()
-		c.productConn.Close()
-		c.orderConn.Close()
-		c.sellerConn.Close()
-		c.inventoryConn.Close()
-		c.notificationConn.Close()
-		c.reviewConn.Close()
-		c.paymentConn.Close()
-		c.adminConn.Close()
+	c.userConn.Close()
+	c.productConn.Close()
+	c.orderConn.Close()
+	c.sellerConn.Close()
+	c.inventoryConn.Close()
+	c.notificationConn.Close()
+	c.reviewConn.Close()
+	c.paymentConn.Close()
+	c.adminConn.Close()
+	c.promotionConn.Close()
 }

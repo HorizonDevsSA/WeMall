@@ -16,6 +16,8 @@ import (
 	sellerv1 "github.com/wemall/gen/seller/v1"
 	userv1 "github.com/wemall/gen/user/v1"
 	paymentv1 "github.com/wemall/gen/payment/v1"
+	promotionv1 "github.com/wemall/gen/promotion/v1"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // ── Auth Mutations ────────────────────────────────────────────────────────────
@@ -585,11 +587,76 @@ func (r *mutationResolver) BanBuyer(ctx context.Context, buyerID string, reason 
 }
 
 func (r *mutationResolver) ApplyCoupon(ctx context.Context, code string, cartID string) (*model.Cart, error) {
-	return nil, errors.New("promotion service not implemented")
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	cartResp, err := r.Clients.Order.GetCart(ctx, &orderv1.GetCartRequest{UserId: uid})
+	if err != nil {
+		return nil, err
+	}
+
+	var sellerID string
+	if len(cartResp.Items) > 0 {
+		sellerID = cartResp.Items[0].SellerId
+	}
+
+	valResp, err := r.Clients.Promotion.ValidateCoupon(ctx, &promotionv1.ValidateCouponRequest{
+		Code:      code,
+		CartTotal: cartResp.Subtotal,
+		BuyerId:   uid,
+		SellerId:  sellerID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if !valResp.IsValid {
+		return nil, errors.New(valResp.ErrorMessage)
+	}
+
+	return mapCart(cartResp), nil
 }
 
 func (r *mutationResolver) CreateCoupon(ctx context.Context, input model.CreateCouponInput) (*model.Coupon, error) {
-	return nil, errors.New("promotion service not implemented")
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	sellerStore, err := r.Clients.Seller.GetSellerByUserID(ctx, &sellerv1.GetSellerByUserIDRequest{UserId: uid})
+	if err != nil {
+		return nil, err
+	}
+	storeID := sellerStore.Id
+
+	var discType promotionv1.DiscountType
+	switch input.DiscountType {
+	case model.DiscountTypePercentage:
+		discType = promotionv1.DiscountType_DISCOUNT_TYPE_PERCENTAGE
+	case model.DiscountTypeFixedAmount:
+		discType = promotionv1.DiscountType_DISCOUNT_TYPE_FIXED_AMOUNT
+	default:
+		discType = promotionv1.DiscountType_DISCOUNT_TYPE_UNSPECIFIED
+	}
+
+	resp, err := r.Clients.Promotion.CreateCoupon(ctx, &promotionv1.CreateCouponRequest{
+		Code:          input.Code,
+		SellerId:      storeID,
+		DiscountType:  discType,
+		DiscountValue: input.DiscountValue,
+		MinOrderValue: input.MinOrderValue,
+		MaxDiscount:   input.MaxDiscount,
+		StartDate:     timestamppb.New(input.StartDate),
+		EndDate:       timestamppb.New(input.EndDate),
+		UsageLimit:    int32(input.UsageLimit),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return mapCoupon(resp), nil
 }
 
 func (r *mutationResolver) RecordProductView(ctx context.Context, productID string) (bool, error) {

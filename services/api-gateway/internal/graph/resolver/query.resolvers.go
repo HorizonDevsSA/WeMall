@@ -387,7 +387,15 @@ func (r *queryResolver) PlatformMetrics(ctx context.Context) (*model.PlatformMet
 }
 
 func (r *queryResolver) ActiveFlashSales(ctx context.Context) ([]*model.FlashSale, error) {
-	return nil, errors.New("promotion service not implemented")
+	resp, err := r.Clients.Promotion.ListActiveFlashSales(ctx, &emptypb.Empty{})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*model.FlashSale, len(resp.Sales))
+	for i, fs := range resp.Sales {
+		out[i] = mapFlashSale(fs)
+	}
+	return out, nil
 }
 
 func (r *queryResolver) FrequentlyBoughtTogether(ctx context.Context, productID string) ([]*model.Product, error) {

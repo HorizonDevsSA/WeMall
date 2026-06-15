@@ -1,0 +1,13 @@
+query GetCategories($language: String) {
+  categories(language: $language) {
+    id
+    parentId
+    name
+    slug
+    level
+    iconUrl
+    bannerUrl
+    sortOrder
+    attributeSchema
+  }
+}
