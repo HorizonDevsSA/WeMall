@@ -1,0 +1,8 @@
+mutation AddFlashSaleItem($input: AddFlashSaleItemInput!) {
+  addFlashSaleItem(input: $input) {
+    id
+    productId
+    discountPrice
+    stockLimit
+  }
+}

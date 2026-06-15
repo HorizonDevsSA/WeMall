@@ -543,6 +543,8 @@ type Mutation {
   # Promotion
   applyCoupon(code: String!, cartId: ID!): Cart! @hasRole(role: BUYER)
   createCoupon(input: CreateCouponInput!): Coupon! @hasRole(role: SELLER)
+  createFlashSale(input: CreateFlashSaleInput!): FlashSale! @hasRole(role: SELLER)
+  addFlashSaleItem(input: AddFlashSaleItemInput!): FlashSaleItem! @hasRole(role: SELLER)
 
   # Recommendation
   recordProductView(productId: ID!): Boolean!
@@ -816,4 +818,17 @@ input CreateCouponInput {
   startDate: Time!
   endDate: Time!
   usageLimit: Int!
+}
+
+input CreateFlashSaleInput {
+  name: String!
+  startTime: Time!
+  endTime: Time!
+}
+
+input AddFlashSaleItemInput {
+  flashSaleId: ID!
+  productId: ID!
+  discountPrice: Float!
+  stockLimit: Int!
 }

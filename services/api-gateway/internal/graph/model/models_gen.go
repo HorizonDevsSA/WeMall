@@ -9,6 +9,13 @@ import (
 	"time"
 )
 
+type AddFlashSaleItemInput struct {
+	FlashSaleID   string  `json:"flashSaleId"`
+	ProductID     string  `json:"productId"`
+	DiscountPrice float64 `json:"discountPrice"`
+	StockLimit    int     `json:"stockLimit"`
+}
+
 type AppendReview struct {
 	ID        string         `json:"id"`
 	Content   string         `json:"content"`
@@ -73,6 +80,12 @@ type CreateCouponInput struct {
 	StartDate     time.Time    `json:"startDate"`
 	EndDate       time.Time    `json:"endDate"`
 	UsageLimit    int          `json:"usageLimit"`
+}
+
+type CreateFlashSaleInput struct {
+	Name      string    `json:"name"`
+	StartTime time.Time `json:"startTime"`
+	EndTime   time.Time `json:"endTime"`
 }
 
 type CreateReviewInput struct {

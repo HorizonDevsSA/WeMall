@@ -662,3 +662,40 @@ func (r *mutationResolver) CreateCoupon(ctx context.Context, input model.CreateC
 func (r *mutationResolver) RecordProductView(ctx context.Context, productID string) (bool, error) {
 	return false, errors.New("recommendation service not implemented")
 }
+
+func (r *mutationResolver) CreateFlashSale(ctx context.Context, input model.CreateFlashSaleInput) (*model.FlashSale, error) {
+	_, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	resp, err := r.Clients.Promotion.CreateFlashSale(ctx, &promotionv1.CreateFlashSaleRequest{
+		Name:      input.Name,
+		StartTime: timestamppb.New(input.StartTime),
+		EndTime:   timestamppb.New(input.EndTime),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return mapFlashSale(resp), nil
+}
+
+func (r *mutationResolver) AddFlashSaleItem(ctx context.Context, input model.AddFlashSaleItemInput) (*model.FlashSaleItem, error) {
+	_, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	resp, err := r.Clients.Promotion.AddFlashSaleItem(ctx, &promotionv1.AddFlashSaleItemRequest{
+		FlashSaleId:   input.FlashSaleID,
+		ProductId:     input.ProductID,
+		DiscountPrice: input.DiscountPrice,
+		StockLimit:    int32(input.StockLimit),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return mapFlashSaleItem(resp), nil
+}

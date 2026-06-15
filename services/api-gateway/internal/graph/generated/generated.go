@@ -222,6 +222,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		AddFlashSaleItem              func(childComplexity int, input model.AddFlashSaleItemInput) int
 		AddToCart                     func(childComplexity int, variantID string, quantity int) int
 		AppendReview                  func(childComplexity int, input model.AppendReviewInput) int
 		ApplyCoupon                   func(childComplexity int, code string, cartID string) int
@@ -235,6 +236,7 @@ type ComplexityRoot struct {
 		CreateAddress                 func(childComplexity int, input model.AddressInput) int
 		CreateChatThread              func(childComplexity int, sellerID string, orderID *string) int
 		CreateCoupon                  func(childComplexity int, input model.CreateCouponInput) int
+		CreateFlashSale               func(childComplexity int, input model.CreateFlashSaleInput) int
 		CreateProduct                 func(childComplexity int, input model.CreateProductInput) int
 		CreateReview                  func(childComplexity int, input model.CreateReviewInput) int
 		CreateSellerReply             func(childComplexity int, input model.SellerReplyInput) int
@@ -579,6 +581,8 @@ type MutationResolver interface {
 	BanBuyer(ctx context.Context, buyerID string, reason string) (bool, error)
 	ApplyCoupon(ctx context.Context, code string, cartID string) (*model.Cart, error)
 	CreateCoupon(ctx context.Context, input model.CreateCouponInput) (*model.Coupon, error)
+	CreateFlashSale(ctx context.Context, input model.CreateFlashSaleInput) (*model.FlashSale, error)
+	AddFlashSaleItem(ctx context.Context, input model.AddFlashSaleItemInput) (*model.FlashSaleItem, error)
 	RecordProductView(ctx context.Context, productID string) (bool, error)
 }
 type ProductResolver interface {
@@ -1412,6 +1416,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.InventoryInfo.UpdatedAt(childComplexity), true
 
+	case "Mutation.addFlashSaleItem":
+		if e.complexity.Mutation.AddFlashSaleItem == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addFlashSaleItem_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddFlashSaleItem(childComplexity, args["input"].(model.AddFlashSaleItemInput)), true
+
 	case "Mutation.addToCart":
 		if e.complexity.Mutation.AddToCart == nil {
 			break
@@ -1562,6 +1578,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateCoupon(childComplexity, args["input"].(model.CreateCouponInput)), true
+
+	case "Mutation.createFlashSale":
+		if e.complexity.Mutation.CreateFlashSale == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createFlashSale_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateFlashSale(childComplexity, args["input"].(model.CreateFlashSaleInput)), true
 
 	case "Mutation.createProduct":
 		if e.complexity.Mutation.CreateProduct == nil {
@@ -3438,10 +3466,12 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputAddFlashSaleItemInput,
 		ec.unmarshalInputAddressInput,
 		ec.unmarshalInputAppendReviewInput,
 		ec.unmarshalInputCheckoutInput,
 		ec.unmarshalInputCreateCouponInput,
+		ec.unmarshalInputCreateFlashSaleInput,
 		ec.unmarshalInputCreateProductInput,
 		ec.unmarshalInputCreateReviewInput,
 		ec.unmarshalInputCreateStoreInput,
@@ -4094,6 +4124,8 @@ type Mutation {
   # Promotion
   applyCoupon(code: String!, cartId: ID!): Cart! @hasRole(role: BUYER)
   createCoupon(input: CreateCouponInput!): Coupon! @hasRole(role: SELLER)
+  createFlashSale(input: CreateFlashSaleInput!): FlashSale! @hasRole(role: SELLER)
+  addFlashSaleItem(input: AddFlashSaleItemInput!): FlashSaleItem! @hasRole(role: SELLER)
 
   # Recommendation
   recordProductView(productId: ID!): Boolean!
@@ -4368,6 +4400,19 @@ input CreateCouponInput {
   endDate: Time!
   usageLimit: Int!
 }
+
+input CreateFlashSaleInput {
+  name: String!
+  startTime: Time!
+  endTime: Time!
+}
+
+input AddFlashSaleItemInput {
+  flashSaleId: ID!
+  productId: ID!
+  discountPrice: Float!
+  stockLimit: Int!
+}
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -4388,6 +4433,21 @@ func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[st
 		}
 	}
 	args["role"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addFlashSaleItem_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.AddFlashSaleItemInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNAddFlashSaleItemInput2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐAddFlashSaleItemInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -4617,6 +4677,21 @@ func (ec *executionContext) field_Mutation_createCoupon_args(ctx context.Context
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNCreateCouponInput2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐCreateCouponInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createFlashSale_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.CreateFlashSaleInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateFlashSaleInput2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐCreateFlashSaleInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -14658,6 +14733,194 @@ func (ec *executionContext) fieldContext_Mutation_createCoupon(ctx context.Conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createCoupon_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createFlashSale(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createFlashSale(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateFlashSale(rctx, fc.Args["input"].(model.CreateFlashSaleInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "SELLER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.FlashSale); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/wemall/api-gateway/internal/graph/model.FlashSale`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.FlashSale)
+	fc.Result = res
+	return ec.marshalNFlashSale2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐFlashSale(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createFlashSale(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_FlashSale_id(ctx, field)
+			case "name":
+				return ec.fieldContext_FlashSale_name(ctx, field)
+			case "startTime":
+				return ec.fieldContext_FlashSale_startTime(ctx, field)
+			case "endTime":
+				return ec.fieldContext_FlashSale_endTime(ctx, field)
+			case "status":
+				return ec.fieldContext_FlashSale_status(ctx, field)
+			case "items":
+				return ec.fieldContext_FlashSale_items(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FlashSale", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createFlashSale_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_addFlashSaleItem(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addFlashSaleItem(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().AddFlashSaleItem(rctx, fc.Args["input"].(model.AddFlashSaleItemInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "SELLER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.FlashSaleItem); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/wemall/api-gateway/internal/graph/model.FlashSaleItem`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.FlashSaleItem)
+	fc.Result = res
+	return ec.marshalNFlashSaleItem2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐFlashSaleItem(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addFlashSaleItem(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_FlashSaleItem_id(ctx, field)
+			case "productId":
+				return ec.fieldContext_FlashSaleItem_productId(ctx, field)
+			case "discountPrice":
+				return ec.fieldContext_FlashSaleItem_discountPrice(ctx, field)
+			case "stockLimit":
+				return ec.fieldContext_FlashSaleItem_stockLimit(ctx, field)
+			case "thumbnail":
+				return ec.fieldContext_FlashSaleItem_thumbnail(ctx, field)
+			case "productTitle":
+				return ec.fieldContext_FlashSaleItem_productTitle(ctx, field)
+			case "rating":
+				return ec.fieldContext_FlashSaleItem_rating(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FlashSaleItem", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addFlashSaleItem_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -26756,6 +27019,54 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputAddFlashSaleItemInput(ctx context.Context, obj interface{}) (model.AddFlashSaleItemInput, error) {
+	var it model.AddFlashSaleItemInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"flashSaleId", "productId", "discountPrice", "stockLimit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "flashSaleId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("flashSaleId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FlashSaleID = data
+		case "productId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("productId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProductID = data
+		case "discountPrice":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("discountPrice"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DiscountPrice = data
+		case "stockLimit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stockLimit"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StockLimit = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputAddressInput(ctx context.Context, obj interface{}) (model.AddressInput, error) {
 	var it model.AddressInput
 	asMap := map[string]interface{}{}
@@ -27005,6 +27316,47 @@ func (ec *executionContext) unmarshalInputCreateCouponInput(ctx context.Context,
 				return it, err
 			}
 			it.UsageLimit = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreateFlashSaleInput(ctx context.Context, obj interface{}) (model.CreateFlashSaleInput, error) {
+	var it model.CreateFlashSaleInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "startTime", "endTime"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "startTime":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
+			data, err := ec.unmarshalNTime2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StartTime = data
+		case "endTime":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
+			data, err := ec.unmarshalNTime2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EndTime = data
 		}
 	}
 
@@ -29225,6 +29577,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "createCoupon":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createCoupon(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createFlashSale":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createFlashSale(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "addFlashSaleItem":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addFlashSaleItem(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -31890,6 +32256,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) unmarshalNAddFlashSaleItemInput2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐAddFlashSaleItemInput(ctx context.Context, v interface{}) (model.AddFlashSaleItemInput, error) {
+	res, err := ec.unmarshalInputAddFlashSaleItemInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNAddress2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐAddress(ctx context.Context, sel ast.SelectionSet, v model.Address) graphql.Marshaler {
 	return ec._Address(ctx, sel, &v)
 }
@@ -32295,6 +32666,11 @@ func (ec *executionContext) unmarshalNCreateCouponInput2githubᚗcomᚋwemallᚋ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNCreateFlashSaleInput2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐCreateFlashSaleInput(ctx context.Context, v interface{}) (model.CreateFlashSaleInput, error) {
+	res, err := ec.unmarshalInputCreateFlashSaleInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateProductInput2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐCreateProductInput(ctx context.Context, v interface{}) (model.CreateProductInput, error) {
 	res, err := ec.unmarshalInputCreateProductInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -32474,6 +32850,10 @@ func (ec *executionContext) marshalNDisputeStatus2githubᚗcomᚋwemallᚋapiᚑ
 	return v
 }
 
+func (ec *executionContext) marshalNFlashSale2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐFlashSale(ctx context.Context, sel ast.SelectionSet, v model.FlashSale) graphql.Marshaler {
+	return ec._FlashSale(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNFlashSale2ᚕᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐFlashSaleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FlashSale) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -32526,6 +32906,10 @@ func (ec *executionContext) marshalNFlashSale2ᚖgithubᚗcomᚋwemallᚋapiᚑg
 		return graphql.Null
 	}
 	return ec._FlashSale(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNFlashSaleItem2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐFlashSaleItem(ctx context.Context, sel ast.SelectionSet, v model.FlashSaleItem) graphql.Marshaler {
+	return ec._FlashSaleItem(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNFlashSaleItem2ᚕᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐFlashSaleItemᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FlashSaleItem) graphql.Marshaler {
