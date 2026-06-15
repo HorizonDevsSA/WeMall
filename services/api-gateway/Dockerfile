@@ -7,7 +7,6 @@ COPY pkg/go.mod ./pkg/
 COPY gen/go.mod ./gen/
 COPY services/api-gateway/go.mod ./services/api-gateway/
 COPY services/documentation-service/go.mod ./services/documentation-service/
-COPY services/media-service/go.mod ./services/media-service/
 COPY services/notification-service/go.mod ./services/notification-service/
 COPY services/order-service/go.mod ./services/order-service/
 COPY services/product-service/go.mod ./services/product-service/

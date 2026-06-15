@@ -7,7 +7,6 @@ directories = [
     "gen",
     "services/api-gateway",
     "services/documentation-service",
-    "services/media-service",
     "services/notification-service",
     "services/order-service",
     "services/product-service",
