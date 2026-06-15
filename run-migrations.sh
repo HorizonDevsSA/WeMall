@@ -1,6 +1,6 @@
 #!/bin/bash
 export DB_PASSWORD=$(grep DB_PASSWORD /home/ubuntu/WeMall/.env | cut -d= -f2-)
-for s in user-service product-service order-service seller-service notification-service review-service payment-service chat-service dispute-service admin-service promotion-service recommendation-service; do
+for s in user-service product-service order-service seller-service notification-service review-service payment-service chat-service dispute-service admin-service promotion-service recommendation-service delivery-service; do
   DB_NAME="wemall_$(echo $s | cut -d- -f1)"
   if [ "$s" = "user-service" ]; then DB_NAME="wemall_users"; fi
   if [ "$s" = "product-service" ]; then DB_NAME="wemall_products"; fi
@@ -11,6 +11,7 @@ for s in user-service product-service order-service seller-service notification-
   if [ "$s" = "payment-service" ]; then DB_NAME="wemall_payments"; fi
   if [ "$s" = "promotion-service" ]; then DB_NAME="wemall_promotion"; fi
   if [ "$s" = "recommendation-service" ]; then DB_NAME="wemall_recommendation"; fi
+  if [ "$s" = "delivery-service" ]; then DB_NAME="wemall_delivery"; fi
   
   echo "Migrating $s (Database: $DB_NAME)..."
   docker run --rm -v /home/ubuntu/WeMall/services/$s/db/migrations:/migrations \
