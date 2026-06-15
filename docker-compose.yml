@@ -181,6 +181,21 @@ services:
       timeout: 5s
       retries: 5
 
+  postgres-delivery:
+    image: postgis/postgis:16-3.4-alpine
+    environment:
+      POSTGRES_DB: wemall_delivery
+      POSTGRES_USER: wemall
+      POSTGRES_PASSWORD: wemall_secret
+    ports: ['5445:5432']
+    volumes:
+      - pgdata-delivery:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U wemall -d wemall_delivery']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 
   # ── Redis ──────────────────────────────────────────────────────────────────
   redis:
@@ -305,6 +320,7 @@ services:
       ADMIN_SERVICE_ADDR: admin-service:9014
       PROMOTION_SERVICE_ADDR: promotion-service:9015
       RECOMMENDATION_SERVICE_ADDR: recommendation-service:9016
+      DELIVERY_SERVICE_ADDR: delivery-service:9017
     depends_on:
       - user-service
       - product-service
@@ -318,6 +334,7 @@ services:
       - admin-service
       - promotion-service
       - recommendation-service
+      - delivery-service
     restart: unless-stopped
 
   notification-service:
@@ -481,6 +498,28 @@ services:
         condition: service_started
     restart: unless-stopped
 
+  delivery-service:
+    build:
+      context: .
+      dockerfile: ./services/delivery-service/Dockerfile
+    ports: ['9017:9017']
+    environment:
+      DB_URL: postgres://wemall:wemall_secret@postgres-delivery:5432/wemall_delivery?sslmode=disable
+      REDIS_URL: redis:6379
+      NATS_URL: nats://nats:4222
+      GRPC_PORT: '9017'
+      PAYMENT_SERVICE_ADDR: payment-service:9011
+      USER_SERVICE_ADDR: user-service:9001
+      ENVIRONMENT: development
+    depends_on:
+      postgres-delivery:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_started
+    restart: unless-stopped
+
 volumes:
   pgdata-users:
   pgdata-products:
@@ -494,6 +533,7 @@ volumes:
   pgdata-admin:
   pgdata-promotion:
   pgdata-recommendation:
+  pgdata-delivery:
   redisdata:
   natsdata:
   meilidata:

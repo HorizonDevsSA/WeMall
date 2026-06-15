@@ -30,7 +30,7 @@ services:
     environment:
       POSTGRES_USER: ${DB_USER:-wemall}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-wemall_secret}
-      POSTGRES_MULTIPLE_DATABASES: wemall_users,wemall_products,wemall_orders,wemall_sellers,wemall_notifications,wemall_reviews,wemall_payments,wemall_chat,wemall_dispute,wemall_admin,wemall_promotion,wemall_recommendation
+      POSTGRES_MULTIPLE_DATABASES: wemall_users,wemall_products,wemall_orders,wemall_sellers,wemall_notifications,wemall_reviews,wemall_payments,wemall_chat,wemall_dispute,wemall_admin,wemall_promotion,wemall_recommendation,wemall_delivery
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./infrastructure/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
@@ -111,6 +111,7 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD:-wemall_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-wemall_jwt_secret}
       - ENVIRONMENT=production
+      - DELIVERY_SERVICE_ADDR=delivery-service:9017
     depends_on:
       redis:
         condition: service_healthy
@@ -123,6 +124,8 @@ services:
       seller-service:
         condition: service_started
       promotion-service:
+        condition: service_started
+      delivery-service:
         condition: service_started
     networks:
       - wemall-net
@@ -370,6 +373,30 @@ services:
       - ENVIRONMENT=production
     depends_on:
       postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  delivery-service:
+    build:
+      context: .
+      dockerfile: services/delivery-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - GRPC_PORT=9017
+      - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_delivery?sslmode=disable
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-wemall_secret}@redis:6379/0
+      - NATS_URL=nats://nats:4222
+      - PAYMENT_SERVICE_ADDR=payment-service:9011
+      - USER_SERVICE_ADDR=user-service:9001
+      - ENVIRONMENT=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       nats:
         condition: service_healthy

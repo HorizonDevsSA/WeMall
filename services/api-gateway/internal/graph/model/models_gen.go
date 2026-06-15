@@ -71,6 +71,14 @@ type Coupon struct {
 	UsageCount    int          `json:"usageCount"`
 }
 
+type Courier struct {
+	ID          string  `json:"id"`
+	VehicleType string  `json:"vehicleType"`
+	PlateNumber *string `json:"plateNumber,omitempty"`
+	IsOnline    bool    `json:"isOnline"`
+	Rating      float64 `json:"rating"`
+}
+
 type CreateCouponInput struct {
 	Code          string       `json:"code"`
 	DiscountType  DiscountType `json:"discountType"`
@@ -98,6 +106,30 @@ type CreateReviewInput struct {
 	Content           *string  `json:"content,omitempty"`
 	IsAnonymous       *bool    `json:"isAnonymous,omitempty"`
 	MediaUrls         []string `json:"mediaUrls,omitempty"`
+}
+
+type DeliveryInvoice struct {
+	DeliveryOrder *DeliveryOrder `json:"deliveryOrder"`
+	PaymentSecret string         `json:"paymentSecret"`
+	PaymentURL    string         `json:"paymentUrl"`
+}
+
+type DeliveryOrder struct {
+	ID                 string         `json:"id"`
+	TrackingNumber     string         `json:"trackingNumber"`
+	OrderID            *string        `json:"orderId,omitempty"`
+	SenderName         string         `json:"senderName"`
+	SenderPhone        string         `json:"senderPhone"`
+	RecipientName      string         `json:"recipientName"`
+	RecipientPhone     string         `json:"recipientPhone"`
+	DeliveryType       DeliveryType   `json:"deliveryType"`
+	OriginStation      *Station       `json:"originStation,omitempty"`
+	DestinationStation *Station       `json:"destinationStation,omitempty"`
+	WeightKg           float64        `json:"weightKg"`
+	ShippingFee        float64        `json:"shippingFee"`
+	Status             string         `json:"status"`
+	TrackingLogs       []*TrackingLog `json:"trackingLogs"`
+	CreatedAt          string         `json:"createdAt"`
 }
 
 type Dispute struct {
@@ -152,6 +184,16 @@ type InitiatePaymentResponse struct {
 	ClientSecret *string  `json:"clientSecret,omitempty"`
 }
 
+type Location struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
+type LocationInput struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
 type Mutation struct {
 }
 
@@ -182,6 +224,27 @@ type Payment struct {
 	TransactionID *string         `json:"transactionId,omitempty"`
 	CreatedAt     time.Time       `json:"createdAt"`
 	UpdatedAt     time.Time       `json:"updatedAt"`
+}
+
+type PersonalDeliveryInput struct {
+	SenderName           string         `json:"senderName"`
+	SenderPhone          string         `json:"senderPhone"`
+	SenderAddress        string         `json:"senderAddress"`
+	SenderCity           string         `json:"senderCity"`
+	SenderCountry        string         `json:"senderCountry"`
+	SenderLocation       *LocationInput `json:"senderLocation"`
+	RecipientName        string         `json:"recipientName"`
+	RecipientPhone       string         `json:"recipientPhone"`
+	RecipientAddress     string         `json:"recipientAddress"`
+	RecipientCity        string         `json:"recipientCity"`
+	RecipientCountry     string         `json:"recipientCountry"`
+	RecipientLocation    *LocationInput `json:"recipientLocation"`
+	DeliveryType         DeliveryType   `json:"deliveryType"`
+	DestinationStationID *string        `json:"destinationStationId,omitempty"`
+	WeightKg             float64        `json:"weightKg"`
+	LengthCm             int            `json:"lengthCm"`
+	WidthCm              int            `json:"widthCm"`
+	HeightCm             int            `json:"heightCm"`
 }
 
 type PlatformMetrics struct {
@@ -263,12 +326,86 @@ type SellerReplyInput struct {
 	Content   string `json:"content"`
 }
 
+type Station struct {
+	ID             string    `json:"id"`
+	Name           string    `json:"name"`
+	StoreType      string    `json:"storeType"`
+	Phone          string    `json:"phone"`
+	AddressLine1   string    `json:"addressLine1"`
+	City           string    `json:"city"`
+	Country        string    `json:"country"`
+	Location       *Location `json:"location"`
+	OperatingHours string    `json:"operatingHours"`
+}
+
+type StationPackage struct {
+	ID            string         `json:"id"`
+	Station       *Station       `json:"station"`
+	DeliveryOrder *DeliveryOrder `json:"deliveryOrder"`
+	ShelfCode     string         `json:"shelfCode"`
+	CheckInAt     string         `json:"checkInAt"`
+	CheckOutAt    *string        `json:"checkOutAt,omitempty"`
+}
+
+type TrackingLog struct {
+	ID           string  `json:"id"`
+	Status       string  `json:"status"`
+	LocationDesc string  `json:"locationDesc"`
+	Details      *string `json:"details,omitempty"`
+	CreatedAt    string  `json:"createdAt"`
+}
+
 type UpdateReviewInput struct {
 	ReviewID          string  `json:"reviewId"`
 	RatingDescription int     `json:"ratingDescription"`
 	RatingService     int     `json:"ratingService"`
 	RatingDelivery    int     `json:"ratingDelivery"`
 	Content           *string `json:"content,omitempty"`
+}
+
+type DeliveryType string
+
+const (
+	DeliveryTypeDoorToDoor       DeliveryType = "DOOR_TO_DOOR"
+	DeliveryTypeStationToDoor    DeliveryType = "STATION_TO_DOOR"
+	DeliveryTypeDoorToStation    DeliveryType = "DOOR_TO_STATION"
+	DeliveryTypeStationToStation DeliveryType = "STATION_TO_STATION"
+)
+
+var AllDeliveryType = []DeliveryType{
+	DeliveryTypeDoorToDoor,
+	DeliveryTypeStationToDoor,
+	DeliveryTypeDoorToStation,
+	DeliveryTypeStationToStation,
+}
+
+func (e DeliveryType) IsValid() bool {
+	switch e {
+	case DeliveryTypeDoorToDoor, DeliveryTypeStationToDoor, DeliveryTypeDoorToStation, DeliveryTypeStationToStation:
+		return true
+	}
+	return false
+}
+
+func (e DeliveryType) String() string {
+	return string(e)
+}
+
+func (e *DeliveryType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DeliveryType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DeliveryType", str)
+	}
+	return nil
+}
+
+func (e DeliveryType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type DiscountType string

@@ -17,6 +17,7 @@ import (
 	userv1 "github.com/wemall/gen/user/v1"
 	paymentv1 "github.com/wemall/gen/payment/v1"
 	promotionv1 "github.com/wemall/gen/promotion/v1"
+	deliveryv1 "github.com/wemall/gen/delivery/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -721,4 +722,181 @@ func (r *mutationResolver) AddFlashSaleItem(ctx context.Context, input model.Add
 	}
 
 	return mapFlashSaleItem(resp), nil
+}
+
+// ── Delivery Mutations ────────────────────────────────────────────────────────
+
+func (r *mutationResolver) CreatePersonalDelivery(ctx context.Context, input model.PersonalDeliveryInput) (*model.DeliveryInvoice, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	destStationID := ""
+	if input.DestinationStationID != nil {
+		destStationID = *input.DestinationStationID
+	}
+
+	resp, err := r.Clients.Delivery.CreatePersonalDelivery(ctx, &deliveryv1.CreatePersonalDeliveryRequest{
+		UserId:        uid,
+		SenderName:    input.SenderName,
+		SenderPhone:   input.SenderPhone,
+		SenderAddress: input.SenderAddress,
+		SenderCity:    input.SenderCity,
+		SenderCountry: input.SenderCountry,
+		SenderLocation: &deliveryv1.Location{
+			Latitude:  input.SenderLocation.Latitude,
+			Longitude: input.SenderLocation.Longitude,
+		},
+		RecipientName:    input.RecipientName,
+		RecipientPhone:   input.RecipientPhone,
+		RecipientAddress: input.RecipientAddress,
+		RecipientCity:    input.RecipientCity,
+		RecipientCountry: input.RecipientCountry,
+		RecipientLocation: &deliveryv1.Location{
+			Latitude:  input.RecipientLocation.Latitude,
+			Longitude: input.RecipientLocation.Longitude,
+		},
+		DeliveryType:         unmapDeliveryType(input.DeliveryType),
+		DestinationStationId: destStationID,
+		WeightKg:             input.WeightKg,
+		LengthCm:             int32(input.LengthCm),
+		WidthCm:              int32(input.WidthCm),
+		HeightCm:             int32(input.HeightCm),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.DeliveryInvoice{
+		DeliveryOrder: mapDeliveryOrder(resp.DeliveryOrder),
+		PaymentSecret: resp.PaymentSecret,
+		PaymentURL:    resp.PaymentUrl,
+	}, nil
+}
+
+func (r *mutationResolver) GenerateEWaybillLabel(ctx context.Context, deliveryOrderID string) (string, error) {
+	resp, err := r.Clients.Delivery.GenerateEWaybillLabel(ctx, &deliveryv1.GenerateEWaybillLabelRequest{
+		DeliveryOrderId: deliveryOrderID,
+	})
+	if err != nil {
+		return "", err
+	}
+	return resp.LabelBase64, nil
+}
+
+func (r *mutationResolver) RegisterAsCourier(ctx context.Context, vehicleType string, plateNumber *string) (*model.Courier, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	plateNo := ""
+	if plateNumber != nil {
+		plateNo = *plateNumber
+	}
+
+	resp, err := r.Clients.Delivery.RegisterAsCourier(ctx, &deliveryv1.RegisterAsCourierRequest{
+		UserId:      uid,
+		VehicleType: vehicleType,
+		PlateNumber: plateNo,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return mapCourier(resp.Courier), nil
+}
+
+func (r *mutationResolver) SetCourierOnlineStatus(ctx context.Context, isOnline bool) (*model.Courier, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	resp, err := r.Clients.Delivery.SetCourierOnlineStatus(ctx, &deliveryv1.SetCourierOnlineStatusRequest{
+		UserId:   uid,
+		IsOnline: isOnline,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return mapCourier(resp.Courier), nil
+}
+
+func (r *mutationResolver) AcceptCourierTask(ctx context.Context, deliveryOrderID string) (bool, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return false, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	resp, err := r.Clients.Delivery.AcceptCourierTask(ctx, &deliveryv1.AcceptCourierTaskRequest{
+		UserId:          uid,
+		DeliveryOrderId: deliveryOrderID,
+	})
+	if err != nil {
+		return false, err
+	}
+	return resp.Success, nil
+}
+
+func (r *mutationResolver) UpdateDeliveryProgress(ctx context.Context, deliveryOrderID string, status string, latitude float64, longitude float64, details *string) (bool, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return false, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	detailsVal := ""
+	if details != nil {
+		detailsVal = *details
+	}
+
+	resp, err := r.Clients.Delivery.UpdateDeliveryProgress(ctx, &deliveryv1.UpdateDeliveryProgressRequest{
+		UserId:          uid,
+		DeliveryOrderId: deliveryOrderID,
+		Status:          status,
+		Latitude:        latitude,
+		Longitude:       longitude,
+		Details:         detailsVal,
+	})
+	if err != nil {
+		return false, err
+	}
+	return resp.Success, nil
+}
+
+func (r *mutationResolver) StationCheckInPackage(ctx context.Context, stationID string, trackingNumber string, shelfCode string, direction string) (*model.StationPackage, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	resp, err := r.Clients.Delivery.StationCheckInPackage(ctx, &deliveryv1.StationCheckInPackageRequest{
+		UserId:         uid,
+		StationId:      stationID,
+		TrackingNumber: trackingNumber,
+		ShelfCode:      shelfCode,
+		Direction:      direction,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return mapStationPackage(resp.Package), nil
+}
+
+func (r *mutationResolver) StationCheckOutPackage(ctx context.Context, stationID string, trackingNumber string, verificationCode string) (bool, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return false, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	resp, err := r.Clients.Delivery.StationCheckOutPackage(ctx, &deliveryv1.StationCheckOutPackageRequest{
+		UserId:           uid,
+		StationId:        stationID,
+		TrackingNumber:   trackingNumber,
+		VerificationCode: verificationCode,
+	})
+	if err != nil {
+		return false, err
+	}
+	return resp.Success, nil
 }

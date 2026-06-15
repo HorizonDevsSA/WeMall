@@ -17,4 +17,5 @@ use (
 	./services/review-service
 	./services/seller-service
 	./services/user-service
+	./services/delivery-service
 )

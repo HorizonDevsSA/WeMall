@@ -21,7 +21,7 @@ services:
     environment:
       POSTGRES_USER: ${DB_USER:-wemall}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-wemall_secret}
-      POSTGRES_MULTIPLE_DATABASES: wemall_users,wemall_products,wemall_sellers
+      POSTGRES_MULTIPLE_DATABASES: wemall_users,wemall_products,wemall_sellers,wemall_delivery
     volumes:
       - wemall_pgdata:/var/lib/postgresql/data
       - ./infrastructure/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
@@ -171,6 +171,7 @@ services:
       PAYMENT_SERVICE_ADDR: ""
       PROMOTION_SERVICE_ADDR: ""
       RECOMMENDATION_SERVICE_ADDR: ""
+      DELIVERY_SERVICE_ADDR: delivery-service:9017
       REDIS_URL: redis://:${REDIS_PASSWORD:-wemall_secret}@redis:6379/0
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
@@ -178,6 +179,30 @@ services:
       - user-service
       - seller-service
       - product-service
+      - delivery-service
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  delivery-service:
+    build:
+      context: .
+      dockerfile: services/delivery-service/Dockerfile
+    container_name: wemall-delivery-service
+    restart: unless-stopped
+    environment:
+      GRPC_PORT: "9017"
+      DB_URL: postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_delivery?sslmode=disable
+      REDIS_URL: redis://:${REDIS_PASSWORD:-wemall_secret}@redis:6379/0
+      NATS_URL: nats://nats:4222
+      PAYMENT_SERVICE_ADDR: ""
+      USER_SERVICE_ADDR: user-service:9001
+      ENVIRONMENT: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - wemall-net
     logging: *default-logging

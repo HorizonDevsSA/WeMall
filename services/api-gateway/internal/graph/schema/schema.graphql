@@ -427,6 +427,12 @@ type Query {
   # Recommendation
   frequentlyBoughtTogether(productId: ID!): [Product!]!
   personalizedRecommendations: [Product!]! @hasRole(role: BUYER)
+
+  # Delivery
+  trackPackage(trackingNumber: String!): DeliveryOrder!
+  nearbyStations(latitude: Float!, longitude: Float!, radiusMeters: Float!): [Station!]!
+  availableCourierTasks(latitude: Float!, longitude: Float!): [DeliveryOrder!]! @hasRole(role: BUYER)
+  stationInventory(stationId: ID!, unclaimedOnly: Boolean!): [StationPackage!]! @hasRole(role: BUYER)
 }
 
 type FollowedStoresList {
@@ -550,6 +556,31 @@ type Mutation {
 
   # Recommendation
   recordProductView(productId: ID!): Boolean!
+
+  # Delivery
+  createPersonalDelivery(input: PersonalDeliveryInput!): DeliveryInvoice! @hasRole(role: BUYER)
+  generateEWaybillLabel(deliveryOrderId: ID!): String!
+  registerAsCourier(vehicleType: String!, plateNumber: String): Courier! @hasRole(role: BUYER)
+  setCourierOnlineStatus(isOnline: Boolean!): Courier! @hasRole(role: BUYER)
+  acceptCourierTask(deliveryOrderId: ID!): Boolean! @hasRole(role: BUYER)
+  updateDeliveryProgress(
+    deliveryOrderId: ID!
+    status: String!
+    latitude: Float!
+    longitude: Float!
+    details: String
+  ): Boolean! @hasRole(role: BUYER)
+  stationCheckInPackage(
+    stationId: ID!
+    trackingNumber: String!
+    shelfCode: String!
+    direction: String!
+  ): StationPackage! @hasRole(role: BUYER)
+  stationCheckOutPackage(
+    stationId: ID!
+    trackingNumber: String!
+    verificationCode: String!
+  ): Boolean! @hasRole(role: BUYER)
 }
 
 enum ReviewFilterType {
@@ -834,3 +865,108 @@ input AddFlashSaleItemInput {
   discountPrice: Float!
   stockLimit: Int!
 }
+
+# --- Delivery Types ---
+
+enum DeliveryType {
+  DOOR_TO_DOOR
+  STATION_TO_DOOR
+  DOOR_TO_STATION
+  STATION_TO_STATION
+}
+
+type Location {
+  latitude: Float!
+  longitude: Float!
+}
+
+input LocationInput {
+  latitude: Float!
+  longitude: Float!
+}
+
+type DeliveryOrder {
+  id: ID!
+  trackingNumber: String!
+  orderId: ID
+  senderName: String!
+  senderPhone: String!
+  recipientName: String!
+  recipientPhone: String!
+  deliveryType: DeliveryType!
+  originStation: Station
+  destinationStation: Station
+  weightKg: Float!
+  shippingFee: Float!
+  status: String!
+  trackingLogs: [TrackingLog!]!
+  createdAt: String!
+}
+
+type TrackingLog {
+  id: ID!
+  status: String!
+  locationDesc: String!
+  details: String
+  createdAt: String!
+}
+
+type Station {
+  id: ID!
+  name: String!
+  storeType: String!
+  phone: String!
+  addressLine1: String!
+  city: String!
+  country: String!
+  location: Location!
+  operatingHours: String!
+}
+
+type StationPackage {
+  id: ID!
+  station: Station!
+  deliveryOrder: DeliveryOrder!
+  shelfCode: String!
+  checkInAt: String!
+  checkOutAt: String
+}
+
+type Courier {
+  id: ID!
+  vehicleType: String!
+  plateNumber: String
+  isOnline: Boolean!
+  rating: Float!
+}
+
+input PersonalDeliveryInput {
+  senderName: String!
+  senderPhone: String!
+  senderAddress: String!
+  senderCity: String!
+  senderCountry: String!
+  senderLocation: LocationInput!
+  
+  recipientName: String!
+  recipientPhone: String!
+  recipientAddress: String!
+  recipientCity: String!
+  recipientCountry: String!
+  recipientLocation: LocationInput!
+  
+  deliveryType: DeliveryType!
+  destinationStationId: ID
+  
+  weightKg: Float!
+  lengthCm: Int!
+  widthCm: Int!
+  heightCm: Int!
+}
+
+type DeliveryInvoice {
+  deliveryOrder: DeliveryOrder!
+  paymentSecret: String!
+  paymentUrl: String!
+}
+

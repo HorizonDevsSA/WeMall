@@ -16,6 +16,7 @@ type Config struct {
 	PaymentServiceAddr   string
 	AdminServiceAddr     string
 	PromotionServiceAddr string
+	DeliveryServiceAddr  string
 	JWTSecret            string
 	Environment          string
 }
@@ -33,6 +34,7 @@ func Load() *Config {
 		PaymentServiceAddr:   getEnv("PAYMENT_SERVICE_ADDR", "localhost:9011"),
 		AdminServiceAddr:     getEnv("ADMIN_SERVICE_ADDR", "localhost:9014"),
 		PromotionServiceAddr: getEnv("PROMOTION_SERVICE_ADDR", "localhost:50059"),
+		DeliveryServiceAddr:  getEnv("DELIVERY_SERVICE_ADDR", "localhost:9017"),
 		JWTSecret:            getEnv("JWT_SECRET", "super_secret_jwt_key_change_in_production"),
 		Environment:          getEnv("ENVIRONMENT", "development"),
 	}

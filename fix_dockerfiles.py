@@ -19,7 +19,8 @@ directories = [
     "services/dispute-service",
     "services/admin-service",
     "services/promotion-service",
-    "services/recommendation-service"
+    "services/recommendation-service",
+    "services/delivery-service"
 ]
 
 copy_block = ""

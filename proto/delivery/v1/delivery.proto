@@ -1,0 +1,291 @@
+syntax = "proto3";
+package delivery.v1;
+option go_package = "github.com/wemall/gen/delivery/v1;deliveryv1";
+
+service DeliveryService {
+  // Triggered by Order Service to initiate e-commerce package delivery
+  rpc CreateEcommerceShipment(CreateEcommerceShipmentRequest) returns (CreateEcommerceShipmentResponse);
+  
+  // Query delivery details internally (e.g. for order dashboard)
+  rpc GetDeliveryByOrderID(GetDeliveryByOrderIDRequest) returns (GetDeliveryByOrderIDResponse);
+  
+  // Calculate delivery fee estimates dynamically at shopping cart checkout
+  rpc EstimateShippingRates(EstimateShippingRatesRequest) returns (EstimateShippingRatesResponse);
+
+  // New endpoints to support the GraphQL gateway
+  rpc TrackPackage(TrackPackageRequest) returns (TrackPackageResponse);
+  rpc NearbyStations(NearbyStationsRequest) returns (NearbyStationsResponse);
+  rpc AvailableCourierTasks(AvailableCourierTasksRequest) returns (AvailableCourierTasksResponse);
+  rpc StationInventory(StationInventoryRequest) returns (StationInventoryResponse);
+  rpc CreatePersonalDelivery(CreatePersonalDeliveryRequest) returns (CreatePersonalDeliveryResponse);
+  rpc GenerateEWaybillLabel(GenerateEWaybillLabelRequest) returns (GenerateEWaybillLabelResponse);
+  rpc RegisterAsCourier(RegisterAsCourierRequest) returns (RegisterAsCourierResponse);
+  rpc SetCourierOnlineStatus(SetCourierOnlineStatusRequest) returns (SetCourierOnlineStatusResponse);
+  rpc AcceptCourierTask(AcceptCourierTaskRequest) returns (AcceptCourierTaskResponse);
+  rpc UpdateDeliveryProgress(UpdateDeliveryProgressRequest) returns (UpdateDeliveryProgressResponse);
+  rpc StationCheckInPackage(StationCheckInPackageRequest) returns (StationCheckInPackageResponse);
+  rpc StationCheckOutPackage(StationCheckOutPackageRequest) returns (StationCheckOutPackageResponse);
+}
+
+message Location {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+message CreateEcommerceShipmentRequest {
+  string order_id = 1;
+  string store_id = 2;
+  string buyer_id = 3;
+  
+  // Shipping details
+  string sender_name = 4;
+  string sender_phone = 5;
+  string sender_address = 6;
+  Location sender_location = 7;
+  
+  string recipient_name = 8;
+  string recipient_phone = 9;
+  string recipient_address = 10;
+  Location recipient_location = 11;
+  
+  double weight_kg = 12;
+  int32 length_cm = 13;
+  int32 width_cm = 14;
+  int32 height_cm = 15;
+  
+  string delivery_type = 16; // 'door_to_door', 'door_to_station' etc.
+  string destination_station_id = 17; // optional
+}
+
+message CreateEcommerceShipmentResponse {
+  string delivery_id = 1;
+  string tracking_number = 2;
+  double shipping_fee = 3;
+}
+
+message GetDeliveryByOrderIDRequest {
+  string order_id = 1;
+}
+
+message GetDeliveryByOrderIDResponse {
+  string delivery_id = 1;
+  string tracking_number = 2;
+  string status = 3;
+  string carrier_name = 4;
+  string external_tracking_no = 5;
+}
+
+message EstimateShippingRatesRequest {
+  Location origin = 1;
+  Location destination = 2;
+  double weight_kg = 3;
+  string delivery_type = 4;
+}
+
+message ShippingRateEstimate {
+  string carrier_type = 1; // 'crowdsourced', '3pl'
+  string name = 2; // e.g. "WeMall Instant Courier", "SF Express"
+  double cost = 3;
+  int32 estimated_delivery_hours = 4;
+}
+
+message EstimateShippingRatesResponse {
+  repeated ShippingRateEstimate estimates = 1;
+}
+
+// Model representations
+message DeliveryOrder {
+  string id = 1;
+  string tracking_number = 2;
+  string order_id = 3;
+  string sender_name = 4;
+  string sender_phone = 5;
+  string recipient_name = 6;
+  string recipient_phone = 7;
+  string delivery_type = 8;
+  Station origin_station = 9;
+  Station destination_station = 10;
+  double weight_kg = 11;
+  double shipping_fee = 12;
+  string status = 13;
+  repeated TrackingLog tracking_logs = 14;
+  string created_at = 15;
+}
+
+message TrackingLog {
+  string id = 1;
+  string status = 2;
+  string location_desc = 3;
+  string details = 4;
+  string created_at = 5;
+}
+
+message Station {
+  string id = 1;
+  string name = 2;
+  string store_type = 3;
+  string phone = 4;
+  string address_line1 = 5;
+  string city = 6;
+  string country = 7;
+  Location location = 8;
+  string operating_hours = 9;
+}
+
+message StationPackage {
+  string id = 1;
+  Station station = 2;
+  DeliveryOrder delivery_order = 3;
+  string shelf_code = 4;
+  string check_in_at = 5;
+  string check_out_at = 6;
+}
+
+message Courier {
+  string id = 1;
+  string vehicle_type = 2;
+  string plate_number = 3;
+  bool is_online = 4;
+  double rating = 5;
+}
+
+// Request/Response messages for new endpoints:
+message TrackPackageRequest {
+  string tracking_number = 1;
+}
+
+message TrackPackageResponse {
+  DeliveryOrder delivery_order = 1;
+}
+
+message NearbyStationsRequest {
+  double latitude = 1;
+  double longitude = 2;
+  double radius_meters = 3;
+}
+
+message NearbyStationsResponse {
+  repeated Station stations = 1;
+}
+
+message AvailableCourierTasksRequest {
+  double latitude = 1;
+  double longitude = 2;
+  string user_id = 3;
+}
+
+message AvailableCourierTasksResponse {
+  repeated DeliveryOrder tasks = 1;
+}
+
+message StationInventoryRequest {
+  string station_id = 1;
+  bool unclaimed_only = 2;
+}
+
+message StationInventoryResponse {
+  repeated StationPackage packages = 1;
+}
+
+message CreatePersonalDeliveryRequest {
+  string user_id = 1;
+  string sender_name = 2;
+  string sender_phone = 3;
+  string sender_address = 4;
+  string sender_city = 5;
+  string sender_country = 6;
+  Location sender_location = 7;
+  
+  string recipient_name = 8;
+  string recipient_phone = 9;
+  string recipient_address = 10;
+  string recipient_city = 11;
+  string recipient_country = 12;
+  Location recipient_location = 13;
+  
+  string delivery_type = 14;
+  string destination_station_id = 15;
+  
+  double weight_kg = 16;
+  int32 length_cm = 17;
+  int32 width_cm = 18;
+  int32 height_cm = 19;
+}
+
+message CreatePersonalDeliveryResponse {
+  DeliveryOrder delivery_order = 1;
+  string payment_secret = 2;
+  string payment_url = 3;
+}
+
+message GenerateEWaybillLabelRequest {
+  string delivery_order_id = 1;
+}
+
+message GenerateEWaybillLabelResponse {
+  string label_base64 = 1;
+}
+
+message RegisterAsCourierRequest {
+  string user_id = 1;
+  string vehicle_type = 2;
+  string plate_number = 3;
+}
+
+message RegisterAsCourierResponse {
+  Courier courier = 1;
+}
+
+message SetCourierOnlineStatusRequest {
+  string user_id = 1;
+  bool is_online = 2;
+}
+
+message SetCourierOnlineStatusResponse {
+  Courier courier = 1;
+}
+
+message AcceptCourierTaskRequest {
+  string user_id = 1;
+  string delivery_order_id = 2;
+}
+
+message AcceptCourierTaskResponse {
+  bool success = 1;
+}
+
+message UpdateDeliveryProgressRequest {
+  string user_id = 1;
+  string delivery_order_id = 2;
+  string status = 3;
+  double latitude = 4;
+  double longitude = 5;
+  string details = 6;
+}
+
+message UpdateDeliveryProgressResponse {
+  bool success = 1;
+}
+
+message StationCheckInPackageRequest {
+  string user_id = 1;
+  string station_id = 2;
+  string tracking_number = 3;
+  string shelf_code = 4;
+  string direction = 5;
+}
+
+message StationCheckInPackageResponse {
+  StationPackage package = 1;
+}
+
+message StationCheckOutPackageRequest {
+  string user_id = 1;
+  string station_id = 2;
+  string tracking_number = 3;
+  string verification_code = 4;
+}
+
+message StationCheckOutPackageResponse {
+  bool success = 1;
+}

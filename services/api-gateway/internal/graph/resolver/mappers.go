@@ -14,6 +14,7 @@ import (
 	reviewv1 "github.com/wemall/gen/review/v1"
 	paymentv1 "github.com/wemall/gen/payment/v1"
 	promotionv1 "github.com/wemall/gen/promotion/v1"
+	deliveryv1 "github.com/wemall/gen/delivery/v1"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -948,6 +949,131 @@ func mapFlashSaleItem(item *promotionv1.FlashSaleItem) *model.FlashSaleItem {
 		ProductID:     item.ProductId,
 		DiscountPrice: item.DiscountPrice,
 		StockLimit:    int(item.StockLimit),
+	}
+}
+
+// ── Delivery Mappers ─────────────────────────────────────────────────────────
+
+func mapDeliveryType(dt string) model.DeliveryType {
+	switch dt {
+	case "door_to_door":
+		return model.DeliveryTypeDoorToDoor
+	case "station_to_door":
+		return model.DeliveryTypeStationToDoor
+	case "door_to_station":
+		return model.DeliveryTypeDoorToStation
+	case "station_to_station":
+		return model.DeliveryTypeStationToStation
+	default:
+		return model.DeliveryTypeDoorToDoor
+	}
+}
+
+func unmapDeliveryType(dt model.DeliveryType) string {
+	switch dt {
+	case model.DeliveryTypeDoorToDoor:
+		return "door_to_door"
+	case model.DeliveryTypeStationToDoor:
+		return "station_to_door"
+	case model.DeliveryTypeDoorToStation:
+		return "door_to_station"
+	case model.DeliveryTypeStationToStation:
+		return "station_to_station"
+	default:
+		return "door_to_door"
+	}
+}
+
+func mapDeliveryOrder(o *deliveryv1.DeliveryOrder) *model.DeliveryOrder {
+	if o == nil {
+		return nil
+	}
+	logs := make([]*model.TrackingLog, len(o.TrackingLogs))
+	for i, l := range o.TrackingLogs {
+		logs[i] = mapTrackingLog(l)
+	}
+
+	return &model.DeliveryOrder{
+		ID:                 o.Id,
+		TrackingNumber:     o.TrackingNumber,
+		OrderID:            strPtr(o.OrderId),
+		SenderName:         o.SenderName,
+		SenderPhone:        o.SenderPhone,
+		RecipientName:      o.RecipientName,
+		RecipientPhone:     o.RecipientPhone,
+		DeliveryType:       mapDeliveryType(o.DeliveryType),
+		OriginStation:      mapStation(o.OriginStation),
+		DestinationStation: mapStation(o.DestinationStation),
+		WeightKg:           o.WeightKg,
+		ShippingFee:        o.ShippingFee,
+		Status:             o.Status,
+		TrackingLogs:       logs,
+		CreatedAt:          o.CreatedAt,
+	}
+}
+
+func mapTrackingLog(l *deliveryv1.TrackingLog) *model.TrackingLog {
+	if l == nil {
+		return nil
+	}
+	return &model.TrackingLog{
+		ID:           l.Id,
+		Status:       l.Status,
+		LocationDesc: l.LocationDesc,
+		Details:      strPtr(l.Details),
+		CreatedAt:    l.CreatedAt,
+	}
+}
+
+func mapStation(s *deliveryv1.Station) *model.Station {
+	if s == nil {
+		return nil
+	}
+	var lat, lon float64
+	if s.Location != nil {
+		lat = s.Location.Latitude
+		lon = s.Location.Longitude
+	}
+	return &model.Station{
+		ID:           s.Id,
+		Name:         s.Name,
+		StoreType:    s.StoreType,
+		Phone:        s.Phone,
+		AddressLine1: s.AddressLine1,
+		City:         s.City,
+		Country:      s.Country,
+		Location: &model.Location{
+			Latitude:  lat,
+			Longitude: lon,
+		},
+		OperatingHours: s.OperatingHours,
+	}
+}
+
+func mapStationPackage(sp *deliveryv1.StationPackage) *model.StationPackage {
+	if sp == nil {
+		return nil
+	}
+	return &model.StationPackage{
+		ID:            sp.Id,
+		Station:       mapStation(sp.Station),
+		DeliveryOrder: mapDeliveryOrder(sp.DeliveryOrder),
+		ShelfCode:     sp.ShelfCode,
+		CheckInAt:     sp.CheckInAt,
+		CheckOutAt:    strPtr(sp.CheckOutAt),
+	}
+}
+
+func mapCourier(c *deliveryv1.Courier) *model.Courier {
+	if c == nil {
+		return nil
+	}
+	return &model.Courier{
+		ID:          c.Id,
+		VehicleType: c.VehicleType,
+		PlateNumber: strPtr(c.PlateNumber),
+		IsOnline:    c.IsOnline,
+		Rating:      c.Rating,
 	}
 }
 

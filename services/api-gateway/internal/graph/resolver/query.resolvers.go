@@ -13,6 +13,7 @@ import (
 	sellerv1 "github.com/wemall/gen/seller/v1"
 	userv1 "github.com/wemall/gen/user/v1"
 	paymentv1 "github.com/wemall/gen/payment/v1"
+	deliveryv1 "github.com/wemall/gen/delivery/v1"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -445,4 +446,73 @@ func (r *queryResolver) FrequentlyBoughtTogether(ctx context.Context, productID 
 
 func (r *queryResolver) PersonalizedRecommendations(ctx context.Context) ([]*model.Product, error) {
 	return nil, errors.New("recommendation service not implemented")
+}
+
+// ── Delivery Queries ──────────────────────────────────────────────────────────
+
+func (r *queryResolver) TrackPackage(ctx context.Context, trackingNumber string) (*model.DeliveryOrder, error) {
+	resp, err := r.Clients.Delivery.TrackPackage(ctx, &deliveryv1.TrackPackageRequest{
+		TrackingNumber: trackingNumber,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return mapDeliveryOrder(resp.DeliveryOrder), nil
+}
+
+func (r *queryResolver) NearbyStations(ctx context.Context, latitude float64, longitude float64, radiusMeters float64) ([]*model.Station, error) {
+	resp, err := r.Clients.Delivery.NearbyStations(ctx, &deliveryv1.NearbyStationsRequest{
+		Latitude:     latitude,
+		Longitude:    longitude,
+		RadiusMeters: radiusMeters,
+	})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*model.Station, len(resp.Stations))
+	for i, s := range resp.Stations {
+		out[i] = mapStation(s)
+	}
+	return out, nil
+}
+
+func (r *queryResolver) AvailableCourierTasks(ctx context.Context, latitude float64, longitude float64) ([]*model.DeliveryOrder, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	resp, err := r.Clients.Delivery.AvailableCourierTasks(ctx, &deliveryv1.AvailableCourierTasksRequest{
+		Latitude:  latitude,
+		Longitude: longitude,
+		UserId:    uid,
+	})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*model.DeliveryOrder, len(resp.Tasks))
+	for i, t := range resp.Tasks {
+		out[i] = mapDeliveryOrder(t)
+	}
+	return out, nil
+}
+
+func (r *queryResolver) StationInventory(ctx context.Context, stationID string, unclaimedOnly bool) ([]*model.StationPackage, error) {
+	_, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	resp, err := r.Clients.Delivery.StationInventory(ctx, &deliveryv1.StationInventoryRequest{
+		StationId:     stationID,
+		UnclaimedOnly: unclaimedOnly,
+	})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*model.StationPackage, len(resp.Packages))
+	for i, p := range resp.Packages {
+		out[i] = mapStationPackage(p)
+	}
+	return out, nil
 }
