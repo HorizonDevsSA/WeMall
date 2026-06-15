@@ -793,6 +793,9 @@ type FlashSaleItem {
   productId: ID!
   discountPrice: Float!
   stockLimit: Int!
+  thumbnail: String
+  productTitle: String
+  rating: Float
 }
 
 type FlashSale {

@@ -199,7 +199,10 @@ type ComplexityRoot struct {
 		DiscountPrice func(childComplexity int) int
 		ID            func(childComplexity int) int
 		ProductID     func(childComplexity int) int
+		ProductTitle  func(childComplexity int) int
+		Rating        func(childComplexity int) int
 		StockLimit    func(childComplexity int) int
+		Thumbnail     func(childComplexity int) int
 	}
 
 	FollowedStoresList struct {
@@ -1332,12 +1335,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FlashSaleItem.ProductID(childComplexity), true
 
+	case "FlashSaleItem.productTitle":
+		if e.complexity.FlashSaleItem.ProductTitle == nil {
+			break
+		}
+
+		return e.complexity.FlashSaleItem.ProductTitle(childComplexity), true
+
+	case "FlashSaleItem.rating":
+		if e.complexity.FlashSaleItem.Rating == nil {
+			break
+		}
+
+		return e.complexity.FlashSaleItem.Rating(childComplexity), true
+
 	case "FlashSaleItem.stockLimit":
 		if e.complexity.FlashSaleItem.StockLimit == nil {
 			break
 		}
 
 		return e.complexity.FlashSaleItem.StockLimit(childComplexity), true
+
+	case "FlashSaleItem.thumbnail":
+		if e.complexity.FlashSaleItem.Thumbnail == nil {
+			break
+		}
+
+		return e.complexity.FlashSaleItem.Thumbnail(childComplexity), true
 
 	case "FollowedStoresList.nextPageToken":
 		if e.complexity.FollowedStoresList.NextPageToken == nil {
@@ -4320,6 +4344,9 @@ type FlashSaleItem {
   productId: ID!
   discountPrice: Float!
   stockLimit: Int!
+  thumbnail: String
+  productTitle: String
+  rating: Float
 }
 
 type FlashSale {
@@ -10079,6 +10106,12 @@ func (ec *executionContext) fieldContext_FlashSale_items(ctx context.Context, fi
 				return ec.fieldContext_FlashSaleItem_discountPrice(ctx, field)
 			case "stockLimit":
 				return ec.fieldContext_FlashSaleItem_stockLimit(ctx, field)
+			case "thumbnail":
+				return ec.fieldContext_FlashSaleItem_thumbnail(ctx, field)
+			case "productTitle":
+				return ec.fieldContext_FlashSaleItem_productTitle(ctx, field)
+			case "rating":
+				return ec.fieldContext_FlashSaleItem_rating(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type FlashSaleItem", field.Name)
 		},
@@ -10257,6 +10290,129 @@ func (ec *executionContext) fieldContext_FlashSaleItem_stockLimit(ctx context.Co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlashSaleItem_thumbnail(ctx context.Context, field graphql.CollectedField, obj *model.FlashSaleItem) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FlashSaleItem_thumbnail(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Thumbnail, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FlashSaleItem_thumbnail(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlashSaleItem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlashSaleItem_productTitle(ctx context.Context, field graphql.CollectedField, obj *model.FlashSaleItem) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FlashSaleItem_productTitle(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProductTitle, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FlashSaleItem_productTitle(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlashSaleItem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FlashSaleItem_rating(ctx context.Context, field graphql.CollectedField, obj *model.FlashSaleItem) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FlashSaleItem_rating(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Rating, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FlashSaleItem_rating(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FlashSaleItem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
@@ -28593,6 +28749,12 @@ func (ec *executionContext) _FlashSaleItem(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "thumbnail":
+			out.Values[i] = ec._FlashSaleItem_thumbnail(ctx, field, obj)
+		case "productTitle":
+			out.Values[i] = ec._FlashSaleItem_productTitle(ctx, field, obj)
+		case "rating":
+			out.Values[i] = ec._FlashSaleItem_rating(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

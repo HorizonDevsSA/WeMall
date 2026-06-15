@@ -125,10 +125,13 @@ type FlashSale struct {
 }
 
 type FlashSaleItem struct {
-	ID            string  `json:"id"`
-	ProductID     string  `json:"productId"`
-	DiscountPrice float64 `json:"discountPrice"`
-	StockLimit    int     `json:"stockLimit"`
+	ID            string   `json:"id"`
+	ProductID     string   `json:"productId"`
+	DiscountPrice float64  `json:"discountPrice"`
+	StockLimit    int      `json:"stockLimit"`
+	Thumbnail     *string  `json:"thumbnail,omitempty"`
+	ProductTitle  *string  `json:"productTitle,omitempty"`
+	Rating        *float64 `json:"rating,omitempty"`
 }
 
 type InitiatePaymentResponse struct {

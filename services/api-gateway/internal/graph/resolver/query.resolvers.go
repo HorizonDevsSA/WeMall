@@ -395,6 +395,47 @@ func (r *queryResolver) ActiveFlashSales(ctx context.Context) ([]*model.FlashSal
 	for i, fs := range resp.Sales {
 		out[i] = mapFlashSale(fs)
 	}
+
+	// Fetch product details for items to populate visual fields (thumbnail, title, rating)
+	var productIDs []string
+	seenIDs := make(map[string]bool)
+	for _, fs := range out {
+		for _, item := range fs.Items {
+			if item.ProductID != "" && !seenIDs[item.ProductID] {
+				seenIDs[item.ProductID] = true
+				productIDs = append(productIDs, item.ProductID)
+			}
+		}
+	}
+
+	if len(productIDs) > 0 {
+		batchResp, err := r.Clients.Product.GetProductBatch(ctx, &productv1.GetProductBatchRequest{
+			Ids:      productIDs,
+			Language: "en",
+		})
+		if err == nil && batchResp != nil && batchResp.Products != nil {
+			for _, fs := range out {
+				for _, item := range fs.Items {
+					if prod, exists := batchResp.Products[item.ProductID]; exists && prod != nil {
+						title := prod.Title
+						item.ProductTitle = &title
+
+						thumb := prod.Thumbnail
+						if thumb == "" {
+							thumb = prod.ImageUrl
+						}
+						if thumb != "" {
+							item.Thumbnail = &thumb
+						}
+
+						rating := prod.Rating
+						item.Rating = &rating
+					}
+				}
+			}
+		}
+	}
+
 	return out, nil
 }
 
