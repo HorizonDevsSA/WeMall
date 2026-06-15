@@ -557,6 +557,43 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 	return i, err
 }
 
+const updateUserRole = `-- name: UpdateUserRole :one
+UPDATE users SET role = $2, updated_at = NOW()
+WHERE id = $1 AND deleted_at IS NULL
+RETURNING id, email, phone, password_hash, full_name, avatar_url, role, auth_provider, is_verified, google_id, created_at, updated_at, deleted_at
+`
+
+type UpdateUserRoleParams struct {
+	ID   uuid.UUID `json:"id"`
+	Role string    `json:"role"`
+}
+
+// UpdateUserRole
+//
+//	UPDATE users SET role = $2, updated_at = NOW()
+//	WHERE id = $1 AND deleted_at IS NULL
+//	RETURNING id, email, phone, password_hash, full_name, avatar_url, role, auth_provider, is_verified, google_id, created_at, updated_at, deleted_at
+func (q *Queries) UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserRole, arg.ID, arg.Role)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Phone,
+		&i.PasswordHash,
+		&i.FullName,
+		&i.AvatarUrl,
+		&i.Role,
+		&i.AuthProvider,
+		&i.IsVerified,
+		&i.GoogleID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
 const upsertGoogleUser = `-- name: UpsertGoogleUser :one
 INSERT INTO users (email, full_name, avatar_url, role, auth_provider, is_verified, google_id)
 VALUES ($1, $2, $3, 'buyer', 'google', TRUE, $4)

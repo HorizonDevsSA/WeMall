@@ -41,6 +41,18 @@ func (h *UserHandler) BuyerGoogleAuth(ctx context.Context, req *userv1.GoogleAut
 	}, nil
 }
 
+func (h *UserHandler) BuyerGoogleSignIn(ctx context.Context, req *userv1.GoogleSignInRequest) (*userv1.AuthResponse, error) {
+	tokens, user, err := h.authSvc.BuyerGoogleSignIn(ctx, req.Email, req.FullName, req.IdToken)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, "google sign-in failed")
+	}
+	return &userv1.AuthResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+		User:         mapUser(user),
+	}, nil
+}
+
 func (h *UserHandler) BuyerSendOTP(ctx context.Context, req *userv1.PhoneOTPRequest) (*userv1.PhoneOTPResponse, error) {
 	reqID, err := h.authSvc.BuyerSendOTP(ctx, req.Phone)
 	if err != nil {
@@ -80,6 +92,18 @@ func (h *UserHandler) SellerLogin(ctx context.Context, req *userv1.SellerLoginRe
 	tokens, user, err := h.authSvc.SellerLogin(ctx, req.Email, req.Password)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, "login failed")
+	}
+	return &userv1.AuthResponse{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+		User:         mapUser(user),
+	}, nil
+}
+
+func (h *UserHandler) SellerFirebaseSignIn(ctx context.Context, req *userv1.SellerFirebaseSignInRequest) (*userv1.AuthResponse, error) {
+	tokens, user, err := h.authSvc.SellerFirebaseSignIn(ctx, req.IdToken, req.FullName)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, "firebase sign-in failed")
 	}
 	return &userv1.AuthResponse{
 		AccessToken:  tokens.AccessToken,

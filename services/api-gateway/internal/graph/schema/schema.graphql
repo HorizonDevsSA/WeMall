@@ -466,12 +466,14 @@ type NotificationLog {
 type Mutation {
   # Buyer auth
   buyerGoogleAuth(code: String!, redirectUri: String): AuthPayload!
+  buyerGoogleSignIn(email: String!, fullName: String!, idToken: String!): AuthPayload!
   buyerSendOTP(phone: String!): OTPPayload!
   buyerVerifyOTP(phone: String!, otp: String!): AuthPayload!
 
   # Seller auth
   sellerRegister(email: String!, password: String!, fullName: String!): AuthPayload!
   sellerLogin(email: String!, password: String!): AuthPayload!
+  sellerFirebaseSignIn(idToken: String!, fullName: String!): AuthPayload!
 
   # Shared auth
   refreshToken(refreshToken: String!): AuthPayload!

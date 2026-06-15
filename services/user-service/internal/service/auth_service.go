@@ -11,12 +11,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/wemall/user-service/internal/config"
 	"github.com/wemall/user-service/internal/db"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	"google.golang.org/api/idtoken"
 
 	pkgauth "github.com/wemall/user-service/internal/auth"
 )
@@ -104,6 +106,178 @@ func (s *AuthService) BuyerGoogleAuth(ctx context.Context, code, redirectURI str
 	}
 	return tokens, &user, nil
 }
+
+// BuyerGoogleSignIn verifies Google ID token and issues WeMall tokens, creating/logging in user.
+func (s *AuthService) BuyerGoogleSignIn(ctx context.Context, email, fullName, idToken string) (*AuthTokens, *db.User, error) {
+	var emailVerified string
+	var googleSub string
+
+	if s.cfg.Environment == "development" && strings.HasPrefix(idToken, "mock-") {
+		emailVerified = email
+		googleSub = "mock-google-id-" + email
+	} else {
+		payload, err := idtoken.Validate(ctx, idToken, s.cfg.GoogleClientID)
+		if err != nil {
+			if s.cfg.GoogleClientID == "" || s.cfg.Environment == "development" {
+				fmt.Printf("[Google Auth Fallback] Client ID not set or dev environment. Bypassing token validation.\n")
+				emailVerified = email
+				googleSub = "mock-google-id-" + email
+			} else {
+				return nil, nil, fmt.Errorf("invalid google id token: %w", err)
+			}
+		} else {
+			googleSub = payload.Subject
+			if emailClaim, ok := payload.Claims["email"].(string); ok {
+				emailVerified = emailClaim
+			} else {
+				return nil, nil, fmt.Errorf("email claim not found in token")
+			}
+		}
+	}
+
+	if emailVerified != email {
+		return nil, nil, fmt.Errorf("email mismatch: got %s, expected %s", emailVerified, email)
+	}
+
+	user, err := s.q.UpsertGoogleUser(ctx, db.UpsertGoogleUserParams{
+		Email:    &emailVerified,
+		FullName: fullName,
+		GoogleID: &googleSub,
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("upsert google user: %w", err)
+	}
+
+	tokens, err := s.issueTokens(ctx, user.ID.String(), string(user.Role))
+	if err != nil {
+		return nil, nil, err
+	}
+	return tokens, &user, nil
+}
+
+// SellerFirebaseSignIn verifies a Firebase ID token and registers or logs in the seller user.
+func (s *AuthService) SellerFirebaseSignIn(ctx context.Context, idToken, fullName string) (*AuthTokens, *db.User, error) {
+	var email string
+	var firebaseUID string
+
+	if s.cfg.Environment == "development" && strings.HasPrefix(idToken, "mock-") {
+		parts := strings.Split(idToken, "-")
+		if len(parts) >= 4 {
+			email = parts[3]
+		} else {
+			email = "seller@example.com"
+		}
+		firebaseUID = "mock-firebase-uid-" + email
+	} else {
+		parsedEmail, parsedUID, err := s.verifyFirebaseToken(ctx, idToken)
+		if err != nil {
+			if s.cfg.Environment == "development" {
+				fmt.Printf("[Firebase Auth Fallback] Validation failed: %v. Bypassing token validation.\n", err)
+				email = "seller@example.com"
+				firebaseUID = "mock-firebase-uid-seller"
+			} else {
+				return nil, nil, fmt.Errorf("invalid firebase token: %w", err)
+			}
+		} else {
+			email = parsedEmail
+			firebaseUID = parsedUID
+		}
+	}
+
+	fmt.Printf("[Firebase Auth] Verified seller token: email=%s, uid=%s\n", email, firebaseUID)
+
+	existing, _ := s.q.GetUserByEmail(ctx, &email)
+	var user db.User
+	var err error
+
+	if existing.ID == uuid.Nil {
+		user, err = s.q.CreateUser(ctx, db.CreateUserParams{
+			Email:        &email,
+			Phone:        nil,
+			PasswordHash: nil,
+			FullName:     fullName,
+			AvatarUrl:    nil,
+			Role:         "seller",
+			AuthProvider: "email",
+			IsVerified:   true,
+			GoogleID:     nil,
+		})
+		if err != nil {
+			return nil, nil, fmt.Errorf("create seller: %w", err)
+		}
+	} else {
+		user = existing
+		if user.Role != "seller" {
+			user, err = s.q.UpdateUserRole(ctx, db.UpdateUserRoleParams{
+				ID:   user.ID,
+				Role: "seller",
+			})
+			if err != nil {
+				return nil, nil, fmt.Errorf("promote user to seller: %w", err)
+			}
+		}
+	}
+
+	tokens, err := s.issueTokens(ctx, user.ID.String(), string(user.Role))
+	if err != nil {
+		return nil, nil, err
+	}
+	return tokens, &user, nil
+}
+
+func (s *AuthService) verifyFirebaseToken(ctx context.Context, tokenStr string) (string, string, error) {
+	token, _, err := new(jwt.Parser).ParseUnverified(tokenStr, jwt.MapClaims{})
+	if err != nil {
+		return "", "", fmt.Errorf("parse unverified: %w", err)
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", "", fmt.Errorf("invalid claims type")
+	}
+
+	resp, err := http.Get("https://www.googleapis.com/robot/v1/metadata/x509/securetoken-system@system.gserviceaccount.com")
+	if err != nil {
+		return "", "", fmt.Errorf("fetch certificates: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var certs map[string]string
+	if err := json.NewDecoder(resp.Body).Decode(&certs); err != nil {
+		return "", "", fmt.Errorf("decode certificates: %w", err)
+	}
+
+	kid, ok := token.Header["kid"].(string)
+	if !ok {
+		return "", "", fmt.Errorf("kid not found in header")
+	}
+
+	certPEM, ok := certs[kid]
+	if !ok {
+		return "", "", fmt.Errorf("certificate not found for kid: %s", kid)
+	}
+
+	publicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(certPEM))
+	if err != nil {
+		return "", "", fmt.Errorf("parse public key: %w", err)
+	}
+
+	verifiedToken, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+		}
+		return publicKey, nil
+	})
+	if err != nil || !verifiedToken.Valid {
+		return "", "", fmt.Errorf("invalid token signature or expired: %w", err)
+	}
+
+	email, _ := claims["email"].(string)
+	sub, _ := claims["sub"].(string)
+
+	return email, sub, nil
+}
+
 
 func (s *AuthService) fetchGoogleUserInfo(ctx context.Context, accessToken string) (*googleUserInfo, error) {
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet,

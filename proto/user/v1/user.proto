@@ -62,6 +62,17 @@ message GoogleAuthRequest {
   string redirect_uri = 2;
 }
 
+message GoogleSignInRequest {
+  string email     = 1;
+  string full_name = 2;
+  string id_token  = 3;
+}
+
+message SellerFirebaseSignInRequest {
+  string id_token  = 1;
+  string full_name = 2;
+}
+
 message PhoneOTPRequest {
   string phone = 1;
 }
@@ -158,12 +169,14 @@ message SendReviewStatusEmailRequest {
 service UserService {
   // Buyer auth
   rpc BuyerGoogleAuth(GoogleAuthRequest)   returns (AuthResponse);
+  rpc BuyerGoogleSignIn(GoogleSignInRequest) returns (AuthResponse);
   rpc BuyerSendOTP(PhoneOTPRequest)        returns (PhoneOTPResponse);
   rpc BuyerVerifyOTP(VerifyOTPRequest)     returns (AuthResponse);
 
   // Seller auth
   rpc SellerRegister(SellerRegisterRequest) returns (AuthResponse);
   rpc SellerLogin(SellerLoginRequest)       returns (AuthResponse);
+  rpc SellerFirebaseSignIn(SellerFirebaseSignInRequest) returns (AuthResponse);
 
   // Shared auth
   rpc RefreshToken(RefreshTokenRequest)     returns (AuthResponse);

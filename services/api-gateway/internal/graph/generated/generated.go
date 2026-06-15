@@ -228,6 +228,7 @@ type ComplexityRoot struct {
 		ApplyCoupon                   func(childComplexity int, code string, cartID string) int
 		BanBuyer                      func(childComplexity int, buyerID string, reason string) int
 		BuyerGoogleAuth               func(childComplexity int, code string, redirectURI *string) int
+		BuyerGoogleSignIn             func(childComplexity int, email string, fullName string, idToken string) int
 		BuyerSendOtp                  func(childComplexity int, phone string) int
 		BuyerVerifyOtp                func(childComplexity int, phone string, otp string) int
 		CancelOrder                   func(childComplexity int, id string) int
@@ -256,6 +257,7 @@ type ComplexityRoot struct {
 		RemoveCartItem                func(childComplexity int, itemID string) int
 		ReplyToDispute                func(childComplexity int, disputeID string, message string, evidenceUrls []string) int
 		ResolveDispute                func(childComplexity int, disputeID string, resolution model.DisputeStatus) int
+		SellerFirebaseSignIn          func(childComplexity int, idToken string, fullName string) int
 		SellerLogin                   func(childComplexity int, email string, password string) int
 		SellerRegister                func(childComplexity int, email string, password string, fullName string) int
 		SendChatMessage               func(childComplexity int, threadID string, content string) int
@@ -539,10 +541,12 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	BuyerGoogleAuth(ctx context.Context, code string, redirectURI *string) (*model.AuthPayload, error)
+	BuyerGoogleSignIn(ctx context.Context, email string, fullName string, idToken string) (*model.AuthPayload, error)
 	BuyerSendOtp(ctx context.Context, phone string) (*model.OTPPayload, error)
 	BuyerVerifyOtp(ctx context.Context, phone string, otp string) (*model.AuthPayload, error)
 	SellerRegister(ctx context.Context, email string, password string, fullName string) (*model.AuthPayload, error)
 	SellerLogin(ctx context.Context, email string, password string) (*model.AuthPayload, error)
+	SellerFirebaseSignIn(ctx context.Context, idToken string, fullName string) (*model.AuthPayload, error)
 	RefreshToken(ctx context.Context, refreshToken string) (*model.AuthPayload, error)
 	UpdateProfile(ctx context.Context, fullName *string, avatarURL *string) (*model.User, error)
 	CreateAddress(ctx context.Context, input model.AddressInput) (*model.Address, error)
@@ -1488,6 +1492,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.BuyerGoogleAuth(childComplexity, args["code"].(string), args["redirectUri"].(*string)), true
 
+	case "Mutation.buyerGoogleSignIn":
+		if e.complexity.Mutation.BuyerGoogleSignIn == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_buyerGoogleSignIn_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.BuyerGoogleSignIn(childComplexity, args["email"].(string), args["fullName"].(string), args["idToken"].(string)), true
+
 	case "Mutation.buyerSendOTP":
 		if e.complexity.Mutation.BuyerSendOtp == nil {
 			break
@@ -1818,6 +1834,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ResolveDispute(childComplexity, args["disputeId"].(string), args["resolution"].(model.DisputeStatus)), true
+
+	case "Mutation.sellerFirebaseSignIn":
+		if e.complexity.Mutation.SellerFirebaseSignIn == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_sellerFirebaseSignIn_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SellerFirebaseSignIn(childComplexity, args["idToken"].(string), args["fullName"].(string)), true
 
 	case "Mutation.sellerLogin":
 		if e.complexity.Mutation.SellerLogin == nil {
@@ -4047,12 +4075,14 @@ type NotificationLog {
 type Mutation {
   # Buyer auth
   buyerGoogleAuth(code: String!, redirectUri: String): AuthPayload!
+  buyerGoogleSignIn(email: String!, fullName: String!, idToken: String!): AuthPayload!
   buyerSendOTP(phone: String!): OTPPayload!
   buyerVerifyOTP(phone: String!, otp: String!): AuthPayload!
 
   # Seller auth
   sellerRegister(email: String!, password: String!, fullName: String!): AuthPayload!
   sellerLogin(email: String!, password: String!): AuthPayload!
+  sellerFirebaseSignIn(idToken: String!, fullName: String!): AuthPayload!
 
   # Shared auth
   refreshToken(refreshToken: String!): AuthPayload!
@@ -4562,6 +4592,39 @@ func (ec *executionContext) field_Mutation_buyerGoogleAuth_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_buyerGoogleSignIn_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["email"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["fullName"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fullName"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["fullName"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["idToken"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idToken"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["idToken"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_buyerSendOTP_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -5063,6 +5126,30 @@ func (ec *executionContext) field_Mutation_resolveDispute_args(ctx context.Conte
 		}
 	}
 	args["resolution"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_sellerFirebaseSignIn_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["idToken"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idToken"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["idToken"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["fullName"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fullName"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["fullName"] = arg1
 	return args, nil
 }
 
@@ -10914,6 +11001,69 @@ func (ec *executionContext) fieldContext_Mutation_buyerGoogleAuth(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_buyerGoogleSignIn(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_buyerGoogleSignIn(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().BuyerGoogleSignIn(rctx, fc.Args["email"].(string), fc.Args["fullName"].(string), fc.Args["idToken"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.AuthPayload)
+	fc.Result = res
+	return ec.marshalNAuthPayload2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐAuthPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_buyerGoogleSignIn(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "accessToken":
+				return ec.fieldContext_AuthPayload_accessToken(ctx, field)
+			case "refreshToken":
+				return ec.fieldContext_AuthPayload_refreshToken(ctx, field)
+			case "user":
+				return ec.fieldContext_AuthPayload_user(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_buyerGoogleSignIn_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_buyerSendOTP(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_buyerSendOTP(ctx, field)
 	if err != nil {
@@ -11158,6 +11308,69 @@ func (ec *executionContext) fieldContext_Mutation_sellerLogin(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_sellerLogin_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_sellerFirebaseSignIn(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_sellerFirebaseSignIn(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SellerFirebaseSignIn(rctx, fc.Args["idToken"].(string), fc.Args["fullName"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.AuthPayload)
+	fc.Result = res
+	return ec.marshalNAuthPayload2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐAuthPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_sellerFirebaseSignIn(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "accessToken":
+				return ec.fieldContext_AuthPayload_accessToken(ctx, field)
+			case "refreshToken":
+				return ec.fieldContext_AuthPayload_refreshToken(ctx, field)
+			case "user":
+				return ec.fieldContext_AuthPayload_user(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_sellerFirebaseSignIn_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -29287,6 +29500,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "buyerGoogleSignIn":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_buyerGoogleSignIn(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "buyerSendOTP":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_buyerSendOTP(ctx, field)
@@ -29311,6 +29531,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "sellerLogin":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_sellerLogin(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "sellerFirebaseSignIn":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_sellerFirebaseSignIn(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

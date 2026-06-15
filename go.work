@@ -1,20 +1,20 @@
-go 1.21
+go 1.25.8
 
 use (
 	./gen
 	./pkg
+	./services/admin-service
 	./services/api-gateway
+	./services/chat-service
+	./services/dispute-service
 	./services/documentation-service
 	./services/notification-service
 	./services/order-service
+	./services/payment-service
 	./services/product-service
+	./services/promotion-service
+	./services/recommendation-service
 	./services/review-service
 	./services/seller-service
 	./services/user-service
-	./services/payment-service
-	./services/chat-service
-	./services/dispute-service
-	./services/admin-service
-	./services/promotion-service
-	./services/recommendation-service
 )

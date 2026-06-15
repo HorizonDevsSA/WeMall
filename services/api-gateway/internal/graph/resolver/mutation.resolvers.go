@@ -30,6 +30,29 @@ func (r *mutationResolver) BuyerGoogleAuth(ctx context.Context, code string, red
 	return mapAuthPayload(resp), nil
 }
 
+func (r *mutationResolver) BuyerGoogleSignIn(ctx context.Context, email string, fullName string, idToken string) (*model.AuthPayload, error) {
+	resp, err := r.Clients.User.BuyerGoogleSignIn(ctx, &userv1.GoogleSignInRequest{
+		Email:    email,
+		FullName: fullName,
+		IdToken:  idToken,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return mapAuthPayload(resp), nil
+}
+
+func (r *mutationResolver) SellerFirebaseSignIn(ctx context.Context, idToken string, fullName string) (*model.AuthPayload, error) {
+	resp, err := r.Clients.User.SellerFirebaseSignIn(ctx, &userv1.SellerFirebaseSignInRequest{
+		IdToken:  idToken,
+		FullName: fullName,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return mapAuthPayload(resp), nil
+}
+
 func (r *mutationResolver) BuyerSendOtp(ctx context.Context, phone string) (*model.OTPPayload, error) {
 	resp, err := r.Clients.User.BuyerSendOTP(ctx, &userv1.PhoneOTPRequest{Phone: phone})
 	if err != nil {

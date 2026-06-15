@@ -31,6 +31,11 @@ UPDATE users SET is_verified = TRUE, updated_at = NOW()
 WHERE id = $1
 RETURNING *;
 
+-- name: UpdateUserRole :one
+UPDATE users SET role = $2, updated_at = NOW()
+WHERE id = $1 AND deleted_at IS NULL
+RETURNING *;
+
 -- name: UpsertGoogleUser :one
 INSERT INTO users (email, full_name, avatar_url, role, auth_provider, is_verified, google_id)
 VALUES ($1, $2, $3, 'buyer', 'google', TRUE, $4)

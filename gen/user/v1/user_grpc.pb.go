@@ -21,10 +21,12 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	UserService_BuyerGoogleAuth_FullMethodName       = "/user.v1.UserService/BuyerGoogleAuth"
+	UserService_BuyerGoogleSignIn_FullMethodName     = "/user.v1.UserService/BuyerGoogleSignIn"
 	UserService_BuyerSendOTP_FullMethodName          = "/user.v1.UserService/BuyerSendOTP"
 	UserService_BuyerVerifyOTP_FullMethodName        = "/user.v1.UserService/BuyerVerifyOTP"
 	UserService_SellerRegister_FullMethodName        = "/user.v1.UserService/SellerRegister"
 	UserService_SellerLogin_FullMethodName           = "/user.v1.UserService/SellerLogin"
+	UserService_SellerFirebaseSignIn_FullMethodName  = "/user.v1.UserService/SellerFirebaseSignIn"
 	UserService_RefreshToken_FullMethodName          = "/user.v1.UserService/RefreshToken"
 	UserService_ValidateToken_FullMethodName         = "/user.v1.UserService/ValidateToken"
 	UserService_GetUser_FullMethodName               = "/user.v1.UserService/GetUser"
@@ -42,11 +44,13 @@ const (
 type UserServiceClient interface {
 	// Buyer auth
 	BuyerGoogleAuth(ctx context.Context, in *GoogleAuthRequest, opts ...grpc.CallOption) (*AuthResponse, error)
+	BuyerGoogleSignIn(ctx context.Context, in *GoogleSignInRequest, opts ...grpc.CallOption) (*AuthResponse, error)
 	BuyerSendOTP(ctx context.Context, in *PhoneOTPRequest, opts ...grpc.CallOption) (*PhoneOTPResponse, error)
 	BuyerVerifyOTP(ctx context.Context, in *VerifyOTPRequest, opts ...grpc.CallOption) (*AuthResponse, error)
 	// Seller auth
 	SellerRegister(ctx context.Context, in *SellerRegisterRequest, opts ...grpc.CallOption) (*AuthResponse, error)
 	SellerLogin(ctx context.Context, in *SellerLoginRequest, opts ...grpc.CallOption) (*AuthResponse, error)
+	SellerFirebaseSignIn(ctx context.Context, in *SellerFirebaseSignInRequest, opts ...grpc.CallOption) (*AuthResponse, error)
 	// Shared auth
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*AuthResponse, error)
 	ValidateToken(ctx context.Context, in *ValidateTokenRequest, opts ...grpc.CallOption) (*ValidateTokenResponse, error)
@@ -74,6 +78,16 @@ func (c *userServiceClient) BuyerGoogleAuth(ctx context.Context, in *GoogleAuthR
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AuthResponse)
 	err := c.cc.Invoke(ctx, UserService_BuyerGoogleAuth_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) BuyerGoogleSignIn(ctx context.Context, in *GoogleSignInRequest, opts ...grpc.CallOption) (*AuthResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AuthResponse)
+	err := c.cc.Invoke(ctx, UserService_BuyerGoogleSignIn_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -114,6 +128,16 @@ func (c *userServiceClient) SellerLogin(ctx context.Context, in *SellerLoginRequ
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AuthResponse)
 	err := c.cc.Invoke(ctx, UserService_SellerLogin_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) SellerFirebaseSignIn(ctx context.Context, in *SellerFirebaseSignInRequest, opts ...grpc.CallOption) (*AuthResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AuthResponse)
+	err := c.cc.Invoke(ctx, UserService_SellerFirebaseSignIn_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -216,11 +240,13 @@ func (c *userServiceClient) SendReviewStatusEmail(ctx context.Context, in *SendR
 type UserServiceServer interface {
 	// Buyer auth
 	BuyerGoogleAuth(context.Context, *GoogleAuthRequest) (*AuthResponse, error)
+	BuyerGoogleSignIn(context.Context, *GoogleSignInRequest) (*AuthResponse, error)
 	BuyerSendOTP(context.Context, *PhoneOTPRequest) (*PhoneOTPResponse, error)
 	BuyerVerifyOTP(context.Context, *VerifyOTPRequest) (*AuthResponse, error)
 	// Seller auth
 	SellerRegister(context.Context, *SellerRegisterRequest) (*AuthResponse, error)
 	SellerLogin(context.Context, *SellerLoginRequest) (*AuthResponse, error)
+	SellerFirebaseSignIn(context.Context, *SellerFirebaseSignInRequest) (*AuthResponse, error)
 	// Shared auth
 	RefreshToken(context.Context, *RefreshTokenRequest) (*AuthResponse, error)
 	ValidateToken(context.Context, *ValidateTokenRequest) (*ValidateTokenResponse, error)
@@ -246,6 +272,9 @@ type UnimplementedUserServiceServer struct{}
 func (UnimplementedUserServiceServer) BuyerGoogleAuth(context.Context, *GoogleAuthRequest) (*AuthResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BuyerGoogleAuth not implemented")
 }
+func (UnimplementedUserServiceServer) BuyerGoogleSignIn(context.Context, *GoogleSignInRequest) (*AuthResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BuyerGoogleSignIn not implemented")
+}
 func (UnimplementedUserServiceServer) BuyerSendOTP(context.Context, *PhoneOTPRequest) (*PhoneOTPResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BuyerSendOTP not implemented")
 }
@@ -257,6 +286,9 @@ func (UnimplementedUserServiceServer) SellerRegister(context.Context, *SellerReg
 }
 func (UnimplementedUserServiceServer) SellerLogin(context.Context, *SellerLoginRequest) (*AuthResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SellerLogin not implemented")
+}
+func (UnimplementedUserServiceServer) SellerFirebaseSignIn(context.Context, *SellerFirebaseSignInRequest) (*AuthResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SellerFirebaseSignIn not implemented")
 }
 func (UnimplementedUserServiceServer) RefreshToken(context.Context, *RefreshTokenRequest) (*AuthResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RefreshToken not implemented")
@@ -319,6 +351,24 @@ func _UserService_BuyerGoogleAuth_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServiceServer).BuyerGoogleAuth(ctx, req.(*GoogleAuthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_BuyerGoogleSignIn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GoogleSignInRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).BuyerGoogleSignIn(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_BuyerGoogleSignIn_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).BuyerGoogleSignIn(ctx, req.(*GoogleSignInRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -391,6 +441,24 @@ func _UserService_SellerLogin_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServiceServer).SellerLogin(ctx, req.(*SellerLoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_SellerFirebaseSignIn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SellerFirebaseSignInRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).SellerFirebaseSignIn(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_SellerFirebaseSignIn_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).SellerFirebaseSignIn(ctx, req.(*SellerFirebaseSignInRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -569,6 +637,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_BuyerGoogleAuth_Handler,
 		},
 		{
+			MethodName: "BuyerGoogleSignIn",
+			Handler:    _UserService_BuyerGoogleSignIn_Handler,
+		},
+		{
 			MethodName: "BuyerSendOTP",
 			Handler:    _UserService_BuyerSendOTP_Handler,
 		},
@@ -583,6 +655,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SellerLogin",
 			Handler:    _UserService_SellerLogin_Handler,
+		},
+		{
+			MethodName: "SellerFirebaseSignIn",
+			Handler:    _UserService_SellerFirebaseSignIn_Handler,
 		},
 		{
 			MethodName: "RefreshToken",
