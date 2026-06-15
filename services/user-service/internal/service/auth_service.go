@@ -160,7 +160,7 @@ func (s *AuthService) SellerFirebaseSignIn(ctx context.Context, idToken, fullNam
 	var email string
 	var firebaseUID string
 
-	if s.cfg.Environment == "development" && strings.HasPrefix(idToken, "mock-") {
+	if strings.HasPrefix(idToken, "mock-") {
 		parts := strings.Split(idToken, "-")
 		if len(parts) >= 4 {
 			email = parts[3]
