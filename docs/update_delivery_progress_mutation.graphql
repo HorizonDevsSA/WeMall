@@ -1,0 +1,15 @@
+mutation UpdateDeliveryProgress(
+  $deliveryOrderId: ID!
+  $status: String!
+  $latitude: Float!
+  $longitude: Float!
+  $details: String
+) {
+  updateDeliveryProgress(
+    deliveryOrderId: $deliveryOrderId
+    status: $status
+    latitude: $latitude
+    longitude: $longitude
+    details: $details
+  )
+}

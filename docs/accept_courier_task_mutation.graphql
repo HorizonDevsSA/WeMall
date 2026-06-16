@@ -1,0 +1,3 @@
+mutation AcceptCourierTask($deliveryOrderId: ID!) {
+  acceptCourierTask(deliveryOrderId: $deliveryOrderId)
+}

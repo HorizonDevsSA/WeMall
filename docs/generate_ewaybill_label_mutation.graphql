@@ -1,0 +1,3 @@
+mutation GenerateEWaybillLabel($deliveryOrderId: ID!) {
+  generateEWaybillLabel(deliveryOrderId: $deliveryOrderId)
+}

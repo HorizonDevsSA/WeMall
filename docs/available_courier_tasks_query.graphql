@@ -1,0 +1,16 @@
+query GetAvailableCourierTasks($latitude: Float!, $longitude: Float!) {
+  availableCourierTasks(latitude: $latitude, longitude: $longitude) {
+    id
+    trackingNumber
+    orderId
+    senderName
+    senderPhone
+    recipientName
+    recipientPhone
+    deliveryType
+    weightKg
+    shippingFee
+    status
+    createdAt
+  }
+}

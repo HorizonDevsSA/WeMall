@@ -1,0 +1,33 @@
+query TrackPackage($trackingNumber: String!) {
+  trackPackage(trackingNumber: $trackingNumber) {
+    id
+    trackingNumber
+    orderId
+    senderName
+    senderPhone
+    recipientName
+    recipientPhone
+    deliveryType
+    originStation {
+      id
+      name
+      operatingHours
+    }
+    destinationStation {
+      id
+      name
+      operatingHours
+    }
+    weightKg
+    shippingFee
+    status
+    trackingLogs {
+      id
+      status
+      locationDesc
+      details
+      createdAt
+    }
+    createdAt
+  }
+}

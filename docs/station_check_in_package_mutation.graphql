@@ -1,0 +1,26 @@
+mutation StationCheckInPackage(
+  $stationId: ID!
+  $trackingNumber: String!
+  $shelfCode: String!
+  $direction: String!
+) {
+  stationCheckInPackage(
+    stationId: $stationId
+    trackingNumber: $trackingNumber
+    shelfCode: $shelfCode
+    direction: $direction
+  ) {
+    id
+    station {
+      id
+      name
+    }
+    deliveryOrder {
+      id
+      trackingNumber
+      status
+    }
+    shelfCode
+    checkInAt
+  }
+}

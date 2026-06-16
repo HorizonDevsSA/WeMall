@@ -1,0 +1,12 @@
+mutation CreatePersonalDelivery($input: PersonalDeliveryInput!) {
+  createPersonalDelivery(input: $input) {
+    deliveryOrder {
+      id
+      trackingNumber
+      shippingFee
+      status
+    }
+    paymentSecret
+    paymentUrl
+  }
+}

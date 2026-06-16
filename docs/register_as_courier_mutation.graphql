@@ -1,0 +1,9 @@
+mutation RegisterAsCourier($vehicleType: String!, $plateNumber: String) {
+  registerAsCourier(vehicleType: $vehicleType, plateNumber: $plateNumber) {
+    id
+    vehicleType
+    plateNumber
+    isOnline
+    rating
+  }
+}

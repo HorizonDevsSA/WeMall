@@ -1,0 +1,16 @@
+query GetNearbyStations($latitude: Float!, $longitude: Float!, $radiusMeters: Float!) {
+  nearbyStations(latitude: $latitude, longitude: $longitude, radiusMeters: $radiusMeters) {
+    id
+    name
+    storeType
+    phone
+    addressLine1
+    city
+    country
+    location {
+      latitude
+      longitude
+    }
+    operatingHours
+  }
+}

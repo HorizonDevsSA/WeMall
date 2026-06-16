@@ -1,0 +1,17 @@
+query GetStationInventory($stationId: ID!, $unclaimedOnly: Boolean!) {
+  stationInventory(stationId: $stationId, unclaimedOnly: $unclaimedOnly) {
+    id
+    station {
+      id
+      name
+    }
+    deliveryOrder {
+      id
+      trackingNumber
+      status
+    }
+    shelfCode
+    checkInAt
+    checkOutAt
+  }
+}

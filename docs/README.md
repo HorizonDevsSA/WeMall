@@ -31,6 +31,7 @@ bash test_cart_and_orders.sh
 | Product Service | `9003` | gRPC |
 | Order Service | `9005` | gRPC |
 | Notification Service | `9007` | gRPC |
+| Delivery Service | `9017` | gRPC |
 | Media Service | `8087` / `50057` | HTTP / gRPC |
 
 ## Database Ports (Local Dev)
@@ -42,4 +43,5 @@ bash test_cart_and_orders.sh
 | Orders | `5434` | `wemall_orders` |
 | Sellers | `5435` | `wemall_sellers` |
 | Notifications | `5436` | `wemall_notifications` |
+| Delivery | `5445` | `wemall_delivery` |
 | Media | `5437` | `wemall_media` |

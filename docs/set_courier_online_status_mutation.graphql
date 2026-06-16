@@ -1,0 +1,6 @@
+mutation SetCourierOnlineStatus($isOnline: Boolean!) {
+  setCourierOnlineStatus(isOnline: $isOnline) {
+    id
+    isOnline
+  }
+}

@@ -1,0 +1,11 @@
+mutation StationCheckOutPackage(
+  $stationId: ID!
+  $trackingNumber: String!
+  $verificationCode: String!
+) {
+  stationCheckOutPackage(
+    stationId: $stationId
+    trackingNumber: $trackingNumber
+    verificationCode: $verificationCode
+  )
+}
