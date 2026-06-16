@@ -488,6 +488,7 @@ type ComplexityRoot struct {
 		Categories                  func(childComplexity int, language *string) int
 		Category                    func(childComplexity int, slug string, language *string) int
 		ChatMessages                func(childComplexity int, threadID string, pageToken *string, pageSize *int) int
+		Coupons                     func(childComplexity int, sellerID *string) int
 		Dispute                     func(childComplexity int, id string) int
 		DisputeMessages             func(childComplexity int, disputeID string) int
 		FrequentlyBoughtTogether    func(childComplexity int, productID string) int
@@ -710,6 +711,7 @@ type QueryResolver interface {
 	DisputeMessages(ctx context.Context, disputeID string) (*model.DisputeMessageList, error)
 	PlatformMetrics(ctx context.Context) (*model.PlatformMetrics, error)
 	ActiveFlashSales(ctx context.Context) ([]*model.FlashSale, error)
+	Coupons(ctx context.Context, sellerID *string) ([]*model.Coupon, error)
 	FrequentlyBoughtTogether(ctx context.Context, productID string) ([]*model.Product, error)
 	PersonalizedRecommendations(ctx context.Context) ([]*model.Product, error)
 	TrackPackage(ctx context.Context, trackingNumber string) (*model.DeliveryOrder, error)
@@ -3252,6 +3254,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ChatMessages(childComplexity, args["threadId"].(string), args["pageToken"].(*string), args["pageSize"].(*int)), true
 
+	case "Query.coupons":
+		if e.complexity.Query.Coupons == nil {
+			break
+		}
+
+		args, err := ec.field_Query_coupons_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Coupons(childComplexity, args["sellerId"].(*string)), true
+
 	case "Query.dispute":
 		if e.complexity.Query.Dispute == nil {
 			break
@@ -4583,6 +4597,7 @@ type Query {
 
   # Promotion
   activeFlashSales: [FlashSale!]!
+  coupons(sellerId: ID): [Coupon!]! @hasRole(role: BUYER)
 
   # Recommendation
   frequentlyBoughtTogether(productId: ID!): [Product!]!
@@ -6470,6 +6485,21 @@ func (ec *executionContext) field_Query_chatMessages_args(ctx context.Context, r
 		}
 	}
 	args["pageSize"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_coupons_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["sellerId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sellerId"))
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sellerId"] = arg0
 	return args, nil
 }
 
@@ -25523,6 +25553,109 @@ func (ec *executionContext) fieldContext_Query_activeFlashSales(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_coupons(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_coupons(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Coupons(rctx, fc.Args["sellerId"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "BUYER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.Coupon); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/wemall/api-gateway/internal/graph/model.Coupon`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Coupon)
+	fc.Result = res
+	return ec.marshalNCoupon2ᚕᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐCouponᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_coupons(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Coupon_id(ctx, field)
+			case "code":
+				return ec.fieldContext_Coupon_code(ctx, field)
+			case "sellerId":
+				return ec.fieldContext_Coupon_sellerId(ctx, field)
+			case "discountType":
+				return ec.fieldContext_Coupon_discountType(ctx, field)
+			case "discountValue":
+				return ec.fieldContext_Coupon_discountValue(ctx, field)
+			case "minOrderValue":
+				return ec.fieldContext_Coupon_minOrderValue(ctx, field)
+			case "maxDiscount":
+				return ec.fieldContext_Coupon_maxDiscount(ctx, field)
+			case "startDate":
+				return ec.fieldContext_Coupon_startDate(ctx, field)
+			case "endDate":
+				return ec.fieldContext_Coupon_endDate(ctx, field)
+			case "usageLimit":
+				return ec.fieldContext_Coupon_usageLimit(ctx, field)
+			case "usageCount":
+				return ec.fieldContext_Coupon_usageCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Coupon", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_coupons_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_frequentlyBoughtTogether(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_frequentlyBoughtTogether(ctx, field)
 	if err != nil {
@@ -36212,6 +36345,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "coupons":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_coupons(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "frequentlyBoughtTogether":
 			field := field
 
@@ -37762,6 +37917,50 @@ func (ec *executionContext) unmarshalNCheckoutInput2githubᚗcomᚋwemallᚋapi�
 
 func (ec *executionContext) marshalNCoupon2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐCoupon(ctx context.Context, sel ast.SelectionSet, v model.Coupon) graphql.Marshaler {
 	return ec._Coupon(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCoupon2ᚕᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐCouponᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Coupon) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCoupon2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐCoupon(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNCoupon2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐCoupon(ctx context.Context, sel ast.SelectionSet, v *model.Coupon) graphql.Marshaler {

@@ -1,0 +1,15 @@
+query GetCoupons($sellerId: ID) {
+  coupons(sellerId: $sellerId) {
+    id
+    code
+    sellerId
+    discountType
+    discountValue
+    minOrderValue
+    maxDiscount
+    startDate
+    endDate
+    usageLimit
+    usageCount
+  }
+}

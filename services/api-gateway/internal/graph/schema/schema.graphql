@@ -423,6 +423,7 @@ type Query {
 
   # Promotion
   activeFlashSales: [FlashSale!]!
+  coupons(sellerId: ID): [Coupon!]! @hasRole(role: BUYER)
 
   # Recommendation
   frequentlyBoughtTogether(productId: ID!): [Product!]!

@@ -7,13 +7,14 @@ import (
 	"github.com/wemall/api-gateway/internal/graph/gqlerrors"
 	"github.com/wemall/api-gateway/internal/graph/model"
 	"github.com/wemall/api-gateway/internal/middleware"
+	deliveryv1 "github.com/wemall/gen/delivery/v1"
 	notificationv1 "github.com/wemall/gen/notification/v1"
 	orderv1 "github.com/wemall/gen/order/v1"
+	paymentv1 "github.com/wemall/gen/payment/v1"
 	productv1 "github.com/wemall/gen/product/v1"
 	sellerv1 "github.com/wemall/gen/seller/v1"
 	userv1 "github.com/wemall/gen/user/v1"
-	paymentv1 "github.com/wemall/gen/payment/v1"
-	deliveryv1 "github.com/wemall/gen/delivery/v1"
+	promotionv1 "github.com/wemall/gen/promotion/v1"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -437,6 +438,25 @@ func (r *queryResolver) ActiveFlashSales(ctx context.Context) ([]*model.FlashSal
 		}
 	}
 
+	return out, nil
+}
+
+func (r *queryResolver) Coupons(ctx context.Context, sellerID *string) ([]*model.Coupon, error) {
+	var sID string
+	if sellerID != nil {
+		sID = *sellerID
+	}
+	resp, err := r.Clients.Promotion.ListCoupons(ctx, &promotionv1.ListCouponsRequest{
+		SellerId: sID,
+		PageSize: 100,
+	})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*model.Coupon, len(resp.Coupons))
+	for i, c := range resp.Coupons {
+		out[i] = mapCoupon(c)
+	}
 	return out, nil
 }
 
