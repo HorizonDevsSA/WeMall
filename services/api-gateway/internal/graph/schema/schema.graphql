@@ -431,6 +431,7 @@ type Query {
 
   # Delivery
   trackPackage(trackingNumber: String!): DeliveryOrder!
+  deliveryByOrderId(orderId: ID!): DeliveryOrder @hasRole(role: BUYER)
   nearbyStations(latitude: Float!, longitude: Float!, radiusMeters: Float!): [Station!]!
   availableCourierTasks(latitude: Float!, longitude: Float!): [DeliveryOrder!]! @hasRole(role: BUYER)
   stationInventory(stationId: ID!, unclaimedOnly: Boolean!): [StationPackage!]! @hasRole(role: BUYER)

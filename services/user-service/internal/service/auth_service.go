@@ -236,7 +236,7 @@ func (s *AuthService) verifyFirebaseToken(ctx context.Context, tokenStr string) 
 		return "", "", fmt.Errorf("invalid claims type")
 	}
 
-	resp, err := http.Get("https://www.googleapis.com/robot/v1/metadata/x509/securetoken-system@system.gserviceaccount.com")
+	resp, err := http.Get("https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com")
 	if err != nil {
 		return "", "", fmt.Errorf("fetch certificates: %w", err)
 	}

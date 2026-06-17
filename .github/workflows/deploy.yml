@@ -1,0 +1,203 @@
+name: CI/CD Deploy Changed Services
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  detect-changes:
+    name: Detect Changed Services
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.filter.outputs.changes }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Detect changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            api-gateway:
+              - 'services/api-gateway/**'
+              - 'proto/**'
+              - 'pkg/**'
+              - 'go.work'
+              - 'go.work.sum'
+              - 'Makefile'
+            user-service:
+              - 'services/user-service/**'
+              - 'proto/**'
+              - 'pkg/**'
+              - 'go.work'
+              - 'go.work.sum'
+              - 'Makefile'
+            seller-service:
+              - 'services/seller-service/**'
+              - 'proto/**'
+              - 'pkg/**'
+              - 'go.work'
+              - 'go.work.sum'
+              - 'Makefile'
+            product-service:
+              - 'services/product-service/**'
+              - 'proto/**'
+              - 'pkg/**'
+              - 'go.work'
+              - 'go.work.sum'
+              - 'Makefile'
+            order-service:
+              - 'services/order-service/**'
+              - 'proto/**'
+              - 'pkg/**'
+              - 'go.work'
+              - 'go.work.sum'
+              - 'Makefile'
+            notification-service:
+              - 'services/notification-service/**'
+              - 'proto/**'
+              - 'pkg/**'
+              - 'go.work'
+              - 'go.work.sum'
+              - 'Makefile'
+            review-service:
+              - 'services/review-service/**'
+              - 'proto/**'
+              - 'pkg/**'
+              - 'go.work'
+              - 'go.work.sum'
+              - 'Makefile'
+            payment-service:
+              - 'services/payment-service/**'
+              - 'proto/**'
+              - 'pkg/**'
+              - 'go.work'
+              - 'go.work.sum'
+              - 'Makefile'
+            chat-service:
+              - 'services/chat-service/**'
+              - 'proto/**'
+              - 'pkg/**'
+              - 'go.work'
+              - 'go.work.sum'
+              - 'Makefile'
+            dispute-service:
+              - 'services/dispute-service/**'
+              - 'proto/**'
+              - 'pkg/**'
+              - 'go.work'
+              - 'go.work.sum'
+              - 'Makefile'
+            admin-service:
+              - 'services/admin-service/**'
+              - 'proto/**'
+              - 'pkg/**'
+              - 'go.work'
+              - 'go.work.sum'
+              - 'Makefile'
+            promotion-service:
+              - 'services/promotion-service/**'
+              - 'proto/**'
+              - 'pkg/**'
+              - 'go.work'
+              - 'go.work.sum'
+              - 'Makefile'
+            recommendation-service:
+              - 'services/recommendation-service/**'
+              - 'proto/**'
+              - 'pkg/**'
+              - 'go.work'
+              - 'go.work.sum'
+              - 'Makefile'
+            delivery-service:
+              - 'services/delivery-service/**'
+              - 'proto/**'
+              - 'pkg/**'
+              - 'go.work'
+              - 'go.work.sum'
+              - 'Makefile'
+            documentation-service:
+              - 'services/documentation-service/**'
+              - 'proto/**'
+              - 'pkg/**'
+              - 'go.work'
+              - 'go.work.sum'
+              - 'Makefile'
+
+  build-and-push:
+    name: Build & Push
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.detect-changes.outputs.services != '[]' && needs.detect-changes.outputs.services != '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.detect-changes.outputs.services) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lowercase repository name for docker tag
+        id: repo_name
+        run: |
+          # Convert repository name to lowercase
+          echo "raw_repo=ghcr.io/$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/${{ matrix.service }}/Dockerfile
+          push: true
+          tags: ${{ steps.repo_name.outputs.raw_repo }}-${{ matrix.service }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to EC2
+    needs: [detect-changes, build-and-push]
+    runs-on: ubuntu-latest
+    if: ${{ needs.detect-changes.outputs.services != '[]' && needs.detect-changes.outputs.services != '' }}
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/WeMall
+            
+            # Pull latest git commit on server (handles docker-compose file updates)
+            git pull origin main
+            
+            # Authenticate with GHCR on the EC2 host
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # Re-deploy each changed service
+            for svc in $(echo '${{ needs.detect-changes.outputs.services }}' | jq -r '.[]'); do
+              echo "Pulling latest image for $svc..."
+              docker compose -f docker-compose.prod.yml pull "$svc"
+              
+              echo "Recreating container for $svc..."
+              docker compose -f docker-compose.prod.yml up -d --no-deps "$svc"
+            done
+            
+            # Clean up old unused images to save disk space
+            docker image prune -f

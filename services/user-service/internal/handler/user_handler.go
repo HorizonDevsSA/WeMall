@@ -103,7 +103,8 @@ func (h *UserHandler) SellerLogin(ctx context.Context, req *userv1.SellerLoginRe
 func (h *UserHandler) SellerFirebaseSignIn(ctx context.Context, req *userv1.SellerFirebaseSignInRequest) (*userv1.AuthResponse, error) {
 	tokens, user, err := h.authSvc.SellerFirebaseSignIn(ctx, req.IdToken, req.FullName)
 	if err != nil {
-		return nil, status.Error(codes.Unauthenticated, "firebase sign-in failed")
+		println("[UserHandler] SellerFirebaseSignIn error:", err.Error())
+		return nil, status.Error(codes.Unauthenticated, "firebase sign-in failed: "+err.Error())
 	}
 	return &userv1.AuthResponse{
 		AccessToken:  tokens.AccessToken,

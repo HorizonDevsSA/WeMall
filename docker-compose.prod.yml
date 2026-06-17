@@ -92,6 +92,7 @@ services:
 
   # ── Microservices ─────────────────────────────────────────────────────────
   api-gateway:
+    image: ghcr.io/horizondevssa/wemall-api-gateway:latest
     build:
       context: .
       dockerfile: services/api-gateway/Dockerfile
@@ -132,6 +133,7 @@ services:
     logging: *default-logging
 
   user-service:
+    image: ghcr.io/horizondevssa/wemall-user-service:latest
     build:
       context: .
       dockerfile: services/user-service/Dockerfile
@@ -149,6 +151,7 @@ services:
     logging: *default-logging
 
   seller-service:
+    image: ghcr.io/horizondevssa/wemall-seller-service:latest
     build:
       context: .
       dockerfile: services/seller-service/Dockerfile
@@ -165,6 +168,7 @@ services:
     logging: *default-logging
 
   product-service:
+    image: ghcr.io/horizondevssa/wemall-product-service:latest
     build:
       context: .
       dockerfile: services/product-service/Dockerfile
@@ -189,6 +193,7 @@ services:
     logging: *default-logging
 
   order-service:
+    image: ghcr.io/horizondevssa/wemall-order-service:latest
     build:
       context: .
       dockerfile: services/order-service/Dockerfile
@@ -210,6 +215,7 @@ services:
     logging: *default-logging
 
   notification-service:
+    image: ghcr.io/horizondevssa/wemall-notification-service:latest
     build:
       context: .
       dockerfile: services/notification-service/Dockerfile
@@ -236,6 +242,7 @@ services:
     logging: *default-logging
 
   review-service:
+    image: ghcr.io/horizondevssa/wemall-review-service:latest
     build:
       context: .
       dockerfile: services/review-service/Dockerfile
@@ -258,6 +265,7 @@ services:
     logging: *default-logging
 
   payment-service:
+    image: ghcr.io/horizondevssa/wemall-payment-service:latest
     build:
       context: .
       dockerfile: services/payment-service/Dockerfile
@@ -279,6 +287,7 @@ services:
     logging: *default-logging
 
   chat-service:
+    image: ghcr.io/horizondevssa/wemall-chat-service:latest
     build:
       context: .
       dockerfile: services/chat-service/Dockerfile
@@ -298,6 +307,7 @@ services:
     logging: *default-logging
 
   dispute-service:
+    image: ghcr.io/horizondevssa/wemall-dispute-service:latest
     build:
       context: .
       dockerfile: services/dispute-service/Dockerfile
@@ -317,6 +327,7 @@ services:
     logging: *default-logging
 
   admin-service:
+    image: ghcr.io/horizondevssa/wemall-admin-service:latest
     build:
       context: .
       dockerfile: services/admin-service/Dockerfile
@@ -343,6 +354,7 @@ services:
     logging: *default-logging
 
   promotion-service:
+    image: ghcr.io/horizondevssa/wemall-promotion-service:latest
     build:
       context: .
       dockerfile: services/promotion-service/Dockerfile
@@ -362,6 +374,7 @@ services:
     logging: *default-logging
 
   recommendation-service:
+    image: ghcr.io/horizondevssa/wemall-recommendation-service:latest
     build:
       context: .
       dockerfile: services/recommendation-service/Dockerfile
@@ -381,6 +394,7 @@ services:
     logging: *default-logging
 
   delivery-service:
+    image: ghcr.io/horizondevssa/wemall-delivery-service:latest
     build:
       context: .
       dockerfile: services/delivery-service/Dockerfile
@@ -405,6 +419,7 @@ services:
     logging: *default-logging
 
   documentation-service:
+    image: ghcr.io/horizondevssa/wemall-documentation-service:latest
     build:
       context: .
       dockerfile: services/documentation-service/Dockerfile

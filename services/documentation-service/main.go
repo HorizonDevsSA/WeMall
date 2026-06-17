@@ -41,6 +41,14 @@ func main() {
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticSubFS))))
 	mux.HandleFunc("/flows/", h.APIDetail)
 	mux.HandleFunc("/apis/", h.APIDetail)
+	// Legal document routes — each is a separate page
+	mux.HandleFunc("/legal", h.LegalIndex)
+	mux.HandleFunc("/legal/terms", h.LegalTerms)
+	mux.HandleFunc("/legal/seller", h.LegalSeller)
+	mux.HandleFunc("/legal/rider", h.LegalRider)
+	mux.HandleFunc("/legal/privacy", h.LegalPrivacy)
+	mux.HandleFunc("/legal/disputes", h.LegalDisputes)
+	mux.HandleFunc("/legal/eula", h.LegalEULA)
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
 			http.NotFound(w, r)

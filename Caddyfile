@@ -5,3 +5,8 @@
 media.{$DOMAIN} {
     reverse_proxy media-service:8087
 }
+
+docs.{$DOMAIN} {
+    reverse_proxy documentation-service:8085
+}
+

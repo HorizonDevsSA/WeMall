@@ -53,6 +53,45 @@
                     <span class="nav-icon">📊</span>
                     <span class="nav-text">API Dashboard</span>
                 </a>
+                <a href="/legal" hx-get="/legal" hx-target="#main-content" hx-push-url="true" 
+                   class="nav-link {{if eq .ActiveSlug "legal"}}active{{end}}" id="nav-legal">
+                    <span class="nav-icon">⚖️</span>
+                    <span class="nav-text">Legal &amp; Compliance</span>
+                </a>
+                {{if or (eq .ActiveSlug "legal") (eq .ActiveSlug "legal-terms") (eq .ActiveSlug "legal-seller") (eq .ActiveSlug "legal-rider") (eq .ActiveSlug "legal-privacy") (eq .ActiveSlug "legal-disputes") (eq .ActiveSlug "legal-eula")}}
+                <div style="display: flex; flex-direction: column; gap: 2px; padding-left: 12px; margin-top: -4px;">
+                    <a href="/legal/terms" hx-get="/legal/terms" hx-target="#main-content" hx-push-url="true"
+                       class="nav-link {{if eq .ActiveSlug "legal-terms"}}active{{end}}" style="font-size: 12.5px; padding: 7px 12px;" id="nav-legal-terms">
+                        <span class="nav-icon" style="font-size: 13px;">👤</span>
+                        <span class="nav-text">Customer Terms</span>
+                    </a>
+                    <a href="/legal/seller" hx-get="/legal/seller" hx-target="#main-content" hx-push-url="true"
+                       class="nav-link {{if eq .ActiveSlug "legal-seller"}}active{{end}}" style="font-size: 12.5px; padding: 7px 12px;" id="nav-legal-seller">
+                        <span class="nav-icon" style="font-size: 13px;">🏬</span>
+                        <span class="nav-text">Seller Agreement</span>
+                    </a>
+                    <a href="/legal/rider" hx-get="/legal/rider" hx-target="#main-content" hx-push-url="true"
+                       class="nav-link {{if eq .ActiveSlug "legal-rider"}}active{{end}}" style="font-size: 12.5px; padding: 7px 12px;" id="nav-legal-rider">
+                        <span class="nav-icon" style="font-size: 13px;">🏍️</span>
+                        <span class="nav-text">Rider Agreement</span>
+                    </a>
+                    <a href="/legal/privacy" hx-get="/legal/privacy" hx-target="#main-content" hx-push-url="true"
+                       class="nav-link {{if eq .ActiveSlug "legal-privacy"}}active{{end}}" style="font-size: 12.5px; padding: 7px 12px;" id="nav-legal-privacy">
+                        <span class="nav-icon" style="font-size: 13px;">🔒</span>
+                        <span class="nav-text">Privacy Policy</span>
+                    </a>
+                    <a href="/legal/disputes" hx-get="/legal/disputes" hx-target="#main-content" hx-push-url="true"
+                       class="nav-link {{if eq .ActiveSlug "legal-disputes"}}active{{end}}" style="font-size: 12.5px; padding: 7px 12px;" id="nav-legal-disputes">
+                        <span class="nav-icon" style="font-size: 13px;">🛠️</span>
+                        <span class="nav-text">Disputes &amp; Refunds</span>
+                    </a>
+                    <a href="/legal/eula" hx-get="/legal/eula" hx-target="#main-content" hx-push-url="true"
+                       class="nav-link {{if eq .ActiveSlug "legal-eula"}}active{{end}}" style="font-size: 12.5px; padding: 7px 12px;" id="nav-legal-eula">
+                        <span class="nav-icon" style="font-size: 13px;">📱</span>
+                        <span class="nav-text">Mobile EULA</span>
+                    </a>
+                </div>
+                {{end}}
 
                 <div class="nav-section-title">Services Reference</div>
                 <div class="flows-list" id="flows-sidebar-list">
@@ -74,7 +113,7 @@
                     <span class="crumb-root">WeMall Reference</span>
                     <span class="crumb-separator">/</span>
                     <span class="crumb-current" id="breadcrumb-current">
-                        {{if eq .ActiveSlug "dashboard"}}API Dashboard{{else}}{{range .Categories}}{{if eq $.ActiveSlug .Slug}}{{.Title}}{{end}}{{end}}{{end}}
+                        {{if eq .ActiveSlug "dashboard"}}API Dashboard{{else if eq .ActiveSlug "legal"}}Legal &amp; Compliance{{else if eq .ActiveSlug "legal-terms"}}Customer Terms of Service{{else if eq .ActiveSlug "legal-seller"}}Seller Merchant Agreement{{else if eq .ActiveSlug "legal-rider"}}Rider Services Agreement{{else if eq .ActiveSlug "legal-privacy"}}Privacy &amp; Data Policy{{else if eq .ActiveSlug "legal-disputes"}}Refund, Return &amp; Disputes{{else if eq .ActiveSlug "legal-eula"}}Mobile App EULA{{else}}{{range .Categories}}{{if eq $.ActiveSlug .Slug}}{{.Title}}{{end}}{{end}}{{end}}
                     </span>
                 </div>
                 <div class="system-status">
@@ -86,6 +125,20 @@
             <div class="workspace-content" id="main-content">
                 {{if eq .ActiveSlug "dashboard"}}
                     {{template "dashboard.html" .}}
+                {{else if eq .ActiveSlug "legal"}}
+                    {{template "legal_index.html" .}}
+                {{else if eq .ActiveSlug "legal-terms"}}
+                    {{template "legal_terms.html" .}}
+                {{else if eq .ActiveSlug "legal-seller"}}
+                    {{template "legal_seller.html" .}}
+                {{else if eq .ActiveSlug "legal-rider"}}
+                    {{template "legal_rider.html" .}}
+                {{else if eq .ActiveSlug "legal-privacy"}}
+                    {{template "legal_privacy.html" .}}
+                {{else if eq .ActiveSlug "legal-disputes"}}
+                    {{template "legal_disputes.html" .}}
+                {{else if eq .ActiveSlug "legal-eula"}}
+                    {{template "legal_eula.html" .}}
                 {{else}}
                     {{template "api_detail.html" .}}
                 {{end}}

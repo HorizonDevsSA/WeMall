@@ -489,6 +489,7 @@ type ComplexityRoot struct {
 		Category                    func(childComplexity int, slug string, language *string) int
 		ChatMessages                func(childComplexity int, threadID string, pageToken *string, pageSize *int) int
 		Coupons                     func(childComplexity int, sellerID *string) int
+		DeliveryByOrderID           func(childComplexity int, orderID string) int
 		Dispute                     func(childComplexity int, id string) int
 		DisputeMessages             func(childComplexity int, disputeID string) int
 		FrequentlyBoughtTogether    func(childComplexity int, productID string) int
@@ -715,6 +716,7 @@ type QueryResolver interface {
 	FrequentlyBoughtTogether(ctx context.Context, productID string) ([]*model.Product, error)
 	PersonalizedRecommendations(ctx context.Context) ([]*model.Product, error)
 	TrackPackage(ctx context.Context, trackingNumber string) (*model.DeliveryOrder, error)
+	DeliveryByOrderID(ctx context.Context, orderID string) (*model.DeliveryOrder, error)
 	NearbyStations(ctx context.Context, latitude float64, longitude float64, radiusMeters float64) ([]*model.Station, error)
 	AvailableCourierTasks(ctx context.Context, latitude float64, longitude float64) ([]*model.DeliveryOrder, error)
 	StationInventory(ctx context.Context, stationID string, unclaimedOnly bool) ([]*model.StationPackage, error)
@@ -3266,6 +3268,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Coupons(childComplexity, args["sellerId"].(*string)), true
 
+	case "Query.deliveryByOrderId":
+		if e.complexity.Query.DeliveryByOrderID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_deliveryByOrderId_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.DeliveryByOrderID(childComplexity, args["orderId"].(string)), true
+
 	case "Query.dispute":
 		if e.complexity.Query.Dispute == nil {
 			break
@@ -4605,6 +4619,7 @@ type Query {
 
   # Delivery
   trackPackage(trackingNumber: String!): DeliveryOrder!
+  deliveryByOrderId(orderId: ID!): DeliveryOrder @hasRole(role: BUYER)
   nearbyStations(latitude: Float!, longitude: Float!, radiusMeters: Float!): [Station!]!
   availableCourierTasks(latitude: Float!, longitude: Float!): [DeliveryOrder!]! @hasRole(role: BUYER)
   stationInventory(stationId: ID!, unclaimedOnly: Boolean!): [StationPackage!]! @hasRole(role: BUYER)
@@ -6500,6 +6515,21 @@ func (ec *executionContext) field_Query_coupons_args(ctx context.Context, rawArg
 		}
 	}
 	args["sellerId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_deliveryByOrderId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["orderId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderId"] = arg0
 	return args, nil
 }
 
@@ -25986,6 +26016,114 @@ func (ec *executionContext) fieldContext_Query_trackPackage(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_deliveryByOrderId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_deliveryByOrderId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().DeliveryByOrderID(rctx, fc.Args["orderId"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "BUYER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.DeliveryOrder); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/wemall/api-gateway/internal/graph/model.DeliveryOrder`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.DeliveryOrder)
+	fc.Result = res
+	return ec.marshalODeliveryOrder2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐDeliveryOrder(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_deliveryByOrderId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_DeliveryOrder_id(ctx, field)
+			case "trackingNumber":
+				return ec.fieldContext_DeliveryOrder_trackingNumber(ctx, field)
+			case "orderId":
+				return ec.fieldContext_DeliveryOrder_orderId(ctx, field)
+			case "senderName":
+				return ec.fieldContext_DeliveryOrder_senderName(ctx, field)
+			case "senderPhone":
+				return ec.fieldContext_DeliveryOrder_senderPhone(ctx, field)
+			case "recipientName":
+				return ec.fieldContext_DeliveryOrder_recipientName(ctx, field)
+			case "recipientPhone":
+				return ec.fieldContext_DeliveryOrder_recipientPhone(ctx, field)
+			case "deliveryType":
+				return ec.fieldContext_DeliveryOrder_deliveryType(ctx, field)
+			case "originStation":
+				return ec.fieldContext_DeliveryOrder_originStation(ctx, field)
+			case "destinationStation":
+				return ec.fieldContext_DeliveryOrder_destinationStation(ctx, field)
+			case "weightKg":
+				return ec.fieldContext_DeliveryOrder_weightKg(ctx, field)
+			case "shippingFee":
+				return ec.fieldContext_DeliveryOrder_shippingFee(ctx, field)
+			case "status":
+				return ec.fieldContext_DeliveryOrder_status(ctx, field)
+			case "trackingLogs":
+				return ec.fieldContext_DeliveryOrder_trackingLogs(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_DeliveryOrder_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DeliveryOrder", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_deliveryByOrderId_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_nearbyStations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_nearbyStations(ctx, field)
 	if err != nil {
@@ -36433,6 +36571,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "deliveryByOrderId":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_deliveryByOrderId(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "nearbyStations":
 			field := field
 
@@ -39996,6 +40153,13 @@ func (ec *executionContext) marshalOCurrency2ᚖgithubᚗcomᚋwemallᚋapiᚑga
 	}
 	res := graphql.MarshalString(string(*v))
 	return res
+}
+
+func (ec *executionContext) marshalODeliveryOrder2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐDeliveryOrder(ctx context.Context, sel ast.SelectionSet, v *model.DeliveryOrder) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._DeliveryOrder(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {

@@ -88,6 +88,9 @@ document.body.addEventListener('htmx:afterSwap', function(evt) {
         if (activeLink) {
             currentCrumb = activeLink.querySelector('.nav-text').textContent;
         }
+    } else if (path === '/legal') {
+        activeId = 'nav-legal';
+        currentCrumb = 'Terms & Policies';
     }
     
     // Update active highlight classes

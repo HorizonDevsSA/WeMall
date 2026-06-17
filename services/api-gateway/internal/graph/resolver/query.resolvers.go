@@ -536,3 +536,39 @@ func (r *queryResolver) StationInventory(ctx context.Context, stationID string, 
 	}
 	return out, nil
 }
+
+func (r *queryResolver) DeliveryByOrderID(ctx context.Context, orderID string) (*model.DeliveryOrder, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	// 1. Verify that the order belongs to the signed in user
+	_, err := r.Clients.Order.GetOrder(ctx, &orderv1.GetOrderRequest{
+		Id:     orderID,
+		UserId: uid,
+	})
+	if err != nil {
+		return nil, errors.New("access denied: order does not belong to you or does not exist")
+	}
+
+	// 2. Query delivery service for this order ID
+	delResp, err := r.Clients.Delivery.GetDeliveryByOrderID(ctx, &deliveryv1.GetDeliveryByOrderIDRequest{
+		OrderId: orderID,
+	})
+	if err != nil {
+		// Return nil if no delivery exists yet for this order (unshipped)
+		return nil, nil
+	}
+
+	// 3. Get full tracking information using tracking number
+	trackResp, err := r.Clients.Delivery.TrackPackage(ctx, &deliveryv1.TrackPackageRequest{
+		TrackingNumber: delResp.TrackingNumber,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return mapDeliveryOrder(trackResp.DeliveryOrder), nil
+}
+
