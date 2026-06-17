@@ -92,6 +92,7 @@ type AuthPayload {
   accessToken:  String!
   refreshToken: String!
   user:         User!
+  isVerified:   Boolean!
 }
 
 type OTPPayload {

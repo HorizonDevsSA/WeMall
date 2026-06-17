@@ -51,7 +51,19 @@ func (r *mutationResolver) SellerFirebaseSignIn(ctx context.Context, idToken str
 	if err != nil {
 		return nil, err
 	}
-	return mapAuthPayload(resp), nil
+
+	// Check whether the user has already completed seller registration (has a store).
+	isVerified := false
+	if resp.User != nil && resp.User.Id != "" {
+		sellerResp, sellerErr := r.Clients.Seller.GetSellerByUserID(ctx, &sellerv1.GetSellerByUserIDRequest{
+			UserId: resp.User.Id,
+		})
+		if sellerErr == nil && sellerResp != nil && sellerResp.Id != "" {
+			isVerified = true
+		}
+	}
+
+	return mapAuthPayloadWithVerified(resp, isVerified), nil
 }
 
 func (r *mutationResolver) BuyerSendOtp(ctx context.Context, phone string) (*model.OTPPayload, error) {

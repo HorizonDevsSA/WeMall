@@ -107,6 +107,7 @@ type AuthPayload struct {
 	AccessToken  string `json:"accessToken"`
 	RefreshToken string `json:"refreshToken"`
 	User         *User  `json:"user"`
+	IsVerified   bool   `json:"isVerified"`
 }
 
 type OTPPayload struct {

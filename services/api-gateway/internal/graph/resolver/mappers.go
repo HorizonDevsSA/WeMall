@@ -75,7 +75,16 @@ func mapAuthPayload(r *userv1.AuthResponse) *model.AuthPayload {
 		AccessToken:  r.AccessToken,
 		RefreshToken: r.RefreshToken,
 		User:         mapUser(r.User),
+		IsVerified:   false, // default; override in SellerFirebaseSignIn resolver
 	}
+}
+
+func mapAuthPayloadWithVerified(r *userv1.AuthResponse, isVerified bool) *model.AuthPayload {
+	p := mapAuthPayload(r)
+	if p != nil {
+		p.IsVerified = isVerified
+	}
+	return p
 }
 
 // ── Category Mappers ──────────────────────────────────────────────────────────
