@@ -199,7 +199,7 @@ func (s *AuthService) SellerFirebaseSignIn(ctx context.Context, idToken, fullNam
 			AvatarUrl:    nil,
 			Role:         "seller",
 			AuthProvider: "email",
-			IsVerified:   true,
+			IsVerified:   false,
 			GoogleID:     nil,
 		})
 		if err != nil {
@@ -236,7 +236,7 @@ func (s *AuthService) verifyFirebaseToken(ctx context.Context, tokenStr string) 
 		return "", "", fmt.Errorf("invalid claims type")
 	}
 
-	resp, err := http.Get("https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc@wemall-9e8b0.iam.gserviceaccount.com")
+	resp, err := http.Get("https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com")
 	if err != nil {
 		return "", "", fmt.Errorf("fetch certificates: %w", err)
 	}
