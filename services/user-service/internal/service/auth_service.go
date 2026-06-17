@@ -236,7 +236,7 @@ func (s *AuthService) verifyFirebaseToken(ctx context.Context, tokenStr string) 
 		return "", "", fmt.Errorf("invalid claims type")
 	}
 
-	resp, err := http.Get("https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com")
+	resp, err := http.Get("https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc@wemall-9e8b0.iam.gserviceaccount.com")
 	if err != nil {
 		return "", "", fmt.Errorf("fetch certificates: %w", err)
 	}
@@ -277,7 +277,6 @@ func (s *AuthService) verifyFirebaseToken(ctx context.Context, tokenStr string) 
 
 	return email, sub, nil
 }
-
 
 func (s *AuthService) fetchGoogleUserInfo(ctx context.Context, accessToken string) (*googleUserInfo, error) {
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet,
@@ -564,4 +563,3 @@ func (s *AuthService) SendReviewStatusEmail(ctx context.Context, email, fullName
 	}
 	return s.email.SendSellerReviewNotification(email, fullName, storeName, status)
 }
-
