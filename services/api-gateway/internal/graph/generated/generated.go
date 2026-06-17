@@ -76,6 +76,7 @@ type ComplexityRoot struct {
 
 	AuthPayload struct {
 		AccessToken  func(childComplexity int) int
+		IsVerified   func(childComplexity int) int
 		RefreshToken func(childComplexity int) int
 		User         func(childComplexity int) int
 	}
@@ -869,6 +870,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AuthPayload.AccessToken(childComplexity), true
+
+	case "AuthPayload.isVerified":
+		if e.complexity.AuthPayload.IsVerified == nil {
+			break
+		}
+
+		return e.complexity.AuthPayload.IsVerified(childComplexity), true
 
 	case "AuthPayload.refreshToken":
 		if e.complexity.AuthPayload.RefreshToken == nil {
@@ -4280,6 +4288,7 @@ type AuthPayload {
   accessToken:  String!
   refreshToken: String!
   user:         User!
+  isVerified:   Boolean!
 }
 
 type OTPPayload {
@@ -7883,6 +7892,50 @@ func (ec *executionContext) fieldContext_AuthPayload_user(ctx context.Context, f
 				return ec.fieldContext_User_createdAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuthPayload_isVerified(ctx context.Context, field graphql.CollectedField, obj *model.AuthPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuthPayload_isVerified(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsVerified, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuthPayload_isVerified(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -13208,6 +13261,8 @@ func (ec *executionContext) fieldContext_Mutation_buyerGoogleAuth(ctx context.Co
 				return ec.fieldContext_AuthPayload_refreshToken(ctx, field)
 			case "user":
 				return ec.fieldContext_AuthPayload_user(ctx, field)
+			case "isVerified":
+				return ec.fieldContext_AuthPayload_isVerified(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
 		},
@@ -13271,6 +13326,8 @@ func (ec *executionContext) fieldContext_Mutation_buyerGoogleSignIn(ctx context.
 				return ec.fieldContext_AuthPayload_refreshToken(ctx, field)
 			case "user":
 				return ec.fieldContext_AuthPayload_user(ctx, field)
+			case "isVerified":
+				return ec.fieldContext_AuthPayload_isVerified(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
 		},
@@ -13395,6 +13452,8 @@ func (ec *executionContext) fieldContext_Mutation_buyerVerifyOTP(ctx context.Con
 				return ec.fieldContext_AuthPayload_refreshToken(ctx, field)
 			case "user":
 				return ec.fieldContext_AuthPayload_user(ctx, field)
+			case "isVerified":
+				return ec.fieldContext_AuthPayload_isVerified(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
 		},
@@ -13458,6 +13517,8 @@ func (ec *executionContext) fieldContext_Mutation_sellerRegister(ctx context.Con
 				return ec.fieldContext_AuthPayload_refreshToken(ctx, field)
 			case "user":
 				return ec.fieldContext_AuthPayload_user(ctx, field)
+			case "isVerified":
+				return ec.fieldContext_AuthPayload_isVerified(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
 		},
@@ -13521,6 +13582,8 @@ func (ec *executionContext) fieldContext_Mutation_sellerLogin(ctx context.Contex
 				return ec.fieldContext_AuthPayload_refreshToken(ctx, field)
 			case "user":
 				return ec.fieldContext_AuthPayload_user(ctx, field)
+			case "isVerified":
+				return ec.fieldContext_AuthPayload_isVerified(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
 		},
@@ -13584,6 +13647,8 @@ func (ec *executionContext) fieldContext_Mutation_sellerFirebaseSignIn(ctx conte
 				return ec.fieldContext_AuthPayload_refreshToken(ctx, field)
 			case "user":
 				return ec.fieldContext_AuthPayload_user(ctx, field)
+			case "isVerified":
+				return ec.fieldContext_AuthPayload_isVerified(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
 		},
@@ -13647,6 +13712,8 @@ func (ec *executionContext) fieldContext_Mutation_refreshToken(ctx context.Conte
 				return ec.fieldContext_AuthPayload_refreshToken(ctx, field)
 			case "user":
 				return ec.fieldContext_AuthPayload_user(ctx, field)
+			case "isVerified":
+				return ec.fieldContext_AuthPayload_isVerified(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
 		},
@@ -33027,6 +33094,11 @@ func (ec *executionContext) _AuthPayload(ctx context.Context, sel ast.SelectionS
 			}
 		case "user":
 			out.Values[i] = ec._AuthPayload_user(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "isVerified":
+			out.Values[i] = ec._AuthPayload_isVerified(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
