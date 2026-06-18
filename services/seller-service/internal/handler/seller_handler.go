@@ -75,13 +75,14 @@ func (h *SellerHandler) CreateStore(ctx context.Context, req *sellerv1.CreateSto
 	}
 
 	seller, err := h.svc.CreateStore(ctx, service.CreateStoreInput{
-		UserID:      uid,
-		StoreName:   req.StoreName,
-		Description: strPtr(req.Description),
-		LogoURL:     strPtr(req.LogoUrl),
-		BannerURL:   strPtr(req.BannerUrl),
-		Latitude:    lat,
-		Longitude:   lon,
+		UserID:        uid,
+		StoreName:     req.StoreName,
+		Description:   strPtr(req.Description),
+		LogoURL:       strPtr(req.LogoUrl),
+		BannerURL:     strPtr(req.BannerUrl),
+		Latitude:      lat,
+		Longitude:     lon,
+		StoreLocation: strPtr(req.StoreLocation),
 	})
 	return mapSeller(seller), grpcErr(err)
 }
@@ -101,13 +102,14 @@ func (h *SellerHandler) UpdateStore(ctx context.Context, req *sellerv1.UpdateSto
 	}
 
 	seller, err := h.svc.UpdateStore(ctx, service.UpdateStoreInput{
-		UserID:      uid,
-		StoreName:   optionalStr(req.StoreName),
-		Description: optionalStr(req.Description),
-		LogoURL:     optionalStr(req.LogoUrl),
-		BannerURL:   optionalStr(req.BannerUrl),
-		Latitude:    lat,
-		Longitude:   lon,
+		UserID:        uid,
+		StoreName:     optionalStr(req.StoreName),
+		Description:   optionalStr(req.Description),
+		LogoURL:       optionalStr(req.LogoUrl),
+		BannerURL:     optionalStr(req.BannerUrl),
+		Latitude:      lat,
+		Longitude:     lon,
+		StoreLocation: optionalStr(req.StoreLocation),
 	})
 	return mapSeller(seller), grpcErr(err)
 }
@@ -293,6 +295,9 @@ func mapSeller(s *db.Seller) *sellerv1.Seller {
 	}
 	if s.Longitude != nil {
 		seller.Longitude = *s.Longitude
+	}
+	if s.StoreLocation != nil {
+		seller.StoreLocation = *s.StoreLocation
 	}
 
 	return seller

@@ -159,21 +159,22 @@ type ProductImage struct {
 }
 
 type Seller struct {
-	ID          string       `json:"id"`
-	UserID      string       `json:"userId"`
-	StoreName   string       `json:"storeName"`
-	StoreSlug   string       `json:"storeSlug"`
-	LogoURL     *string      `json:"logoUrl"`
-	BannerURL   *string      `json:"bannerUrl"`
-	Description *string      `json:"description"`
-	Rating      float64      `json:"rating"`
-	TotalSales  int          `json:"totalSales"`
-	IsVerified  bool         `json:"isVerified"`
-	Status      SellerStatus `json:"status"`
-	Latitude    *float64     `json:"latitude"`
-	Longitude   *float64     `json:"longitude"`
-	CreatedAt   time.Time    `json:"createdAt"`
-	UpdatedAt   time.Time    `json:"updatedAt"`
+	ID            string       `json:"id"`
+	UserID        string       `json:"userId"`
+	StoreName     string       `json:"storeName"`
+	StoreSlug     string       `json:"storeSlug"`
+	LogoURL       *string      `json:"logoUrl"`
+	BannerURL     *string      `json:"bannerUrl"`
+	Description   *string      `json:"description"`
+	Rating        float64      `json:"rating"`
+	TotalSales    int          `json:"totalSales"`
+	IsVerified    bool         `json:"isVerified"`
+	Status        SellerStatus `json:"status"`
+	Latitude      *float64     `json:"latitude"`
+	Longitude     *float64     `json:"longitude"`
+	StoreLocation *string      `json:"storeLocation"`
+	CreatedAt     time.Time    `json:"createdAt"`
+	UpdatedAt     time.Time    `json:"updatedAt"`
 }
 
 type FollowedStoresList struct {
@@ -368,19 +369,21 @@ type CheckoutInput struct {
 }
 
 type CreateStoreInput struct {
-	StoreName   string   `json:"storeName"`
-	Description *string  `json:"description"`
-	LogoURL     *string  `json:"logoUrl"`
-	BannerURL   *string  `json:"bannerUrl"`
-	Latitude    *float64 `json:"latitude"`
-	Longitude   *float64 `json:"longitude"`
+	StoreName     string   `json:"storeName"`
+	Description   *string  `json:"description"`
+	LogoURL       *string  `json:"logoUrl"`
+	BannerURL     *string  `json:"bannerUrl"`
+	Latitude      *float64 `json:"latitude"`
+	Longitude     *float64 `json:"longitude"`
+	StoreLocation *string  `json:"storeLocation"`
 }
 
 type UpdateStoreInput struct {
-	StoreName   *string  `json:"storeName"`
-	Description *string  `json:"description"`
-	LogoURL     *string  `json:"logoUrl"`
-	BannerURL   *string  `json:"bannerUrl"`
-	Latitude    *float64 `json:"latitude"`
-	Longitude   *float64 `json:"longitude"`
+	StoreName     *string  `json:"storeName"`
+	Description   *string  `json:"description"`
+	LogoURL       *string  `json:"logoUrl"`
+	BannerURL     *string  `json:"bannerUrl"`
+	Latitude      *float64 `json:"latitude"`
+	Longitude     *float64 `json:"longitude"`
+	StoreLocation *string  `json:"storeLocation"`
 }

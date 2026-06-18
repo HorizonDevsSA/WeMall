@@ -74,6 +74,8 @@ type Seller struct {
 	Latitude *float64 `json:"latitude"`
 	// Longitude coordinate for seller location (-180 to 180)
 	Longitude *float64 `json:"longitude"`
+	// Human-readable address string for the store location
+	StoreLocation *string `json:"store_location"`
 	// Review status: pending → processing → verified | suspended
 	Status SellerStatus `json:"status"`
 }

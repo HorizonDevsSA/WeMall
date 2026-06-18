@@ -372,21 +372,22 @@ func mapSeller(s *sellerv1.Seller) *model.Seller {
 	}
 
 	return &model.Seller{
-		ID:          s.Id,
-		UserID:      s.UserId,
-		StoreName:   s.StoreName,
-		StoreSlug:   s.StoreSlug,
-		LogoURL:     strPtr(s.LogoUrl),
-		BannerURL:   strPtr(s.BannerUrl),
-		Description: strPtr(s.Description),
-		Rating:      s.Rating,
-		TotalSales:  int(s.TotalSales),
-		IsVerified:  s.IsVerified,
-		Status:      sellerStatus,
-		Latitude:    float64Ptr(s.Latitude),
-		Longitude:   float64Ptr(s.Longitude),
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
+		ID:            s.Id,
+		UserID:        s.UserId,
+		StoreName:     s.StoreName,
+		StoreSlug:     s.StoreSlug,
+		LogoURL:       strPtr(s.LogoUrl),
+		BannerURL:     strPtr(s.BannerUrl),
+		Description:   strPtr(s.Description),
+		Rating:        s.Rating,
+		TotalSales:    int(s.TotalSales),
+		IsVerified:    s.IsVerified,
+		Status:        sellerStatus,
+		Latitude:      float64Ptr(s.Latitude),
+		Longitude:     float64Ptr(s.Longitude),
+		StoreLocation: strPtr(s.StoreLocation),
+		CreatedAt:     createdAt,
+		UpdatedAt:     updatedAt,
 	}
 }
 

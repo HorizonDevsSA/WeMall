@@ -259,22 +259,23 @@ type OrderList {
 # ── Seller Types ─────────────────────────────────────────────────────────────
 
 type Seller {
-  id:          ID!
-  userId:      ID!
-  storeName:   String!
-  storeSlug:   String!
-  logoUrl:     String
-  bannerUrl:   String
-  description: String
-  rating:      Float!
-  totalSales:  Int!
-  isVerified:  Boolean!
-  status:      SellerStatus!
-  latitude:    Float
-  longitude:   Float
-  createdAt:   Time!
-  updatedAt:   Time!
-  dsr:         SellerDSR!
+  id:            ID!
+  userId:        ID!
+  storeName:     String!
+  storeSlug:     String!
+  logoUrl:       String
+  bannerUrl:     String
+  description:   String
+  rating:        Float!
+  totalSales:    Int!
+  isVerified:    Boolean!
+  status:        SellerStatus!
+  latitude:      Float
+  longitude:     Float
+  storeLocation: String
+  createdAt:     Time!
+  updatedAt:     Time!
+  dsr:           SellerDSR!
 }
 
 # ── Input Types ───────────────────────────────────────────────────────────────
@@ -359,21 +360,23 @@ input CheckoutInput {
 }
 
 input CreateStoreInput {
-  storeName:   String!
-  description: String
-  logoUrl:     String
-  bannerUrl:   String
-  latitude:    Float
-  longitude:   Float
+  storeName:     String!
+  description:   String
+  logoUrl:       String
+  bannerUrl:     String
+  latitude:      Float
+  longitude:     Float
+  storeLocation: String
 }
 
 input UpdateStoreInput {
-  storeName:   String
-  description: String
-  logoUrl:     String
-  bannerUrl:   String
-  latitude:    Float
-  longitude:   Float
+  storeName:     String
+  description:   String
+  logoUrl:       String
+  bannerUrl:     String
+  latitude:      Float
+  longitude:     Float
+  storeLocation: String
 }
 
 # ── Queries ───────────────────────────────────────────────────────────────────

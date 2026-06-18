@@ -249,13 +249,14 @@ func (r *mutationResolver) CreateStore(ctx context.Context, input model.CreateSt
 	}
 
 	resp, err := r.Clients.Seller.CreateStore(ctx, &sellerv1.CreateStoreRequest{
-		UserId:      uid,
-		StoreName:   input.StoreName,
-		Description: derefStr(input.Description),
-		LogoUrl:     derefStr(input.LogoURL),
-		BannerUrl:   derefStr(input.BannerURL),
-		Latitude:    derefFloat(input.Latitude),
-		Longitude:   derefFloat(input.Longitude),
+		UserId:        uid,
+		StoreName:     input.StoreName,
+		Description:   derefStr(input.Description),
+		LogoUrl:       derefStr(input.LogoURL),
+		BannerUrl:     derefStr(input.BannerURL),
+		Latitude:      derefFloat(input.Latitude),
+		Longitude:     derefFloat(input.Longitude),
+		StoreLocation: derefStr(input.StoreLocation),
 	})
 	if err != nil {
 		return nil, err
@@ -270,13 +271,14 @@ func (r *mutationResolver) UpdateStore(ctx context.Context, input model.UpdateSt
 	}
 
 	resp, err := r.Clients.Seller.UpdateStore(ctx, &sellerv1.UpdateStoreRequest{
-		UserId:      uid,
-		StoreName:   derefStr(input.StoreName),
-		Description: derefStr(input.Description),
-		LogoUrl:     derefStr(input.LogoURL),
-		BannerUrl:   derefStr(input.BannerURL),
-		Latitude:    derefFloat(input.Latitude),
-		Longitude:   derefFloat(input.Longitude),
+		UserId:        uid,
+		StoreName:     derefStr(input.StoreName),
+		Description:   derefStr(input.Description),
+		LogoUrl:       derefStr(input.LogoURL),
+		BannerUrl:     derefStr(input.BannerURL),
+		Latitude:      derefFloat(input.Latitude),
+		Longitude:     derefFloat(input.Longitude),
+		StoreLocation: derefStr(input.StoreLocation),
 	})
 	if err != nil {
 		return nil, err

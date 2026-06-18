@@ -24,21 +24,22 @@ enum PayoutStatus {
 // ── Core Types ────────────────────────────────────────────────────────────────
 
 message Seller {
-  string                    id          = 1;
-  string                    user_id     = 2;
-  string                    store_name  = 3;
-  string                    store_slug  = 4;
-  string                    logo_url    = 5;
-  string                    banner_url  = 6;
-  string                    description = 7;
-  double                    rating      = 8;
-  int32                     total_sales = 9;
-  bool                      is_verified = 10;
-  double                    latitude     = 11;
-  double                    longitude    = 12;
-  google.protobuf.Timestamp created_at  = 13;
-  google.protobuf.Timestamp updated_at  = 14;
-  SellerStatus              status      = 15;
+  string                    id             = 1;
+  string                    user_id        = 2;
+  string                    store_name     = 3;
+  string                    store_slug     = 4;
+  string                    logo_url       = 5;
+  string                    banner_url     = 6;
+  string                    description    = 7;
+  double                    rating         = 8;
+  int32                     total_sales    = 9;
+  bool                      is_verified    = 10;
+  double                    latitude       = 11;
+  double                    longitude      = 12;
+  google.protobuf.Timestamp created_at     = 13;
+  google.protobuf.Timestamp updated_at     = 14;
+  SellerStatus              status         = 15;
+  string                    store_location = 16;
 }
 
 message Payout {
@@ -71,23 +72,25 @@ message GetSellerBatchResponse {
 }
 
 message CreateStoreRequest {
-  string user_id     = 1;
-  string store_name  = 2;
-  string description = 3;
-  string logo_url    = 4;
-  string banner_url  = 5;
-  double latitude    = 6;
-  double longitude   = 7;
+  string user_id        = 1;
+  string store_name     = 2;
+  string description    = 3;
+  string logo_url       = 4;
+  string banner_url     = 5;
+  double latitude       = 6;
+  double longitude      = 7;
+  string store_location = 8;
 }
 
 message UpdateStoreRequest {
-  string user_id     = 1;
-  string store_name  = 2;
-  string description = 3;
-  string logo_url    = 4;
-  string banner_url  = 5;
-  double latitude    = 6;
-  double longitude   = 7;
+  string user_id        = 1;
+  string store_name     = 2;
+  string description    = 3;
+  string logo_url       = 4;
+  string banner_url     = 5;
+  double latitude       = 6;
+  double longitude      = 7;
+  string store_location = 8;
 }
 
 message VerifySellerRequest {

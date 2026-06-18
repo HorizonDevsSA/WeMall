@@ -150,6 +150,7 @@ type Seller struct {
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	Status        SellerStatus           `protobuf:"varint,15,opt,name=status,proto3,enum=seller.v1.SellerStatus" json:"status,omitempty"`
+	StoreLocation string                 `protobuf:"bytes,16,opt,name=store_location,json=storeLocation,proto3" json:"store_location,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -287,6 +288,13 @@ func (x *Seller) GetStatus() SellerStatus {
 		return x.Status
 	}
 	return SellerStatus_SELLER_STATUS_UNSPECIFIED
+}
+
+func (x *Seller) GetStoreLocation() string {
+	if x != nil {
+		return x.StoreLocation
+	}
+	return ""
 }
 
 type Payout struct {
@@ -574,6 +582,7 @@ type CreateStoreRequest struct {
 	BannerUrl     string                 `protobuf:"bytes,5,opt,name=banner_url,json=bannerUrl,proto3" json:"banner_url,omitempty"`
 	Latitude      float64                `protobuf:"fixed64,6,opt,name=latitude,proto3" json:"latitude,omitempty"`
 	Longitude     float64                `protobuf:"fixed64,7,opt,name=longitude,proto3" json:"longitude,omitempty"`
+	StoreLocation string                 `protobuf:"bytes,8,opt,name=store_location,json=storeLocation,proto3" json:"store_location,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -657,6 +666,13 @@ func (x *CreateStoreRequest) GetLongitude() float64 {
 	return 0
 }
 
+func (x *CreateStoreRequest) GetStoreLocation() string {
+	if x != nil {
+		return x.StoreLocation
+	}
+	return ""
+}
+
 type UpdateStoreRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -666,6 +682,7 @@ type UpdateStoreRequest struct {
 	BannerUrl     string                 `protobuf:"bytes,5,opt,name=banner_url,json=bannerUrl,proto3" json:"banner_url,omitempty"`
 	Latitude      float64                `protobuf:"fixed64,6,opt,name=latitude,proto3" json:"latitude,omitempty"`
 	Longitude     float64                `protobuf:"fixed64,7,opt,name=longitude,proto3" json:"longitude,omitempty"`
+	StoreLocation string                 `protobuf:"bytes,8,opt,name=store_location,json=storeLocation,proto3" json:"store_location,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -747,6 +764,13 @@ func (x *UpdateStoreRequest) GetLongitude() float64 {
 		return x.Longitude
 	}
 	return 0
+}
+
+func (x *UpdateStoreRequest) GetStoreLocation() string {
+	if x != nil {
+		return x.StoreLocation
+	}
+	return ""
 }
 
 type VerifySellerRequest struct {

@@ -63,13 +63,14 @@ func (s *SellerService) GetSellerBatch(ctx context.Context, ids []uuid.UUID) (ma
 }
 
 type CreateStoreInput struct {
-	UserID      uuid.UUID
-	StoreName   string
-	Description *string
-	LogoURL     *string
-	BannerURL   *string
-	Latitude    *float64
-	Longitude   *float64
+	UserID        uuid.UUID
+	StoreName     string
+	Description   *string
+	LogoURL       *string
+	BannerURL     *string
+	Latitude      *float64
+	Longitude     *float64
+	StoreLocation *string
 }
 
 func (s *SellerService) CreateStore(ctx context.Context, in CreateStoreInput) (*db.Seller, error) {
@@ -88,14 +89,15 @@ func (s *SellerService) CreateStore(ctx context.Context, in CreateStoreInput) (*
 	}
 
 	seller, err := s.q.CreateSeller(ctx, db.CreateSellerParams{
-		UserID:      in.UserID,
-		StoreName:   in.StoreName,
-		StoreSlug:   slug,
-		LogoUrl:     in.LogoURL,
-		BannerUrl:   in.BannerURL,
-		Description: in.Description,
-		Latitude:    in.Latitude,
-		Longitude:   in.Longitude,
+		UserID:        in.UserID,
+		StoreName:     in.StoreName,
+		StoreSlug:     slug,
+		LogoUrl:       in.LogoURL,
+		BannerUrl:     in.BannerURL,
+		Description:   in.Description,
+		Latitude:      in.Latitude,
+		Longitude:     in.Longitude,
+		StoreLocation: in.StoreLocation,
 	})
 	if err != nil {
 		if isUniqueViolation(err) {
@@ -107,13 +109,14 @@ func (s *SellerService) CreateStore(ctx context.Context, in CreateStoreInput) (*
 }
 
 type UpdateStoreInput struct {
-	UserID      uuid.UUID
-	StoreName   *string
-	Description *string
-	LogoURL     *string
-	BannerURL   *string
-	Latitude    *float64
-	Longitude   *float64
+	UserID        uuid.UUID
+	StoreName     *string
+	Description   *string
+	LogoURL       *string
+	BannerURL     *string
+	Latitude      *float64
+	Longitude     *float64
+	StoreLocation *string
 }
 
 func (s *SellerService) UpdateStore(ctx context.Context, in UpdateStoreInput) (*db.Seller, error) {
@@ -138,14 +141,15 @@ func (s *SellerService) UpdateStore(ctx context.Context, in UpdateStoreInput) (*
 	}
 
 	seller, err := s.q.UpdateSeller(ctx, db.UpdateSellerParams{
-		UserID:      in.UserID,
-		StoreName:   ptrToString(storeName),
-		StoreSlug:   ptrToString(storeSlug),
-		LogoUrl:     in.LogoURL,
-		BannerUrl:   in.BannerURL,
-		Description: in.Description,
-		Latitude:    in.Latitude,
-		Longitude:   in.Longitude,
+		UserID:        in.UserID,
+		StoreName:     ptrToString(storeName),
+		StoreSlug:     ptrToString(storeSlug),
+		LogoUrl:       in.LogoURL,
+		BannerUrl:     in.BannerURL,
+		Description:   in.Description,
+		Latitude:      in.Latitude,
+		Longitude:     in.Longitude,
+		StoreLocation: in.StoreLocation,
 	})
 	if err != nil {
 		if isUniqueViolation(err) {

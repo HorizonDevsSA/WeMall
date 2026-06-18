@@ -13,27 +13,23 @@ import (
 )
 
 const createSeller = `-- name: CreateSeller :one
-INSERT INTO sellers (user_id, store_name, store_slug, logo_url, banner_url, description, latitude, longitude)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status
+INSERT INTO sellers (user_id, store_name, store_slug, logo_url, banner_url, description, latitude, longitude, store_location)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, store_location, status
 `
 
 type CreateSellerParams struct {
-	UserID      uuid.UUID `json:"user_id"`
-	StoreName   string    `json:"store_name"`
-	StoreSlug   string    `json:"store_slug"`
-	LogoUrl     *string   `json:"logo_url"`
-	BannerUrl   *string   `json:"banner_url"`
-	Description *string   `json:"description"`
-	Latitude    *float64  `json:"latitude"`
-	Longitude   *float64  `json:"longitude"`
+	UserID        uuid.UUID `json:"user_id"`
+	StoreName     string    `json:"store_name"`
+	StoreSlug     string    `json:"store_slug"`
+	LogoUrl       *string   `json:"logo_url"`
+	BannerUrl     *string   `json:"banner_url"`
+	Description   *string   `json:"description"`
+	Latitude      *float64  `json:"latitude"`
+	Longitude     *float64  `json:"longitude"`
+	StoreLocation *string   `json:"store_location"`
 }
 
-// CreateSeller
-//
-//	INSERT INTO sellers (user_id, store_name, store_slug, logo_url, banner_url, description, latitude, longitude)
-//	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status
 func (q *Queries) CreateSeller(ctx context.Context, arg CreateSellerParams) (Seller, error) {
 	row := q.db.QueryRow(ctx, createSeller,
 		arg.UserID,
@@ -44,6 +40,7 @@ func (q *Queries) CreateSeller(ctx context.Context, arg CreateSellerParams) (Sel
 		arg.Description,
 		arg.Latitude,
 		arg.Longitude,
+		arg.StoreLocation,
 	)
 	var i Seller
 	err := row.Scan(
@@ -61,18 +58,16 @@ func (q *Queries) CreateSeller(ctx context.Context, arg CreateSellerParams) (Sel
 		&i.UpdatedAt,
 		&i.Latitude,
 		&i.Longitude,
+		&i.StoreLocation,
 		&i.Status,
 	)
 	return i, err
 }
 
 const getSellerByID = `-- name: GetSellerByID :one
-SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status FROM sellers WHERE id = $1
+SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, store_location, status FROM sellers WHERE id = $1
 `
 
-// GetSellerByID
-//
-//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status FROM sellers WHERE id = $1
 func (q *Queries) GetSellerByID(ctx context.Context, id uuid.UUID) (Seller, error) {
 	row := q.db.QueryRow(ctx, getSellerByID, id)
 	var i Seller
@@ -91,18 +86,16 @@ func (q *Queries) GetSellerByID(ctx context.Context, id uuid.UUID) (Seller, erro
 		&i.UpdatedAt,
 		&i.Latitude,
 		&i.Longitude,
+		&i.StoreLocation,
 		&i.Status,
 	)
 	return i, err
 }
 
 const getSellerByStoreSlug = `-- name: GetSellerByStoreSlug :one
-SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status FROM sellers WHERE store_slug = $1
+SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, store_location, status FROM sellers WHERE store_slug = $1
 `
 
-// GetSellerByStoreSlug
-//
-//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status FROM sellers WHERE store_slug = $1
 func (q *Queries) GetSellerByStoreSlug(ctx context.Context, storeSlug string) (Seller, error) {
 	row := q.db.QueryRow(ctx, getSellerByStoreSlug, storeSlug)
 	var i Seller
@@ -121,18 +114,16 @@ func (q *Queries) GetSellerByStoreSlug(ctx context.Context, storeSlug string) (S
 		&i.UpdatedAt,
 		&i.Latitude,
 		&i.Longitude,
+		&i.StoreLocation,
 		&i.Status,
 	)
 	return i, err
 }
 
 const getSellerByUserID = `-- name: GetSellerByUserID :one
-SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status FROM sellers WHERE user_id = $1
+SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, store_location, status FROM sellers WHERE user_id = $1
 `
 
-// GetSellerByUserID
-//
-//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status FROM sellers WHERE user_id = $1
 func (q *Queries) GetSellerByUserID(ctx context.Context, userID uuid.UUID) (Seller, error) {
 	row := q.db.QueryRow(ctx, getSellerByUserID, userID)
 	var i Seller
@@ -151,18 +142,16 @@ func (q *Queries) GetSellerByUserID(ctx context.Context, userID uuid.UUID) (Sell
 		&i.UpdatedAt,
 		&i.Latitude,
 		&i.Longitude,
+		&i.StoreLocation,
 		&i.Status,
 	)
 	return i, err
 }
 
 const getSellersByIDs = `-- name: GetSellersByIDs :many
-SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status FROM sellers WHERE id = ANY($1::uuid[])
+SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, store_location, status FROM sellers WHERE id = ANY($1::uuid[])
 `
 
-// GetSellersByIDs
-//
-//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status FROM sellers WHERE id = ANY($1::uuid[])
 func (q *Queries) GetSellersByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]Seller, error) {
 	rows, err := q.db.Query(ctx, getSellersByIDs, dollar_1)
 	if err != nil {
@@ -187,6 +176,7 @@ func (q *Queries) GetSellersByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]
 			&i.UpdatedAt,
 			&i.Latitude,
 			&i.Longitude,
+			&i.StoreLocation,
 			&i.Status,
 		); err != nil {
 			return nil, err
@@ -374,7 +364,7 @@ UPDATE sellers SET
     total_sales = total_sales + $2,
     updated_at  = NOW()
 WHERE id = $1
-RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, store_location, status
 `
 
 type IncrementSellerTotalSalesParams struct {
@@ -382,13 +372,6 @@ type IncrementSellerTotalSalesParams struct {
 	TotalSales int32     `json:"total_sales"`
 }
 
-// IncrementSellerTotalSales
-//
-//	UPDATE sellers SET
-//	    total_sales = total_sales + $2,
-//	    updated_at  = NOW()
-//	WHERE id = $1
-//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status
 func (q *Queries) IncrementSellerTotalSales(ctx context.Context, arg IncrementSellerTotalSalesParams) (Seller, error) {
 	row := q.db.QueryRow(ctx, incrementSellerTotalSales, arg.ID, arg.TotalSales)
 	var i Seller
@@ -407,6 +390,7 @@ func (q *Queries) IncrementSellerTotalSales(ctx context.Context, arg IncrementSe
 		&i.UpdatedAt,
 		&i.Latitude,
 		&i.Longitude,
+		&i.StoreLocation,
 		&i.Status,
 	)
 	return i, err
@@ -414,42 +398,31 @@ func (q *Queries) IncrementSellerTotalSales(ctx context.Context, arg IncrementSe
 
 const updateSeller = `-- name: UpdateSeller :one
 UPDATE sellers SET
-    store_name  = COALESCE(NULLIF($1::text, ''), store_name),
-    store_slug  = COALESCE(NULLIF($2::text, ''), store_slug),
-    logo_url    = COALESCE($3, logo_url),
-    banner_url  = COALESCE($4, banner_url),
-    description = COALESCE($5, description),
-    latitude    = COALESCE($6, latitude),
-    longitude   = COALESCE($7, longitude),
-    updated_at  = NOW()
-WHERE user_id = $8
-RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status
+    store_name     = COALESCE(NULLIF($1::text, ''), store_name),
+    store_slug     = COALESCE(NULLIF($2::text, ''), store_slug),
+    logo_url       = COALESCE($3, logo_url),
+    banner_url     = COALESCE($4, banner_url),
+    description    = COALESCE($5, description),
+    latitude       = COALESCE($6, latitude),
+    longitude      = COALESCE($7, longitude),
+    store_location = COALESCE($8, store_location),
+    updated_at     = NOW()
+WHERE user_id = $9
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, store_location, status
 `
 
 type UpdateSellerParams struct {
-	StoreName   string    `json:"store_name"`
-	StoreSlug   string    `json:"store_slug"`
-	LogoUrl     *string   `json:"logo_url"`
-	BannerUrl   *string   `json:"banner_url"`
-	Description *string   `json:"description"`
-	Latitude    *float64  `json:"latitude"`
-	Longitude   *float64  `json:"longitude"`
-	UserID      uuid.UUID `json:"user_id"`
+	StoreName     string    `json:"store_name"`
+	StoreSlug     string    `json:"store_slug"`
+	LogoUrl       *string   `json:"logo_url"`
+	BannerUrl     *string   `json:"banner_url"`
+	Description   *string   `json:"description"`
+	Latitude      *float64  `json:"latitude"`
+	Longitude     *float64  `json:"longitude"`
+	StoreLocation *string   `json:"store_location"`
+	UserID        uuid.UUID `json:"user_id"`
 }
 
-// UpdateSeller
-//
-//	UPDATE sellers SET
-//	    store_name  = COALESCE(NULLIF($1::text, ''), store_name),
-//	    store_slug  = COALESCE(NULLIF($2::text, ''), store_slug),
-//	    logo_url    = COALESCE($3, logo_url),
-//	    banner_url  = COALESCE($4, banner_url),
-//	    description = COALESCE($5, description),
-//	    latitude    = COALESCE($6, latitude),
-//	    longitude   = COALESCE($7, longitude),
-//	    updated_at  = NOW()
-//	WHERE user_id = $8
-//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status
 func (q *Queries) UpdateSeller(ctx context.Context, arg UpdateSellerParams) (Seller, error) {
 	row := q.db.QueryRow(ctx, updateSeller,
 		arg.StoreName,
@@ -459,6 +432,7 @@ func (q *Queries) UpdateSeller(ctx context.Context, arg UpdateSellerParams) (Sel
 		arg.Description,
 		arg.Latitude,
 		arg.Longitude,
+		arg.StoreLocation,
 		arg.UserID,
 	)
 	var i Seller
@@ -477,6 +451,7 @@ func (q *Queries) UpdateSeller(ctx context.Context, arg UpdateSellerParams) (Sel
 		&i.UpdatedAt,
 		&i.Latitude,
 		&i.Longitude,
+		&i.StoreLocation,
 		&i.Status,
 	)
 	return i, err
@@ -487,7 +462,7 @@ UPDATE sellers SET
     status     = $2,
     updated_at = NOW()
 WHERE id = $1
-RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, store_location, status
 `
 
 type UpdateSellerStatusParams struct {
@@ -495,13 +470,6 @@ type UpdateSellerStatusParams struct {
 	Status SellerStatus `json:"status"`
 }
 
-// UpdateSellerStatus
-//
-//	UPDATE sellers SET
-//	    status     = $2,
-//	    updated_at = NOW()
-//	WHERE id = $1
-//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status
 func (q *Queries) UpdateSellerStatus(ctx context.Context, arg UpdateSellerStatusParams) (Seller, error) {
 	row := q.db.QueryRow(ctx, updateSellerStatus, arg.ID, arg.Status)
 	var i Seller
@@ -520,6 +488,7 @@ func (q *Queries) UpdateSellerStatus(ctx context.Context, arg UpdateSellerStatus
 		&i.UpdatedAt,
 		&i.Latitude,
 		&i.Longitude,
+		&i.StoreLocation,
 		&i.Status,
 	)
 	return i, err
@@ -530,7 +499,7 @@ UPDATE sellers SET
     is_verified = $2,
     updated_at  = NOW()
 WHERE id = $1
-RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, store_location, status
 `
 
 type VerifySellerParams struct {
@@ -538,13 +507,6 @@ type VerifySellerParams struct {
 	IsVerified bool      `json:"is_verified"`
 }
 
-// VerifySeller
-//
-//	UPDATE sellers SET
-//	    is_verified = $2,
-//	    updated_at  = NOW()
-//	WHERE id = $1
-//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status
 func (q *Queries) VerifySeller(ctx context.Context, arg VerifySellerParams) (Seller, error) {
 	row := q.db.QueryRow(ctx, verifySeller, arg.ID, arg.IsVerified)
 	var i Seller
@@ -563,6 +525,7 @@ func (q *Queries) VerifySeller(ctx context.Context, arg VerifySellerParams) (Sel
 		&i.UpdatedAt,
 		&i.Latitude,
 		&i.Longitude,
+		&i.StoreLocation,
 		&i.Status,
 	)
 	return i, err

@@ -1,6 +1,6 @@
 -- name: CreateSeller :one
-INSERT INTO sellers (user_id, store_name, store_slug, logo_url, banner_url, description, latitude, longitude)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO sellers (user_id, store_name, store_slug, logo_url, banner_url, description, latitude, longitude, store_location)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING *;
 
 -- name: GetSellerByID :one
@@ -17,14 +17,15 @@ SELECT * FROM sellers WHERE id = ANY($1::uuid[]);
 
 -- name: UpdateSeller :one
 UPDATE sellers SET
-    store_name  = COALESCE(NULLIF(@store_name::text, ''), store_name),
-    store_slug  = COALESCE(NULLIF(@store_slug::text, ''), store_slug),
-    logo_url    = COALESCE(sqlc.narg('logo_url'), logo_url),
-    banner_url  = COALESCE(sqlc.narg('banner_url'), banner_url),
-    description = COALESCE(sqlc.narg('description'), description),
-    latitude    = COALESCE(sqlc.narg('latitude'), latitude),
-    longitude   = COALESCE(sqlc.narg('longitude'), longitude),
-    updated_at  = NOW()
+    store_name     = COALESCE(NULLIF(@store_name::text, ''), store_name),
+    store_slug     = COALESCE(NULLIF(@store_slug::text, ''), store_slug),
+    logo_url       = COALESCE(sqlc.narg('logo_url'), logo_url),
+    banner_url     = COALESCE(sqlc.narg('banner_url'), banner_url),
+    description    = COALESCE(sqlc.narg('description'), description),
+    latitude       = COALESCE(sqlc.narg('latitude'), latitude),
+    longitude      = COALESCE(sqlc.narg('longitude'), longitude),
+    store_location = COALESCE(sqlc.narg('store_location'), store_location),
+    updated_at     = NOW()
 WHERE user_id = @user_id
 RETURNING *;
 
