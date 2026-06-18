@@ -162,30 +162,40 @@ func (x UserVerificationStatus) Enum() *UserVerificationStatus {
 }
 
 func (x UserVerificationStatus) String() string {
-	if name, ok := UserVerificationStatus_name[int32(x)]; ok {
-		return name
-	}
-	return "USER_VERIFICATION_STATUS_UNSPECIFIED"
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (UserVerificationStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_user_v1_user_proto_enumTypes[2].Descriptor()
+}
+
+func (UserVerificationStatus) Type() protoreflect.EnumType {
+	return &file_user_v1_user_proto_enumTypes[2]
 }
 
 func (x UserVerificationStatus) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
+// Deprecated: Use UserVerificationStatus.Descriptor instead.
+func (UserVerificationStatus) EnumDescriptor() ([]byte, []int) {
+	return file_user_v1_user_proto_rawDescGZIP(), []int{2}
+}
+
 type User struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
-	Phone         string                 `protobuf:"bytes,3,opt,name=phone,proto3" json:"phone,omitempty"`
-	FullName      string                 `protobuf:"bytes,4,opt,name=full_name,json=fullName,proto3" json:"full_name,omitempty"`
-	AvatarUrl     string                 `protobuf:"bytes,5,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
-	Role          UserRole               `protobuf:"varint,6,opt,name=role,proto3,enum=user.v1.UserRole" json:"role,omitempty"`
-	VerificationStatus UserVerificationStatus  `protobuf:"varint,7,opt,name=verification_status,json=verificationStatus,proto3,enum=user.v1.UserVerificationStatus" json:"verification_status,omitempty"`
-	AuthProvider  AuthProvider           `protobuf:"varint,8,opt,name=auth_provider,json=authProvider,proto3,enum=user.v1.AuthProvider" json:"auth_provider,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Email              string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Phone              string                 `protobuf:"bytes,3,opt,name=phone,proto3" json:"phone,omitempty"`
+	FullName           string                 `protobuf:"bytes,4,opt,name=full_name,json=fullName,proto3" json:"full_name,omitempty"`
+	AvatarUrl          string                 `protobuf:"bytes,5,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
+	Role               UserRole               `protobuf:"varint,6,opt,name=role,proto3,enum=user.v1.UserRole" json:"role,omitempty"`
+	VerificationStatus UserVerificationStatus `protobuf:"varint,7,opt,name=verification_status,json=verificationStatus,proto3,enum=user.v1.UserVerificationStatus" json:"verification_status,omitempty"`
+	AuthProvider       AuthProvider           `protobuf:"varint,8,opt,name=auth_provider,json=authProvider,proto3,enum=user.v1.AuthProvider" json:"auth_provider,omitempty"`
+	CreatedAt          *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt          *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *User) Reset() {
@@ -1580,7 +1590,7 @@ var File_user_v1_user_proto protoreflect.FileDescriptor
 
 const file_user_v1_user_proto_rawDesc = "" +
 	"\n" +
-	"\x12user/v1/user.proto\x12\auser.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xf8\x02\n" +
+	"\x12user/v1/user.proto\x12\auser.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xa9\x03\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x14\n" +
@@ -1588,9 +1598,8 @@ const file_user_v1_user_proto_rawDesc = "" +
 	"\tfull_name\x18\x04 \x01(\tR\bfullName\x12\x1d\n" +
 	"\n" +
 	"avatar_url\x18\x05 \x01(\tR\tavatarUrl\x12%\n" +
-	"\x04role\x18\x06 \x01(\x0e2\x11.user.v1.UserRoleR\x04role\x12\x1f\n" +
-	"\vis_verified\x18\a \x01(\bR\n" +
-	"isVerified\x12:\n" +
+	"\x04role\x18\x06 \x01(\x0e2\x11.user.v1.UserRoleR\x04role\x12P\n" +
+	"\x13verification_status\x18\a \x01(\x0e2\x1f.user.v1.UserVerificationStatusR\x12verificationStatus\x12:\n" +
 	"\rauth_provider\x18\b \x01(\x0e2\x15.user.v1.AuthProviderR\fauthProvider\x129\n" +
 	"\n" +
 	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
@@ -1704,7 +1713,13 @@ const file_user_v1_user_proto_rawDesc = "" +
 	"\x19AUTH_PROVIDER_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13AUTH_PROVIDER_EMAIL\x10\x01\x12\x18\n" +
 	"\x14AUTH_PROVIDER_GOOGLE\x10\x02\x12\x17\n" +
-	"\x13AUTH_PROVIDER_PHONE\x10\x032\x8d\t\n" +
+	"\x13AUTH_PROVIDER_PHONE\x10\x03*\xdf\x01\n" +
+	"\x16UserVerificationStatus\x12(\n" +
+	"$USER_VERIFICATION_STATUS_UNSPECIFIED\x10\x00\x12$\n" +
+	" USER_VERIFICATION_STATUS_PENDING\x10\x01\x12'\n" +
+	"#USER_VERIFICATION_STATUS_PROCESSING\x10\x02\x12%\n" +
+	"!USER_VERIFICATION_STATUS_REJECTED\x10\x03\x12%\n" +
+	"!USER_VERIFICATION_STATUS_VERIFIED\x10\x042\x8d\t\n" +
 	"\vUserService\x12D\n" +
 	"\x0fBuyerGoogleAuth\x12\x1a.user.v1.GoogleAuthRequest\x1a\x15.user.v1.AuthResponse\x12H\n" +
 	"\x11BuyerGoogleSignIn\x12\x1c.user.v1.GoogleSignInRequest\x1a\x15.user.v1.AuthResponse\x12C\n" +
@@ -1735,85 +1750,87 @@ func file_user_v1_user_proto_rawDescGZIP() []byte {
 	return file_user_v1_user_proto_rawDescData
 }
 
-var file_user_v1_user_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_user_v1_user_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
 var file_user_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_user_v1_user_proto_goTypes = []any{
 	(UserRole)(0),                        // 0: user.v1.UserRole
 	(AuthProvider)(0),                    // 1: user.v1.AuthProvider
-	(*User)(nil),                         // 2: user.v1.User
-	(*Address)(nil),                      // 3: user.v1.Address
-	(*AuthResponse)(nil),                 // 4: user.v1.AuthResponse
-	(*GoogleAuthRequest)(nil),            // 5: user.v1.GoogleAuthRequest
-	(*GoogleSignInRequest)(nil),          // 6: user.v1.GoogleSignInRequest
-	(*SellerFirebaseSignInRequest)(nil),  // 7: user.v1.SellerFirebaseSignInRequest
-	(*PhoneOTPRequest)(nil),              // 8: user.v1.PhoneOTPRequest
-	(*PhoneOTPResponse)(nil),             // 9: user.v1.PhoneOTPResponse
-	(*VerifyOTPRequest)(nil),             // 10: user.v1.VerifyOTPRequest
-	(*SellerRegisterRequest)(nil),        // 11: user.v1.SellerRegisterRequest
-	(*SellerLoginRequest)(nil),           // 12: user.v1.SellerLoginRequest
-	(*RefreshTokenRequest)(nil),          // 13: user.v1.RefreshTokenRequest
-	(*GetUserRequest)(nil),               // 14: user.v1.GetUserRequest
-	(*GetUserBatchRequest)(nil),          // 15: user.v1.GetUserBatchRequest
-	(*GetUserBatchResponse)(nil),         // 16: user.v1.GetUserBatchResponse
-	(*UpdateProfileRequest)(nil),         // 17: user.v1.UpdateProfileRequest
-	(*ValidateTokenRequest)(nil),         // 18: user.v1.ValidateTokenRequest
-	(*ValidateTokenResponse)(nil),        // 19: user.v1.ValidateTokenResponse
-	(*ListAddressesRequest)(nil),         // 20: user.v1.ListAddressesRequest
-	(*ListAddressesResponse)(nil),        // 21: user.v1.ListAddressesResponse
-	(*CreateAddressRequest)(nil),         // 22: user.v1.CreateAddressRequest
-	(*DeleteAddressRequest)(nil),         // 23: user.v1.DeleteAddressRequest
-	(*SendReviewStatusEmailRequest)(nil), // 24: user.v1.SendReviewStatusEmailRequest
-	nil,                                  // 25: user.v1.GetUserBatchResponse.UsersEntry
-	(*timestamppb.Timestamp)(nil),        // 26: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),                // 27: google.protobuf.Empty
+	(UserVerificationStatus)(0),          // 2: user.v1.UserVerificationStatus
+	(*User)(nil),                         // 3: user.v1.User
+	(*Address)(nil),                      // 4: user.v1.Address
+	(*AuthResponse)(nil),                 // 5: user.v1.AuthResponse
+	(*GoogleAuthRequest)(nil),            // 6: user.v1.GoogleAuthRequest
+	(*GoogleSignInRequest)(nil),          // 7: user.v1.GoogleSignInRequest
+	(*SellerFirebaseSignInRequest)(nil),  // 8: user.v1.SellerFirebaseSignInRequest
+	(*PhoneOTPRequest)(nil),              // 9: user.v1.PhoneOTPRequest
+	(*PhoneOTPResponse)(nil),             // 10: user.v1.PhoneOTPResponse
+	(*VerifyOTPRequest)(nil),             // 11: user.v1.VerifyOTPRequest
+	(*SellerRegisterRequest)(nil),        // 12: user.v1.SellerRegisterRequest
+	(*SellerLoginRequest)(nil),           // 13: user.v1.SellerLoginRequest
+	(*RefreshTokenRequest)(nil),          // 14: user.v1.RefreshTokenRequest
+	(*GetUserRequest)(nil),               // 15: user.v1.GetUserRequest
+	(*GetUserBatchRequest)(nil),          // 16: user.v1.GetUserBatchRequest
+	(*GetUserBatchResponse)(nil),         // 17: user.v1.GetUserBatchResponse
+	(*UpdateProfileRequest)(nil),         // 18: user.v1.UpdateProfileRequest
+	(*ValidateTokenRequest)(nil),         // 19: user.v1.ValidateTokenRequest
+	(*ValidateTokenResponse)(nil),        // 20: user.v1.ValidateTokenResponse
+	(*ListAddressesRequest)(nil),         // 21: user.v1.ListAddressesRequest
+	(*ListAddressesResponse)(nil),        // 22: user.v1.ListAddressesResponse
+	(*CreateAddressRequest)(nil),         // 23: user.v1.CreateAddressRequest
+	(*DeleteAddressRequest)(nil),         // 24: user.v1.DeleteAddressRequest
+	(*SendReviewStatusEmailRequest)(nil), // 25: user.v1.SendReviewStatusEmailRequest
+	nil,                                  // 26: user.v1.GetUserBatchResponse.UsersEntry
+	(*timestamppb.Timestamp)(nil),        // 27: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),                // 28: google.protobuf.Empty
 }
 var file_user_v1_user_proto_depIdxs = []int32{
 	0,  // 0: user.v1.User.role:type_name -> user.v1.UserRole
-	1,  // 1: user.v1.User.auth_provider:type_name -> user.v1.AuthProvider
-	26, // 2: user.v1.User.created_at:type_name -> google.protobuf.Timestamp
-	26, // 3: user.v1.User.updated_at:type_name -> google.protobuf.Timestamp
-	2,  // 4: user.v1.AuthResponse.user:type_name -> user.v1.User
-	25, // 5: user.v1.GetUserBatchResponse.users:type_name -> user.v1.GetUserBatchResponse.UsersEntry
-	0,  // 6: user.v1.ValidateTokenResponse.role:type_name -> user.v1.UserRole
-	3,  // 7: user.v1.ListAddressesResponse.addresses:type_name -> user.v1.Address
-	2,  // 8: user.v1.GetUserBatchResponse.UsersEntry.value:type_name -> user.v1.User
-	5,  // 9: user.v1.UserService.BuyerGoogleAuth:input_type -> user.v1.GoogleAuthRequest
-	6,  // 10: user.v1.UserService.BuyerGoogleSignIn:input_type -> user.v1.GoogleSignInRequest
-	8,  // 11: user.v1.UserService.BuyerSendOTP:input_type -> user.v1.PhoneOTPRequest
-	10, // 12: user.v1.UserService.BuyerVerifyOTP:input_type -> user.v1.VerifyOTPRequest
-	11, // 13: user.v1.UserService.SellerRegister:input_type -> user.v1.SellerRegisterRequest
-	12, // 14: user.v1.UserService.SellerLogin:input_type -> user.v1.SellerLoginRequest
-	7,  // 15: user.v1.UserService.SellerFirebaseSignIn:input_type -> user.v1.SellerFirebaseSignInRequest
-	13, // 16: user.v1.UserService.RefreshToken:input_type -> user.v1.RefreshTokenRequest
-	18, // 17: user.v1.UserService.ValidateToken:input_type -> user.v1.ValidateTokenRequest
-	14, // 18: user.v1.UserService.GetUser:input_type -> user.v1.GetUserRequest
-	15, // 19: user.v1.UserService.GetUserBatch:input_type -> user.v1.GetUserBatchRequest
-	17, // 20: user.v1.UserService.UpdateProfile:input_type -> user.v1.UpdateProfileRequest
-	20, // 21: user.v1.UserService.ListAddresses:input_type -> user.v1.ListAddressesRequest
-	22, // 22: user.v1.UserService.CreateAddress:input_type -> user.v1.CreateAddressRequest
-	23, // 23: user.v1.UserService.DeleteAddress:input_type -> user.v1.DeleteAddressRequest
-	24, // 24: user.v1.UserService.SendReviewStatusEmail:input_type -> user.v1.SendReviewStatusEmailRequest
-	4,  // 25: user.v1.UserService.BuyerGoogleAuth:output_type -> user.v1.AuthResponse
-	4,  // 26: user.v1.UserService.BuyerGoogleSignIn:output_type -> user.v1.AuthResponse
-	9,  // 27: user.v1.UserService.BuyerSendOTP:output_type -> user.v1.PhoneOTPResponse
-	4,  // 28: user.v1.UserService.BuyerVerifyOTP:output_type -> user.v1.AuthResponse
-	4,  // 29: user.v1.UserService.SellerRegister:output_type -> user.v1.AuthResponse
-	4,  // 30: user.v1.UserService.SellerLogin:output_type -> user.v1.AuthResponse
-	4,  // 31: user.v1.UserService.SellerFirebaseSignIn:output_type -> user.v1.AuthResponse
-	4,  // 32: user.v1.UserService.RefreshToken:output_type -> user.v1.AuthResponse
-	19, // 33: user.v1.UserService.ValidateToken:output_type -> user.v1.ValidateTokenResponse
-	2,  // 34: user.v1.UserService.GetUser:output_type -> user.v1.User
-	16, // 35: user.v1.UserService.GetUserBatch:output_type -> user.v1.GetUserBatchResponse
-	2,  // 36: user.v1.UserService.UpdateProfile:output_type -> user.v1.User
-	21, // 37: user.v1.UserService.ListAddresses:output_type -> user.v1.ListAddressesResponse
-	3,  // 38: user.v1.UserService.CreateAddress:output_type -> user.v1.Address
-	27, // 39: user.v1.UserService.DeleteAddress:output_type -> google.protobuf.Empty
-	27, // 40: user.v1.UserService.SendReviewStatusEmail:output_type -> google.protobuf.Empty
-	25, // [25:41] is the sub-list for method output_type
-	9,  // [9:25] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	2,  // 1: user.v1.User.verification_status:type_name -> user.v1.UserVerificationStatus
+	1,  // 2: user.v1.User.auth_provider:type_name -> user.v1.AuthProvider
+	27, // 3: user.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	27, // 4: user.v1.User.updated_at:type_name -> google.protobuf.Timestamp
+	3,  // 5: user.v1.AuthResponse.user:type_name -> user.v1.User
+	26, // 6: user.v1.GetUserBatchResponse.users:type_name -> user.v1.GetUserBatchResponse.UsersEntry
+	0,  // 7: user.v1.ValidateTokenResponse.role:type_name -> user.v1.UserRole
+	4,  // 8: user.v1.ListAddressesResponse.addresses:type_name -> user.v1.Address
+	3,  // 9: user.v1.GetUserBatchResponse.UsersEntry.value:type_name -> user.v1.User
+	6,  // 10: user.v1.UserService.BuyerGoogleAuth:input_type -> user.v1.GoogleAuthRequest
+	7,  // 11: user.v1.UserService.BuyerGoogleSignIn:input_type -> user.v1.GoogleSignInRequest
+	9,  // 12: user.v1.UserService.BuyerSendOTP:input_type -> user.v1.PhoneOTPRequest
+	11, // 13: user.v1.UserService.BuyerVerifyOTP:input_type -> user.v1.VerifyOTPRequest
+	12, // 14: user.v1.UserService.SellerRegister:input_type -> user.v1.SellerRegisterRequest
+	13, // 15: user.v1.UserService.SellerLogin:input_type -> user.v1.SellerLoginRequest
+	8,  // 16: user.v1.UserService.SellerFirebaseSignIn:input_type -> user.v1.SellerFirebaseSignInRequest
+	14, // 17: user.v1.UserService.RefreshToken:input_type -> user.v1.RefreshTokenRequest
+	19, // 18: user.v1.UserService.ValidateToken:input_type -> user.v1.ValidateTokenRequest
+	15, // 19: user.v1.UserService.GetUser:input_type -> user.v1.GetUserRequest
+	16, // 20: user.v1.UserService.GetUserBatch:input_type -> user.v1.GetUserBatchRequest
+	18, // 21: user.v1.UserService.UpdateProfile:input_type -> user.v1.UpdateProfileRequest
+	21, // 22: user.v1.UserService.ListAddresses:input_type -> user.v1.ListAddressesRequest
+	23, // 23: user.v1.UserService.CreateAddress:input_type -> user.v1.CreateAddressRequest
+	24, // 24: user.v1.UserService.DeleteAddress:input_type -> user.v1.DeleteAddressRequest
+	25, // 25: user.v1.UserService.SendReviewStatusEmail:input_type -> user.v1.SendReviewStatusEmailRequest
+	5,  // 26: user.v1.UserService.BuyerGoogleAuth:output_type -> user.v1.AuthResponse
+	5,  // 27: user.v1.UserService.BuyerGoogleSignIn:output_type -> user.v1.AuthResponse
+	10, // 28: user.v1.UserService.BuyerSendOTP:output_type -> user.v1.PhoneOTPResponse
+	5,  // 29: user.v1.UserService.BuyerVerifyOTP:output_type -> user.v1.AuthResponse
+	5,  // 30: user.v1.UserService.SellerRegister:output_type -> user.v1.AuthResponse
+	5,  // 31: user.v1.UserService.SellerLogin:output_type -> user.v1.AuthResponse
+	5,  // 32: user.v1.UserService.SellerFirebaseSignIn:output_type -> user.v1.AuthResponse
+	5,  // 33: user.v1.UserService.RefreshToken:output_type -> user.v1.AuthResponse
+	20, // 34: user.v1.UserService.ValidateToken:output_type -> user.v1.ValidateTokenResponse
+	3,  // 35: user.v1.UserService.GetUser:output_type -> user.v1.User
+	17, // 36: user.v1.UserService.GetUserBatch:output_type -> user.v1.GetUserBatchResponse
+	3,  // 37: user.v1.UserService.UpdateProfile:output_type -> user.v1.User
+	22, // 38: user.v1.UserService.ListAddresses:output_type -> user.v1.ListAddressesResponse
+	4,  // 39: user.v1.UserService.CreateAddress:output_type -> user.v1.Address
+	28, // 40: user.v1.UserService.DeleteAddress:output_type -> google.protobuf.Empty
+	28, // 41: user.v1.UserService.SendReviewStatusEmail:output_type -> google.protobuf.Empty
+	26, // [26:42] is the sub-list for method output_type
+	10, // [10:26] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_user_v1_user_proto_init() }
@@ -1826,7 +1843,7 @@ func file_user_v1_user_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_v1_user_proto_rawDesc), len(file_user_v1_user_proto_rawDesc)),
-			NumEnums:      2,
+			NumEnums:      3,
 			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   1,

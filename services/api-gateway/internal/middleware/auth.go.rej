@@ -1,0 +1,12 @@
+@@ -39,6 +40,10 @@
+ 				})
+-				if err == nil && token.Valid {
++				if err != nil {
++					log.Printf("Auth middleware token parse error: %v, token: %s", err, tokenStr)
++				} else if !token.Valid {
++					log.Printf("Auth middleware token not valid: %s", tokenStr)
++				} else {
+ 					ctx := context.WithValue(r.Context(), ContextKeyUserID, claims.UserID)
+ 					ctx = context.WithValue(ctx, ContextKeyRole, claims.Role)
+ 
+ 

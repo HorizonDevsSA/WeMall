@@ -436,6 +436,9 @@ func (s *ReviewService) GetProductRatingStats(ctx context.Context, productID uui
 func (s *ReviewService) GetSellerDSR(ctx context.Context, sellerID uuid.UUID) (float64, float64, float64, int32, error) {
 	dsr, err := s.q.GetSellerDSR(ctx, sellerID)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, 0, 0, 0, nil
+		}
 		return 0, 0, 0, 0, werr.Internal(err)
 	}
 	return dsr.AvgDescription, dsr.AvgService, dsr.AvgDelivery, dsr.ReputationScore, nil

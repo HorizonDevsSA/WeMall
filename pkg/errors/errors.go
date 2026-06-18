@@ -1,6 +1,8 @@
 package errors
 
 import (
+	"fmt"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -27,7 +29,9 @@ func InvalidArgument(msg string) error {
 
 // Internal wraps an error in a gRPC Internal status error.
 func Internal(err error) error {
-	_ = err
+	if err != nil {
+		fmt.Println("INTERNAL ERROR:", err)
+	}
 	return status.Error(codes.Internal, "internal server error")
 }
 

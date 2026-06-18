@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	AccessTokenTTL  = 15 * time.Minute
+	AccessTokenTTL  = 7 * 24 * time.Hour
 	RefreshTokenTTL = 7 * 24 * time.Hour
 )
 
@@ -32,7 +32,7 @@ func New(accessSecret, refreshSecret string) *Manager {
 	return &Manager{accessSecret: accessSecret, refreshSecret: refreshSecret}
 }
 
-// GenerateAccessToken creates a signed 15-minute access token.
+// GenerateAccessToken creates a signed 7-day access token.
 func (m *Manager) GenerateAccessToken(userID, role string) (string, error) {
 	claims := &Claims{
 		UserID: userID,

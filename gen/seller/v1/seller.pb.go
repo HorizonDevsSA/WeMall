@@ -1521,7 +1521,7 @@ var File_seller_v1_seller_proto protoreflect.FileDescriptor
 
 const file_seller_v1_seller_proto_rawDesc = "" +
 	"\n" +
-	"\x16seller/v1/seller.proto\x12\tseller.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"\x86\x04\n" +
+	"\x16seller/v1/seller.proto\x12\tseller.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xad\x04\n" +
 	"\x06Seller\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x1d\n" +
@@ -1545,7 +1545,8 @@ const file_seller_v1_seller_proto_rawDesc = "" +
 	"created_at\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12/\n" +
-	"\x06status\x18\x0f \x01(\x0e2\x17.seller.v1.SellerStatusR\x06status\"\xad\x02\n" +
+	"\x06status\x18\x0f \x01(\x0e2\x17.seller.v1.SellerStatusR\x06status\x12%\n" +
+	"\x0estore_location\x18\x10 \x01(\tR\rstoreLocation\"\xad\x02\n" +
 	"\x06Payout\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tseller_id\x18\x02 \x01(\tR\bsellerId\x12\x16\n" +
@@ -1566,7 +1567,7 @@ const file_seller_v1_seller_proto_rawDesc = "" +
 	"\asellers\x18\x01 \x03(\v2..seller.v1.GetSellerBatchResponse.SellersEntryR\asellers\x1aM\n" +
 	"\fSellersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12'\n" +
-	"\x05value\x18\x02 \x01(\v2\x11.seller.v1.SellerR\x05value:\x028\x01\"\xe2\x01\n" +
+	"\x05value\x18\x02 \x01(\v2\x11.seller.v1.SellerR\x05value:\x028\x01\"\x89\x02\n" +
 	"\x12CreateStoreRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1d\n" +
 	"\n" +
@@ -1576,7 +1577,8 @@ const file_seller_v1_seller_proto_rawDesc = "" +
 	"\n" +
 	"banner_url\x18\x05 \x01(\tR\tbannerUrl\x12\x1a\n" +
 	"\blatitude\x18\x06 \x01(\x01R\blatitude\x12\x1c\n" +
-	"\tlongitude\x18\a \x01(\x01R\tlongitude\"\xe2\x01\n" +
+	"\tlongitude\x18\a \x01(\x01R\tlongitude\x12%\n" +
+	"\x0estore_location\x18\b \x01(\tR\rstoreLocation\"\x89\x02\n" +
 	"\x12UpdateStoreRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1d\n" +
 	"\n" +
@@ -1586,7 +1588,8 @@ const file_seller_v1_seller_proto_rawDesc = "" +
 	"\n" +
 	"banner_url\x18\x05 \x01(\tR\tbannerUrl\x12\x1a\n" +
 	"\blatitude\x18\x06 \x01(\x01R\blatitude\x12\x1c\n" +
-	"\tlongitude\x18\a \x01(\x01R\tlongitude\"N\n" +
+	"\tlongitude\x18\a \x01(\x01R\tlongitude\x12%\n" +
+	"\x0estore_location\x18\b \x01(\tR\rstoreLocation\"N\n" +
 	"\x13VerifySellerRequest\x12\x1b\n" +
 	"\tseller_id\x18\x01 \x01(\tR\bsellerId\x12\x1a\n" +
 	"\bverified\x18\x02 \x01(\bR\bverified\"i\n" +
