@@ -69,6 +69,21 @@ func (e *EmailService) SendSellerWelcomeEmail(toEmail, fullName string) error {
 	return e.send(toEmail, subject, body)
 }
 
+// SendSellerStoreSetupEmail sends a notification to a new seller upon registration,
+// informing them that their account is pending and they need to complete their store setup.
+func (e *EmailService) SendSellerStoreSetupEmail(toEmail, fullName string) error {
+	data := e.baseData(fullName)
+	data.Extra["setupURL"] = e.appURL + "/seller/dashboard/store/create"
+	data.Extra["loginURL"] = e.appURL + "/seller/login"
+
+	subject := fmt.Sprintf("Action Required: Complete Your %s Store Setup 🏪", e.appName)
+	body, err := renderTemplate(sellerStoreSetupTemplate, data)
+	if err != nil {
+		return fmt.Errorf("render template: %w", err)
+	}
+	return e.send(toEmail, subject, body)
+}
+
 // SendSellerReviewNotification notifies a seller when their store review status changes.
 func (e *EmailService) SendSellerReviewNotification(toEmail, fullName, storeName, newStatus string) error {
 	data := e.baseData(fullName)
@@ -304,6 +319,77 @@ const sellerWelcomeTemplate = `<!DOCTYPE html>
           Questions? Reply to this email or visit our 
           <a href="{{.AppURL}}/help" style="color: #6c63ff;">Help Center</a>. 
           We're here 24/7 to help you succeed.
+        </p>
+      </div>
+      <div class="footer">
+        <p class="footer-text">
+          You received this email because you registered as a seller on {{.AppName}}.<br>
+          <a href="{{.AppURL}}" class="footer-link">{{.AppURL}}</a> · 
+          <a href="{{.AppURL}}/privacy" class="footer-link">Privacy Policy</a> · 
+          <a href="{{.AppURL}}/terms" class="footer-link">Terms of Service</a>
+        </p>
+        <p class="footer-text">© {{.Year}} {{.AppName}} Inc. All rights reserved. Harare, Zimbabwe.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`
+
+const sellerStoreSetupTemplate = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Your Store Setup — {{.AppName}}</title>
+  <style>` + emailBaseStyles + `</style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="card">
+      <div class="header">
+        <div class="logo">We<span>Mall</span></div>
+        <div class="tagline">One Last Step to Go Live</div>
+      </div>
+      <div class="body">
+        <h1 class="greeting">Welcome, {{.RecipientName}}! Your account is ready 🎉</h1>
+        <p class="text">
+          Thank you for registering as a seller on <span class="highlight">{{.AppName}}</span>. 
+          Your account has been created and is currently <span class="highlight">pending activation</span>.
+        </p>
+
+        <div style="background: rgba(108,99,255,0.1); border: 1px solid rgba(108,99,255,0.3); border-radius: 12px; padding: 24px; margin: 24px 0;">
+          <div style="font-size: 24px; margin-bottom: 12px;">📋</div>
+          <div style="color: #e2e8f0; font-weight: 700; font-size: 16px; margin-bottom: 8px;">Complete Your Store Profile</div>
+          <p class="text" style="margin: 0;">
+            To activate your seller account and start selling, you need to fill in your <span class="highlight">store information</span> including:
+          </p>
+          <ul style="color: #94a3b8; font-size: 15px; line-height: 2; margin: 12px 0 0 0; padding-left: 20px;">
+            <li>Store name &amp; description</li>
+            <li>Store logo &amp; banner image</li>
+            <li>Store location (city/address)</li>
+            <li>Your business contact details</li>
+          </ul>
+        </div>
+
+        <p class="text">
+          Once you've completed your store setup, our team will review your details within 
+          <span class="highlight">24–48 business hours</span>. You'll receive another email 
+          once your store is approved and live.
+        </p>
+
+        <div class="cta-container">
+          <a href="{{index .Extra "setupURL"}}" class="cta-btn">Set Up My Store →</a>
+        </div>
+
+        <hr class="divider">
+
+        <p class="text" style="font-size: 14px; color: #475569;">
+          Already have a store set up? <a href="{{index .Extra "loginURL"}}" style="color: #6c63ff;">Sign in to your dashboard</a> 
+          to check on your verification status.
+        </p>
+        <p class="text" style="font-size: 14px; color: #475569;">
+          Need help? Contact our seller support at 
+          <a href="mailto:sellers@wemall.co.zw" style="color: #6c63ff;">sellers@wemall.co.zw</a>
         </p>
       </div>
       <div class="footer">

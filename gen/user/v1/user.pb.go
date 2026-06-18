@@ -127,6 +127,51 @@ func (AuthProvider) EnumDescriptor() ([]byte, []int) {
 	return file_user_v1_user_proto_rawDescGZIP(), []int{1}
 }
 
+type UserVerificationStatus int32
+
+const (
+	UserVerificationStatus_USER_VERIFICATION_STATUS_UNSPECIFIED UserVerificationStatus = 0
+	UserVerificationStatus_USER_VERIFICATION_STATUS_PENDING     UserVerificationStatus = 1
+	UserVerificationStatus_USER_VERIFICATION_STATUS_PROCESSING  UserVerificationStatus = 2
+	UserVerificationStatus_USER_VERIFICATION_STATUS_REJECTED    UserVerificationStatus = 3
+	UserVerificationStatus_USER_VERIFICATION_STATUS_VERIFIED    UserVerificationStatus = 4
+)
+
+// Enum value maps for UserVerificationStatus.
+var (
+	UserVerificationStatus_name = map[int32]string{
+		0: "USER_VERIFICATION_STATUS_UNSPECIFIED",
+		1: "USER_VERIFICATION_STATUS_PENDING",
+		2: "USER_VERIFICATION_STATUS_PROCESSING",
+		3: "USER_VERIFICATION_STATUS_REJECTED",
+		4: "USER_VERIFICATION_STATUS_VERIFIED",
+	}
+	UserVerificationStatus_value = map[string]int32{
+		"USER_VERIFICATION_STATUS_UNSPECIFIED": 0,
+		"USER_VERIFICATION_STATUS_PENDING":     1,
+		"USER_VERIFICATION_STATUS_PROCESSING":  2,
+		"USER_VERIFICATION_STATUS_REJECTED":    3,
+		"USER_VERIFICATION_STATUS_VERIFIED":    4,
+	}
+)
+
+func (x UserVerificationStatus) Enum() *UserVerificationStatus {
+	p := new(UserVerificationStatus)
+	*p = x
+	return p
+}
+
+func (x UserVerificationStatus) String() string {
+	if name, ok := UserVerificationStatus_name[int32(x)]; ok {
+		return name
+	}
+	return "USER_VERIFICATION_STATUS_UNSPECIFIED"
+}
+
+func (x UserVerificationStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 type User struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -135,7 +180,7 @@ type User struct {
 	FullName      string                 `protobuf:"bytes,4,opt,name=full_name,json=fullName,proto3" json:"full_name,omitempty"`
 	AvatarUrl     string                 `protobuf:"bytes,5,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
 	Role          UserRole               `protobuf:"varint,6,opt,name=role,proto3,enum=user.v1.UserRole" json:"role,omitempty"`
-	IsVerified    bool                   `protobuf:"varint,7,opt,name=is_verified,json=isVerified,proto3" json:"is_verified,omitempty"`
+	VerificationStatus UserVerificationStatus  `protobuf:"varint,7,opt,name=verification_status,json=verificationStatus,proto3,enum=user.v1.UserVerificationStatus" json:"verification_status,omitempty"`
 	AuthProvider  AuthProvider           `protobuf:"varint,8,opt,name=auth_provider,json=authProvider,proto3,enum=user.v1.AuthProvider" json:"auth_provider,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
@@ -215,11 +260,11 @@ func (x *User) GetRole() UserRole {
 	return UserRole_USER_ROLE_UNSPECIFIED
 }
 
-func (x *User) GetIsVerified() bool {
+func (x *User) GetVerificationStatus() UserVerificationStatus {
 	if x != nil {
-		return x.IsVerified
+		return x.VerificationStatus
 	}
-	return false
+	return UserVerificationStatus_USER_VERIFICATION_STATUS_UNSPECIFIED
 }
 
 func (x *User) GetAuthProvider() AuthProvider {

@@ -55,6 +55,50 @@ func (ns NullAuthProvider) Value() (driver.Value, error) {
 	return string(ns.AuthProvider), nil
 }
 
+type VerificationStatus string
+
+const (
+	VerificationStatusPending    VerificationStatus = "pending"
+	VerificationStatusProcessing VerificationStatus = "processing"
+	VerificationStatusRejected   VerificationStatus = "rejected"
+	VerificationStatusVerified   VerificationStatus = "verified"
+)
+
+func (e *VerificationStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = VerificationStatus(s)
+	case string:
+		*e = VerificationStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for VerificationStatus: %T", src)
+	}
+	return nil
+}
+
+type NullVerificationStatus struct {
+	VerificationStatus VerificationStatus `json:"verification_status"`
+	Valid              bool               `json:"valid"` // Valid is true if VerificationStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullVerificationStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.VerificationStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.VerificationStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullVerificationStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.VerificationStatus), nil
+}
+
 type UserRole string
 
 const (
@@ -142,7 +186,7 @@ type User struct {
 	AvatarUrl    *string    `json:"avatar_url"`
 	Role         string     `json:"role"`
 	AuthProvider string     `json:"auth_provider"`
-	IsVerified   bool       `json:"is_verified"`
+	IsVerified   VerificationStatus `json:"is_verified"`
 	GoogleID     *string    `json:"google_id"`
 	CreatedAt    time.Time  `json:"created_at"`
 	UpdatedAt    time.Time  `json:"updated_at"`

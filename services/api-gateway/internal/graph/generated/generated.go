@@ -75,10 +75,10 @@ type ComplexityRoot struct {
 	}
 
 	AuthPayload struct {
-		AccessToken  func(childComplexity int) int
-		IsVerified   func(childComplexity int) int
-		RefreshToken func(childComplexity int) int
-		User         func(childComplexity int) int
+		AccessToken        func(childComplexity int) int
+		RefreshToken       func(childComplexity int) int
+		User               func(childComplexity int) int
+		VerificationStatus func(childComplexity int) int
 	}
 
 	Cart struct {
@@ -547,22 +547,23 @@ type ComplexityRoot struct {
 	}
 
 	Seller struct {
-		BannerURL   func(childComplexity int) int
-		CreatedAt   func(childComplexity int) int
-		Description func(childComplexity int) int
-		Dsr         func(childComplexity int) int
-		ID          func(childComplexity int) int
-		IsVerified  func(childComplexity int) int
-		Latitude    func(childComplexity int) int
-		LogoURL     func(childComplexity int) int
-		Longitude   func(childComplexity int) int
-		Rating      func(childComplexity int) int
-		Status      func(childComplexity int) int
-		StoreName   func(childComplexity int) int
-		StoreSlug   func(childComplexity int) int
-		TotalSales  func(childComplexity int) int
-		UpdatedAt   func(childComplexity int) int
-		UserID      func(childComplexity int) int
+		BannerURL     func(childComplexity int) int
+		CreatedAt     func(childComplexity int) int
+		Description   func(childComplexity int) int
+		Dsr           func(childComplexity int) int
+		ID            func(childComplexity int) int
+		IsVerified    func(childComplexity int) int
+		Latitude      func(childComplexity int) int
+		LogoURL       func(childComplexity int) int
+		Longitude     func(childComplexity int) int
+		Rating        func(childComplexity int) int
+		Status        func(childComplexity int) int
+		StoreLocation func(childComplexity int) int
+		StoreName     func(childComplexity int) int
+		StoreSlug     func(childComplexity int) int
+		TotalSales    func(childComplexity int) int
+		UpdatedAt     func(childComplexity int) int
+		UserID        func(childComplexity int) int
 	}
 
 	SellerDSR struct {
@@ -609,14 +610,14 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		AvatarURL  func(childComplexity int) int
-		CreatedAt  func(childComplexity int) int
-		Email      func(childComplexity int) int
-		FullName   func(childComplexity int) int
-		ID         func(childComplexity int) int
-		IsVerified func(childComplexity int) int
-		Phone      func(childComplexity int) int
-		Role       func(childComplexity int) int
+		AvatarURL          func(childComplexity int) int
+		CreatedAt          func(childComplexity int) int
+		Email              func(childComplexity int) int
+		FullName           func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		Phone              func(childComplexity int) int
+		Role               func(childComplexity int) int
+		VerificationStatus func(childComplexity int) int
 	}
 }
 
@@ -871,13 +872,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AuthPayload.AccessToken(childComplexity), true
 
-	case "AuthPayload.isVerified":
-		if e.complexity.AuthPayload.IsVerified == nil {
-			break
-		}
-
-		return e.complexity.AuthPayload.IsVerified(childComplexity), true
-
 	case "AuthPayload.refreshToken":
 		if e.complexity.AuthPayload.RefreshToken == nil {
 			break
@@ -891,6 +885,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AuthPayload.User(childComplexity), true
+
+	case "AuthPayload.verificationStatus":
+		if e.complexity.AuthPayload.VerificationStatus == nil {
+			break
+		}
+
+		return e.complexity.AuthPayload.VerificationStatus(childComplexity), true
 
 	case "Cart.id":
 		if e.complexity.Cart.ID == nil {
@@ -3784,6 +3785,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Seller.Status(childComplexity), true
 
+	case "Seller.storeLocation":
+		if e.complexity.Seller.StoreLocation == nil {
+			break
+		}
+
+		return e.complexity.Seller.StoreLocation(childComplexity), true
+
 	case "Seller.storeName":
 		if e.complexity.Seller.StoreName == nil {
 			break
@@ -4050,13 +4058,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.ID(childComplexity), true
 
-	case "User.isVerified":
-		if e.complexity.User.IsVerified == nil {
-			break
-		}
-
-		return e.complexity.User.IsVerified(childComplexity), true
-
 	case "User.phone":
 		if e.complexity.User.Phone == nil {
 			break
@@ -4070,6 +4071,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Role(childComplexity), true
+
+	case "User.verificationStatus":
+		if e.complexity.User.VerificationStatus == nil {
+			break
+		}
+
+		return e.complexity.User.VerificationStatus(childComplexity), true
 
 	}
 	return 0, false
@@ -4209,6 +4217,13 @@ enum SellerStatus {
   SUSPENDED
 }
 
+enum UserVerificationStatus {
+  PENDING
+  PROCESSING
+  REJECTED
+  VERIFIED
+}
+
 enum Currency {
   USD
   ZWG
@@ -4265,7 +4280,7 @@ type User {
   fullName:     String!
   avatarUrl:    String
   role:         Role!
-  isVerified:   Boolean!
+  verificationStatus: UserVerificationStatus!
   createdAt:    Time!
 }
 
@@ -4288,7 +4303,7 @@ type AuthPayload {
   accessToken:  String!
   refreshToken: String!
   user:         User!
-  isVerified:   Boolean!
+  verificationStatus: UserVerificationStatus!
 }
 
 type OTPPayload {
@@ -4455,22 +4470,23 @@ type OrderList {
 # ── Seller Types ─────────────────────────────────────────────────────────────
 
 type Seller {
-  id:          ID!
-  userId:      ID!
-  storeName:   String!
-  storeSlug:   String!
-  logoUrl:     String
-  bannerUrl:   String
-  description: String
-  rating:      Float!
-  totalSales:  Int!
-  isVerified:  Boolean!
-  status:      SellerStatus!
-  latitude:    Float
-  longitude:   Float
-  createdAt:   Time!
-  updatedAt:   Time!
-  dsr:         SellerDSR!
+  id:            ID!
+  userId:        ID!
+  storeName:     String!
+  storeSlug:     String!
+  logoUrl:       String
+  bannerUrl:     String
+  description:   String
+  rating:        Float!
+  totalSales:    Int!
+  isVerified:    Boolean!
+  status:        SellerStatus!
+  latitude:      Float
+  longitude:     Float
+  storeLocation: String
+  createdAt:     Time!
+  updatedAt:     Time!
+  dsr:           SellerDSR!
 }
 
 # ── Input Types ───────────────────────────────────────────────────────────────
@@ -4555,21 +4571,23 @@ input CheckoutInput {
 }
 
 input CreateStoreInput {
-  storeName:   String!
-  description: String
-  logoUrl:     String
-  bannerUrl:   String
-  latitude:    Float
-  longitude:   Float
+  storeName:     String!
+  description:   String
+  logoUrl:       String
+  bannerUrl:     String
+  latitude:      Float
+  longitude:     Float
+  storeLocation: String
 }
 
 input UpdateStoreInput {
-  storeName:   String
-  description: String
-  logoUrl:     String
-  bannerUrl:   String
-  latitude:    Float
-  longitude:   Float
+  storeName:     String
+  description:   String
+  logoUrl:       String
+  bannerUrl:     String
+  latitude:      Float
+  longitude:     Float
+  storeLocation: String
 }
 
 # ── Queries ───────────────────────────────────────────────────────────────────
@@ -7886,8 +7904,8 @@ func (ec *executionContext) fieldContext_AuthPayload_user(ctx context.Context, f
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
 				return ec.fieldContext_User_role(ctx, field)
-			case "isVerified":
-				return ec.fieldContext_User_isVerified(ctx, field)
+			case "verificationStatus":
+				return ec.fieldContext_User_verificationStatus(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			}
@@ -7897,8 +7915,8 @@ func (ec *executionContext) fieldContext_AuthPayload_user(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _AuthPayload_isVerified(ctx context.Context, field graphql.CollectedField, obj *model.AuthPayload) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AuthPayload_isVerified(ctx, field)
+func (ec *executionContext) _AuthPayload_verificationStatus(ctx context.Context, field graphql.CollectedField, obj *model.AuthPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuthPayload_verificationStatus(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7911,7 +7929,7 @@ func (ec *executionContext) _AuthPayload_isVerified(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.IsVerified, nil
+		return obj.VerificationStatus, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7923,19 +7941,19 @@ func (ec *executionContext) _AuthPayload_isVerified(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(model.UserVerificationStatus)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNUserVerificationStatus2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐUserVerificationStatus(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AuthPayload_isVerified(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AuthPayload_verificationStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AuthPayload",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
+			return nil, errors.New("field of type UserVerificationStatus does not have child fields")
 		},
 	}
 	return fc, nil
@@ -12835,6 +12853,8 @@ func (ec *executionContext) fieldContext_FollowedStoresList_sellers(ctx context.
 				return ec.fieldContext_Seller_latitude(ctx, field)
 			case "longitude":
 				return ec.fieldContext_Seller_longitude(ctx, field)
+			case "storeLocation":
+				return ec.fieldContext_Seller_storeLocation(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Seller_createdAt(ctx, field)
 			case "updatedAt":
@@ -13261,8 +13281,8 @@ func (ec *executionContext) fieldContext_Mutation_buyerGoogleAuth(ctx context.Co
 				return ec.fieldContext_AuthPayload_refreshToken(ctx, field)
 			case "user":
 				return ec.fieldContext_AuthPayload_user(ctx, field)
-			case "isVerified":
-				return ec.fieldContext_AuthPayload_isVerified(ctx, field)
+			case "verificationStatus":
+				return ec.fieldContext_AuthPayload_verificationStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
 		},
@@ -13326,8 +13346,8 @@ func (ec *executionContext) fieldContext_Mutation_buyerGoogleSignIn(ctx context.
 				return ec.fieldContext_AuthPayload_refreshToken(ctx, field)
 			case "user":
 				return ec.fieldContext_AuthPayload_user(ctx, field)
-			case "isVerified":
-				return ec.fieldContext_AuthPayload_isVerified(ctx, field)
+			case "verificationStatus":
+				return ec.fieldContext_AuthPayload_verificationStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
 		},
@@ -13452,8 +13472,8 @@ func (ec *executionContext) fieldContext_Mutation_buyerVerifyOTP(ctx context.Con
 				return ec.fieldContext_AuthPayload_refreshToken(ctx, field)
 			case "user":
 				return ec.fieldContext_AuthPayload_user(ctx, field)
-			case "isVerified":
-				return ec.fieldContext_AuthPayload_isVerified(ctx, field)
+			case "verificationStatus":
+				return ec.fieldContext_AuthPayload_verificationStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
 		},
@@ -13517,8 +13537,8 @@ func (ec *executionContext) fieldContext_Mutation_sellerRegister(ctx context.Con
 				return ec.fieldContext_AuthPayload_refreshToken(ctx, field)
 			case "user":
 				return ec.fieldContext_AuthPayload_user(ctx, field)
-			case "isVerified":
-				return ec.fieldContext_AuthPayload_isVerified(ctx, field)
+			case "verificationStatus":
+				return ec.fieldContext_AuthPayload_verificationStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
 		},
@@ -13582,8 +13602,8 @@ func (ec *executionContext) fieldContext_Mutation_sellerLogin(ctx context.Contex
 				return ec.fieldContext_AuthPayload_refreshToken(ctx, field)
 			case "user":
 				return ec.fieldContext_AuthPayload_user(ctx, field)
-			case "isVerified":
-				return ec.fieldContext_AuthPayload_isVerified(ctx, field)
+			case "verificationStatus":
+				return ec.fieldContext_AuthPayload_verificationStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
 		},
@@ -13647,8 +13667,8 @@ func (ec *executionContext) fieldContext_Mutation_sellerFirebaseSignIn(ctx conte
 				return ec.fieldContext_AuthPayload_refreshToken(ctx, field)
 			case "user":
 				return ec.fieldContext_AuthPayload_user(ctx, field)
-			case "isVerified":
-				return ec.fieldContext_AuthPayload_isVerified(ctx, field)
+			case "verificationStatus":
+				return ec.fieldContext_AuthPayload_verificationStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
 		},
@@ -13712,8 +13732,8 @@ func (ec *executionContext) fieldContext_Mutation_refreshToken(ctx context.Conte
 				return ec.fieldContext_AuthPayload_refreshToken(ctx, field)
 			case "user":
 				return ec.fieldContext_AuthPayload_user(ctx, field)
-			case "isVerified":
-				return ec.fieldContext_AuthPayload_isVerified(ctx, field)
+			case "verificationStatus":
+				return ec.fieldContext_AuthPayload_verificationStatus(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
 		},
@@ -13807,8 +13827,8 @@ func (ec *executionContext) fieldContext_Mutation_updateProfile(ctx context.Cont
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
 				return ec.fieldContext_User_role(ctx, field)
-			case "isVerified":
-				return ec.fieldContext_User_isVerified(ctx, field)
+			case "verificationStatus":
+				return ec.fieldContext_User_verificationStatus(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			}
@@ -14459,6 +14479,8 @@ func (ec *executionContext) fieldContext_Mutation_createStore(ctx context.Contex
 				return ec.fieldContext_Seller_latitude(ctx, field)
 			case "longitude":
 				return ec.fieldContext_Seller_longitude(ctx, field)
+			case "storeLocation":
+				return ec.fieldContext_Seller_storeLocation(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Seller_createdAt(ctx, field)
 			case "updatedAt":
@@ -14572,6 +14594,8 @@ func (ec *executionContext) fieldContext_Mutation_updateStore(ctx context.Contex
 				return ec.fieldContext_Seller_latitude(ctx, field)
 			case "longitude":
 				return ec.fieldContext_Seller_longitude(ctx, field)
+			case "storeLocation":
+				return ec.fieldContext_Seller_storeLocation(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Seller_createdAt(ctx, field)
 			case "updatedAt":
@@ -14685,6 +14709,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSellerStatus(ctx context
 				return ec.fieldContext_Seller_latitude(ctx, field)
 			case "longitude":
 				return ec.fieldContext_Seller_longitude(ctx, field)
+			case "storeLocation":
+				return ec.fieldContext_Seller_storeLocation(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Seller_createdAt(ctx, field)
 			case "updatedAt":
@@ -22002,6 +22028,8 @@ func (ec *executionContext) fieldContext_Product_seller(ctx context.Context, fie
 				return ec.fieldContext_Seller_latitude(ctx, field)
 			case "longitude":
 				return ec.fieldContext_Seller_longitude(ctx, field)
+			case "storeLocation":
+				return ec.fieldContext_Seller_storeLocation(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Seller_createdAt(ctx, field)
 			case "updatedAt":
@@ -23687,8 +23715,8 @@ func (ec *executionContext) fieldContext_Query_me(ctx context.Context, field gra
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
 				return ec.fieldContext_User_role(ctx, field)
-			case "isVerified":
-				return ec.fieldContext_User_isVerified(ctx, field)
+			case "verificationStatus":
+				return ec.fieldContext_User_verificationStatus(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			}
@@ -23749,8 +23777,8 @@ func (ec *executionContext) fieldContext_Query_user(ctx context.Context, field g
 				return ec.fieldContext_User_avatarUrl(ctx, field)
 			case "role":
 				return ec.fieldContext_User_role(ctx, field)
-			case "isVerified":
-				return ec.fieldContext_User_isVerified(ctx, field)
+			case "verificationStatus":
+				return ec.fieldContext_User_verificationStatus(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_User_createdAt(ctx, field)
 			}
@@ -24407,6 +24435,8 @@ func (ec *executionContext) fieldContext_Query_myStore(ctx context.Context, fiel
 				return ec.fieldContext_Seller_latitude(ctx, field)
 			case "longitude":
 				return ec.fieldContext_Seller_longitude(ctx, field)
+			case "storeLocation":
+				return ec.fieldContext_Seller_storeLocation(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Seller_createdAt(ctx, field)
 			case "updatedAt":
@@ -24485,6 +24515,8 @@ func (ec *executionContext) fieldContext_Query_seller(ctx context.Context, field
 				return ec.fieldContext_Seller_latitude(ctx, field)
 			case "longitude":
 				return ec.fieldContext_Seller_longitude(ctx, field)
+			case "storeLocation":
+				return ec.fieldContext_Seller_storeLocation(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Seller_createdAt(ctx, field)
 			case "updatedAt":
@@ -28145,6 +28177,47 @@ func (ec *executionContext) fieldContext_Seller_longitude(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Seller_storeLocation(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_storeLocation(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StoreLocation, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_storeLocation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Seller_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Seller_createdAt(ctx, field)
 	if err != nil {
@@ -29826,8 +29899,8 @@ func (ec *executionContext) fieldContext_User_role(ctx context.Context, field gr
 	return fc, nil
 }
 
-func (ec *executionContext) _User_isVerified(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_isVerified(ctx, field)
+func (ec *executionContext) _User_verificationStatus(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_verificationStatus(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -29840,7 +29913,7 @@ func (ec *executionContext) _User_isVerified(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.IsVerified, nil
+		return obj.VerificationStatus, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -29852,19 +29925,19 @@ func (ec *executionContext) _User_isVerified(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(model.UserVerificationStatus)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNUserVerificationStatus2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐUserVerificationStatus(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_isVerified(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_verificationStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
+			return nil, errors.New("field of type UserVerificationStatus does not have child fields")
 		},
 	}
 	return fc, nil
@@ -32232,7 +32305,7 @@ func (ec *executionContext) unmarshalInputCreateStoreInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"storeName", "description", "logoUrl", "bannerUrl", "latitude", "longitude"}
+	fieldsInOrder := [...]string{"storeName", "description", "logoUrl", "bannerUrl", "latitude", "longitude", "storeLocation"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -32281,6 +32354,13 @@ func (ec *executionContext) unmarshalInputCreateStoreInput(ctx context.Context, 
 				return it, err
 			}
 			it.Longitude = data
+		case "storeLocation":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("storeLocation"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StoreLocation = data
 		}
 	}
 
@@ -32812,7 +32892,7 @@ func (ec *executionContext) unmarshalInputUpdateStoreInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"storeName", "description", "logoUrl", "bannerUrl", "latitude", "longitude"}
+	fieldsInOrder := [...]string{"storeName", "description", "logoUrl", "bannerUrl", "latitude", "longitude", "storeLocation"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -32861,6 +32941,13 @@ func (ec *executionContext) unmarshalInputUpdateStoreInput(ctx context.Context, 
 				return it, err
 			}
 			it.Longitude = data
+		case "storeLocation":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("storeLocation"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StoreLocation = data
 		}
 	}
 
@@ -33097,8 +33184,8 @@ func (ec *executionContext) _AuthPayload(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "isVerified":
-			out.Values[i] = ec._AuthPayload_isVerified(ctx, field, obj)
+		case "verificationStatus":
+			out.Values[i] = ec._AuthPayload_verificationStatus(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -36989,6 +37076,8 @@ func (ec *executionContext) _Seller(ctx context.Context, sel ast.SelectionSet, o
 			out.Values[i] = ec._Seller_latitude(ctx, field, obj)
 		case "longitude":
 			out.Values[i] = ec._Seller_longitude(ctx, field, obj)
+		case "storeLocation":
+			out.Values[i] = ec._Seller_storeLocation(ctx, field, obj)
 		case "createdAt":
 			out.Values[i] = ec._Seller_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -37394,8 +37483,8 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "isVerified":
-			out.Values[i] = ec._User_isVerified(ctx, field, obj)
+		case "verificationStatus":
+			out.Values[i] = ec._User_verificationStatus(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -39900,6 +39989,22 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewa
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUserVerificationStatus2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐUserVerificationStatus(ctx context.Context, v interface{}) (model.UserVerificationStatus, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	res := model.UserVerificationStatus(tmp)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUserVerificationStatus2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐUserVerificationStatus(ctx context.Context, sel ast.SelectionSet, v model.UserVerificationStatus) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) unmarshalNVariantInput2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐVariantInput(ctx context.Context, v interface{}) (model.VariantInput, error) {

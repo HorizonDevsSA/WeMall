@@ -2,6 +2,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 CREATE TYPE user_role AS ENUM ('buyer', 'seller', 'admin');
 CREATE TYPE auth_provider AS ENUM ('email', 'google', 'phone');
+CREATE TYPE verification_status AS ENUM ('pending', 'processing', 'rejected', 'verified');
 
 CREATE TABLE users (
     id            UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -12,7 +13,7 @@ CREATE TABLE users (
     avatar_url    TEXT,
     role          user_role    NOT NULL DEFAULT 'buyer',
     auth_provider auth_provider NOT NULL DEFAULT 'email',
-    is_verified   BOOLEAN      NOT NULL DEFAULT FALSE,
+    is_verified   verification_status NOT NULL DEFAULT 'pending',
     google_id     TEXT         UNIQUE,
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),

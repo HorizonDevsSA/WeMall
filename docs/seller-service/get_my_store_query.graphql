@@ -13,6 +13,7 @@ query GetMyStore {
     status
     latitude
     longitude
+    storeLocation
     createdAt
     updatedAt
   }

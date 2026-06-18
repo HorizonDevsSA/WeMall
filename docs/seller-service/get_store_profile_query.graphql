@@ -13,6 +13,7 @@ query GetStoreProfile($id: ID!) {
     status
     latitude
     longitude
+    storeLocation
     createdAt
     updatedAt
   }

@@ -283,21 +283,36 @@ func mapProvider(provider string) userv1.AuthProvider {
 	}
 }
 
+func mapVerificationStatus(s db.VerificationStatus) userv1.UserVerificationStatus {
+	switch s {
+	case db.VerificationStatusPending:
+		return userv1.UserVerificationStatus_USER_VERIFICATION_STATUS_PENDING
+	case db.VerificationStatusProcessing:
+		return userv1.UserVerificationStatus_USER_VERIFICATION_STATUS_PROCESSING
+	case db.VerificationStatusRejected:
+		return userv1.UserVerificationStatus_USER_VERIFICATION_STATUS_REJECTED
+	case db.VerificationStatusVerified:
+		return userv1.UserVerificationStatus_USER_VERIFICATION_STATUS_VERIFIED
+	default:
+		return userv1.UserVerificationStatus_USER_VERIFICATION_STATUS_UNSPECIFIED
+	}
+}
+
 func mapUser(u *db.User) *userv1.User {
 	if u == nil {
 		return nil
 	}
 	return &userv1.User{
-		Id:           u.ID.String(),
-		Email:        getVal(u.Email),
-		Phone:        getVal(u.Phone),
-		FullName:     u.FullName,
-		AvatarUrl:    getVal(u.AvatarUrl),
-		Role:         mapRole(u.Role),
-		IsVerified:   u.IsVerified,
-		AuthProvider: mapProvider(u.AuthProvider),
-		CreatedAt:    timestamppb.New(u.CreatedAt),
-		UpdatedAt:    timestamppb.New(u.UpdatedAt),
+		Id:                 u.ID.String(),
+		Email:              getVal(u.Email),
+		Phone:              getVal(u.Phone),
+		FullName:           u.FullName,
+		AvatarUrl:          getVal(u.AvatarUrl),
+		Role:               mapRole(u.Role),
+		VerificationStatus: mapVerificationStatus(u.IsVerified),
+		AuthProvider:       mapProvider(u.AuthProvider),
+		CreatedAt:          timestamppb.New(u.CreatedAt),
+		UpdatedAt:          timestamppb.New(u.UpdatedAt),
 	}
 }
 

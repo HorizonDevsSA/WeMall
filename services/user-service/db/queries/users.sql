@@ -1,6 +1,6 @@
 -- name: CreateUser :one
 INSERT INTO users (email, phone, password_hash, full_name, avatar_url, role, auth_provider, is_verified, google_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8::verification_status, $9)
 RETURNING *;
 
 -- name: GetUserByID :one
@@ -27,7 +27,7 @@ WHERE id = @id AND deleted_at IS NULL
 RETURNING *;
 
 -- name: VerifyUser :one
-UPDATE users SET is_verified = TRUE, updated_at = NOW()
+UPDATE users SET is_verified = 'verified', updated_at = NOW()
 WHERE id = $1
 RETURNING *;
 
@@ -38,7 +38,7 @@ RETURNING *;
 
 -- name: UpsertGoogleUser :one
 INSERT INTO users (email, full_name, avatar_url, role, auth_provider, is_verified, google_id)
-VALUES ($1, $2, $3, 'buyer', 'google', TRUE, $4)
+VALUES ($1, $2, $3, 'buyer', 'google', 'verified', $4)
 ON CONFLICT (google_id) DO UPDATE SET
     full_name  = EXCLUDED.full_name,
     avatar_url = EXCLUDED.avatar_url,
@@ -47,7 +47,7 @@ RETURNING *;
 
 -- name: UpsertPhoneUser :one
 INSERT INTO users (phone, full_name, role, auth_provider, is_verified)
-VALUES ($1, $2, 'buyer', 'phone', TRUE)
+VALUES ($1, $2, 'buyer', 'phone', 'verified')
 ON CONFLICT (phone) DO UPDATE SET updated_at = NOW()
 RETURNING *;
 

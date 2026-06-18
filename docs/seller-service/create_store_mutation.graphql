@@ -9,5 +9,9 @@ mutation CreateStore($input: CreateStoreInput!) {
     description
     status
     isVerified
+    latitude
+    longitude
+    storeLocation
+    createdAt
   }
 }

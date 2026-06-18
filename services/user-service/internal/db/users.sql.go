@@ -147,7 +147,7 @@ type CreateUserParams struct {
 	AvatarUrl    *string `json:"avatar_url"`
 	Role         string  `json:"role"`
 	AuthProvider string  `json:"auth_provider"`
-	IsVerified   bool    `json:"is_verified"`
+	IsVerified   VerificationStatus `json:"is_verified"`
 	GoogleID     *string `json:"google_id"`
 }
 
@@ -596,7 +596,7 @@ func (q *Queries) UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) 
 
 const upsertGoogleUser = `-- name: UpsertGoogleUser :one
 INSERT INTO users (email, full_name, avatar_url, role, auth_provider, is_verified, google_id)
-VALUES ($1, $2, $3, 'buyer', 'google', TRUE, $4)
+VALUES ($1, $2, $3, 'buyer', 'google', 'verified', $4)
 ON CONFLICT (google_id) DO UPDATE SET
     full_name  = EXCLUDED.full_name,
     avatar_url = EXCLUDED.avatar_url,
@@ -648,7 +648,7 @@ func (q *Queries) UpsertGoogleUser(ctx context.Context, arg UpsertGoogleUserPara
 
 const upsertPhoneUser = `-- name: UpsertPhoneUser :one
 INSERT INTO users (phone, full_name, role, auth_provider, is_verified)
-VALUES ($1, $2, 'buyer', 'phone', TRUE)
+VALUES ($1, $2, 'buyer', 'phone', 'verified')
 ON CONFLICT (phone) DO UPDATE SET updated_at = NOW()
 RETURNING id, email, phone, password_hash, full_name, avatar_url, role, auth_provider, is_verified, google_id, created_at, updated_at, deleted_at
 `
@@ -686,14 +686,14 @@ func (q *Queries) UpsertPhoneUser(ctx context.Context, arg UpsertPhoneUserParams
 }
 
 const verifyUser = `-- name: VerifyUser :one
-UPDATE users SET is_verified = TRUE, updated_at = NOW()
+UPDATE users SET is_verified = 'verified', updated_at = NOW()
 WHERE id = $1
 RETURNING id, email, phone, password_hash, full_name, avatar_url, role, auth_provider, is_verified, google_id, created_at, updated_at, deleted_at
 `
 
 // VerifyUser
 //
-//	UPDATE users SET is_verified = TRUE, updated_at = NOW()
+//	UPDATE users SET is_verified = 'verified', updated_at = NOW()
 //	WHERE id = $1
 //	RETURNING id, email, phone, password_hash, full_name, avatar_url, role, auth_provider, is_verified, google_id, created_at, updated_at, deleted_at
 func (q *Queries) VerifyUser(ctx context.Context, id uuid.UUID) (User, error) {

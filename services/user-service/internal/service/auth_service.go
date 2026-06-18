@@ -199,7 +199,7 @@ func (s *AuthService) SellerFirebaseSignIn(ctx context.Context, idToken, fullNam
 			AvatarUrl:    nil,
 			Role:         "seller",
 			AuthProvider: "email",
-			IsVerified:   false,
+			IsVerified:   db.VerificationStatusPending,
 			GoogleID:     nil,
 		})
 		if err != nil {
@@ -433,19 +433,19 @@ func (s *AuthService) SellerRegister(ctx context.Context, email, password, fullN
 		AvatarUrl:    nil,
 		Role:         "seller",
 		AuthProvider: "email",
-		IsVerified:   false,
+		IsVerified:   db.VerificationStatusPending,
 		GoogleID:     nil,
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("create user: %w", err)
 	}
 
-	// Send enterprise welcome email asynchronously (non-blocking)
+	// Send store setup reminder email asynchronously (non-blocking)
 	if s.email != nil && s.cfg.SMTPUser != "" {
 		go func() {
-			if err := s.email.SendSellerWelcomeEmail(email, fullName); err != nil {
+			if err := s.email.SendSellerStoreSetupEmail(email, fullName); err != nil {
 				// Log but don't fail registration
-				fmt.Printf("[email] failed to send welcome email to %s: %v\n", email, err)
+				fmt.Printf("[email] failed to send store setup email to %s: %v\n", email, err)
 			}
 		}()
 	}
@@ -472,8 +472,8 @@ func (s *AuthService) SellerLogin(ctx context.Context, email, password string) (
 		return nil, nil, fmt.Errorf("invalid credentials")
 	}
 
-	if !user.IsVerified && s.cfg.Environment != "development" {
-		return nil, nil, fmt.Errorf("email not verified — check your inbox")
+	if user.IsVerified != db.VerificationStatusVerified && s.cfg.Environment != "development" {
+		return nil, nil, fmt.Errorf("account not yet verified — please complete your store setup")
 	}
 
 	tokens, err := s.issueTokens(ctx, user.ID.String(), string(user.Role))

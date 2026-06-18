@@ -20,6 +20,21 @@ import (
 
 // ── User Mappers ──────────────────────────────────────────────────────────────
 
+func mapUserVerificationStatus(s userv1.UserVerificationStatus) model.UserVerificationStatus {
+	switch s {
+	case userv1.UserVerificationStatus_USER_VERIFICATION_STATUS_PENDING:
+		return model.UserVerificationStatusPending
+	case userv1.UserVerificationStatus_USER_VERIFICATION_STATUS_PROCESSING:
+		return model.UserVerificationStatusProcessing
+	case userv1.UserVerificationStatus_USER_VERIFICATION_STATUS_REJECTED:
+		return model.UserVerificationStatusRejected
+	case userv1.UserVerificationStatus_USER_VERIFICATION_STATUS_VERIFIED:
+		return model.UserVerificationStatusVerified
+	default:
+		return model.UserVerificationStatusPending
+	}
+}
+
 func mapUser(u *userv1.User) *model.User {
 	if u == nil {
 		return nil
@@ -36,14 +51,14 @@ func mapUser(u *userv1.User) *model.User {
 		createdAt = u.CreatedAt.AsTime()
 	}
 	return &model.User{
-		ID:         u.Id,
-		Email:      strPtr(u.Email),
-		Phone:      strPtr(u.Phone),
-		FullName:   u.FullName,
-		AvatarURL:  strPtr(u.AvatarUrl),
-		Role:       role,
-		IsVerified: u.IsVerified,
-		CreatedAt:  createdAt,
+		ID:                 u.Id,
+		Email:              strPtr(u.Email),
+		Phone:              strPtr(u.Phone),
+		FullName:           u.FullName,
+		AvatarURL:          strPtr(u.AvatarUrl),
+		Role:               role,
+		VerificationStatus: mapUserVerificationStatus(u.VerificationStatus),
+		CreatedAt:          createdAt,
 	}
 }
 
@@ -72,17 +87,17 @@ func mapAuthPayload(r *userv1.AuthResponse) *model.AuthPayload {
 		return nil
 	}
 	return &model.AuthPayload{
-		AccessToken:  r.AccessToken,
-		RefreshToken: r.RefreshToken,
-		User:         mapUser(r.User),
-		IsVerified:   false, // default; override in SellerFirebaseSignIn resolver
+		AccessToken:        r.AccessToken,
+		RefreshToken:       r.RefreshToken,
+		User:               mapUser(r.User),
+		VerificationStatus: model.UserVerificationStatusPending, // default; override in SellerFirebaseSignIn resolver
 	}
 }
 
-func mapAuthPayloadWithVerified(r *userv1.AuthResponse, isVerified bool) *model.AuthPayload {
+func mapAuthPayloadWithVerified(r *userv1.AuthResponse, verificationStatus model.UserVerificationStatus) *model.AuthPayload {
 	p := mapAuthPayload(r)
 	if p != nil {
-		p.IsVerified = isVerified
+		p.VerificationStatus = verificationStatus
 	}
 	return p
 }

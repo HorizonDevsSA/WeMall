@@ -25,6 +25,15 @@ const (
 	SellerStatusSuspended  SellerStatus = "SUSPENDED"
 )
 
+type UserVerificationStatus string
+
+const (
+	UserVerificationStatusPending    UserVerificationStatus = "PENDING"
+	UserVerificationStatusProcessing UserVerificationStatus = "PROCESSING"
+	UserVerificationStatusRejected   UserVerificationStatus = "REJECTED"
+	UserVerificationStatusVerified   UserVerificationStatus = "VERIFIED"
+)
+
 type Currency string
 
 const (
@@ -84,7 +93,7 @@ type User struct {
 	FullName   string    `json:"fullName"`
 	AvatarURL  *string   `json:"avatarUrl"`
 	Role       Role      `json:"role"`
-	IsVerified bool      `json:"isVerified"`
+	VerificationStatus UserVerificationStatus `json:"verificationStatus"`
 	CreatedAt  time.Time `json:"createdAt"`
 }
 
@@ -107,7 +116,7 @@ type AuthPayload struct {
 	AccessToken  string `json:"accessToken"`
 	RefreshToken string `json:"refreshToken"`
 	User         *User  `json:"user"`
-	IsVerified   bool   `json:"isVerified"`
+	VerificationStatus UserVerificationStatus `json:"verificationStatus"`
 }
 
 type OTPPayload struct {

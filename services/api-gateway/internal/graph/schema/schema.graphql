@@ -13,6 +13,13 @@ enum SellerStatus {
   SUSPENDED
 }
 
+enum UserVerificationStatus {
+  PENDING
+  PROCESSING
+  REJECTED
+  VERIFIED
+}
+
 enum Currency {
   USD
   ZWG
@@ -69,7 +76,7 @@ type User {
   fullName:     String!
   avatarUrl:    String
   role:         Role!
-  isVerified:   Boolean!
+  verificationStatus: UserVerificationStatus!
   createdAt:    Time!
 }
 
@@ -92,7 +99,7 @@ type AuthPayload {
   accessToken:  String!
   refreshToken: String!
   user:         User!
-  isVerified:   Boolean!
+  verificationStatus: UserVerificationStatus!
 }
 
 type OTPPayload {
