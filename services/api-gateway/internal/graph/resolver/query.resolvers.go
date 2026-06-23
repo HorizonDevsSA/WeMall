@@ -3,6 +3,7 @@ package resolver
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/wemall/api-gateway/internal/graph/gqlerrors"
 	"github.com/wemall/api-gateway/internal/graph/model"
@@ -15,6 +16,7 @@ import (
 	sellerv1 "github.com/wemall/gen/seller/v1"
 	userv1 "github.com/wemall/gen/user/v1"
 	promotionv1 "github.com/wemall/gen/promotion/v1"
+	chatv1 "github.com/wemall/gen/chat/v1"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -355,12 +357,193 @@ func (r *queryResolver) Payment(ctx context.Context, id string) (*model.Payment,
 
 // ── Scaffolded Queries (Placeholder implementations) ─────────────────────────
 
-func (r *queryResolver) MyChatThreads(ctx context.Context) (*model.ChatThreadList, error) {
-	return nil, errors.New("chat service not implemented")
+func (r *queryResolver) MyChatThreads(ctx context.Context) ([]*model.ChatThread, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	// 1. Get seller profile to get store ID
+	sellerStore, err := r.Clients.Seller.GetSellerByUserID(ctx, &sellerv1.GetSellerByUserIDRequest{UserId: uid})
+	if err != nil {
+		return nil, err
+	}
+	storeID := sellerStore.Id
+
+	// 2. Call chat service to list threads
+	resp, err := r.Clients.Chat.ListThreads(ctx, &chatv1.ListThreadsRequest{
+		UserId: storeID,
+		Role:   "SELLER",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Collect buyer IDs
+	buyerIDs := []string{}
+	buyerMap := make(map[string]bool)
+	for _, t := range resp.Threads {
+		if t.BuyerId != "" && !buyerMap[t.BuyerId] {
+			buyerMap[t.BuyerId] = true
+			buyerIDs = append(buyerIDs, t.BuyerId)
+		}
+	}
+
+	// Fetch buyer users in batch
+	users := make(map[string]*userv1.User)
+	if len(buyerIDs) > 0 {
+		batchResp, err := r.Clients.User.GetUserBatch(ctx, &userv1.GetUserBatchRequest{Ids: buyerIDs})
+		if err == nil && batchResp != nil {
+			users = batchResp.Users
+		}
+	}
+
+	// Map to model.ChatThread
+	out := make([]*model.ChatThread, len(resp.Threads))
+	for i, t := range resp.Threads {
+		buyerName := "Customer"
+		if u, exists := users[t.BuyerId]; exists && u != nil {
+			buyerName = u.FullName
+		}
+
+		lastMsg := "No messages yet"
+		timestampStr := ""
+		if t.UpdatedAt != nil {
+			timestampStr = t.UpdatedAt.AsTime().Format(time.RFC3339)
+		} else if t.CreatedAt != nil {
+			timestampStr = t.CreatedAt.AsTime().Format(time.RFC3339)
+		}
+
+		// Query the last message of this thread
+		msgResp, err := r.Clients.Chat.ListMessages(ctx, &chatv1.ListMessagesRequest{
+			ThreadId: t.Id,
+			PageSize: 1,
+		})
+		if err == nil && msgResp != nil && len(msgResp.Messages) > 0 {
+			lastMsg = msgResp.Messages[0].Content
+			if msgResp.Messages[0].CreatedAt != nil {
+				timestampStr = msgResp.Messages[0].CreatedAt.AsTime().Format(time.RFC3339)
+			}
+		}
+
+		var orderIDPtr *string
+		if t.OrderId != "" {
+			orderIDPtr = &t.OrderId
+		}
+
+		var createdAt, updatedAt time.Time
+		if t.CreatedAt != nil {
+			createdAt = t.CreatedAt.AsTime()
+		}
+		if t.UpdatedAt != nil {
+			updatedAt = t.UpdatedAt.AsTime()
+		}
+
+		out[i] = &model.ChatThread{
+			ID:          t.Id,
+			BuyerID:     t.BuyerId,
+			SellerID:    t.SellerId,
+			OrderID:     orderIDPtr,
+			BuyerName:   buyerName,
+			LastMessage: lastMsg,
+			Timestamp:   timestampStr,
+			CreatedAt:   createdAt,
+			UpdatedAt:   updatedAt,
+		}
+	}
+
+	return out, nil
 }
 
-func (r *queryResolver) ChatMessages(ctx context.Context, threadID string, pageToken *string, pageSize *int) (*model.ChatMessageList, error) {
-	return nil, errors.New("chat service not implemented")
+func (r *queryResolver) ChatMessages(ctx context.Context, threadID string, pageToken *string, pageSize *int) ([]*model.ChatMessage, error) {
+	var size int32 = 50
+	if pageSize != nil {
+		size = int32(*pageSize)
+	}
+	var token string
+	if pageToken != nil {
+		token = *pageToken
+	}
+
+	resp, err := r.Clients.Chat.ListMessages(ctx, &chatv1.ListMessagesRequest{
+		ThreadId:  threadID,
+		PageToken: token,
+		PageSize:  size,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]*model.ChatMessage, len(resp.Messages))
+	for i, m := range resp.Messages {
+		var createdAt time.Time
+		if m.CreatedAt != nil {
+			createdAt = m.CreatedAt.AsTime()
+		}
+		out[i] = &model.ChatMessage{
+			ID:        m.Id,
+			ThreadID:  m.ThreadId,
+			SenderID:  m.SenderId,
+			Content:   m.Content,
+			IsRead:    m.IsRead,
+			Timestamp: createdAt.Format(time.RFC3339),
+			CreatedAt: createdAt,
+		}
+	}
+	return out, nil
+}
+
+func (r *queryResolver) SellerDashboard(ctx context.Context) (*model.SellerDashboard, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	// 1. Get seller profile to get store ID
+	sellerStore, err := r.Clients.Seller.GetSellerByUserID(ctx, &sellerv1.GetSellerByUserIDRequest{UserId: uid})
+	if err != nil {
+		return nil, err
+	}
+	storeID := sellerStore.Id
+
+	// 2. Query products for this seller
+	prodResp, err := r.Clients.Product.ListProducts(ctx, &productv1.ListProductsRequest{
+		Filter: &productv1.ProductFilter{
+			SellerId: storeID,
+		},
+		PageSize: 100,
+	})
+	productsCount := 0
+	activeProductsCount := 0
+	if err == nil && prodResp != nil {
+		productsCount = int(prodResp.Total)
+		for _, p := range prodResp.Products {
+			if p.Status == productv1.ProductStatus_PRODUCT_STATUS_ACTIVE {
+				activeProductsCount++
+			}
+		}
+	}
+
+	// 3. Mock some values for pendingOrdersCount, totalOrdersCount, weeklyRevenue, and recentOrders as approved in implementation plan
+	pendingOrdersCount := 3
+	totalOrdersCount := 28
+	weeklyRevenue := []float64{1200.50, 1850.20, 950.00, 2200.10, 3100.40, 1500.00, 2800.75}
+
+	// Map seller to model.Seller
+	modelStore := mapSeller(sellerStore)
+
+	// Mock recent orders
+	recentOrders := []*model.Order{}
+
+	return &model.SellerDashboard{
+		Store:               modelStore,
+		ProductsCount:       productsCount,
+		ActiveProductsCount: activeProductsCount,
+		PendingOrdersCount:  pendingOrdersCount,
+		TotalOrdersCount:    totalOrdersCount,
+		RecentOrders:        recentOrders,
+		WeeklyRevenue:       weeklyRevenue,
+	}, nil
 }
 
 func (r *queryResolver) MyDisputes(ctx context.Context) (*model.DisputeList, error) {

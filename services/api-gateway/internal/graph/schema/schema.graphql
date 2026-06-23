@@ -406,6 +406,7 @@ type Query {
 
   # Seller
   myStore: Seller @hasRole(role: SELLER)
+  sellerDashboard: SellerDashboard! @hasRole(role: SELLER)
   seller(id: ID!): Seller!
   isFollowingStore(sellerId: ID!): Boolean! @hasRole(role: BUYER)
   myFollowedStores(pageSize: Int, pageToken: String): FollowedStoresList! @hasRole(role: BUYER)
@@ -421,8 +422,8 @@ type Query {
   myNotifications(limit: Int, offset: Int): [NotificationLog!]! @hasRole(role: BUYER)
 
   # Chat
-  myChatThreads: ChatThreadList!
-  chatMessages(threadId: ID!, pageToken: String, pageSize: Int): ChatMessageList!
+  myChatThreads: [ChatThread!]! @hasRole(role: SELLER)
+  chatMessages(threadId: ID!, pageToken: String, pageSize: Int): [ChatMessage!]!
 
   # Dispute
   myDisputes: DisputeList!
@@ -740,6 +741,9 @@ type ChatThread {
   buyerId: ID!
   sellerId: ID!
   orderId: ID
+  buyerName: String!
+  lastMessage: String!
+  timestamp: String!
   createdAt: Time!
   updatedAt: Time!
 }
@@ -750,6 +754,7 @@ type ChatMessage {
   senderId: ID!
   content: String!
   isRead: Boolean!
+  timestamp: String!
   createdAt: Time!
 }
 
@@ -760,6 +765,16 @@ type ChatThreadList {
 type ChatMessageList {
   messages: [ChatMessage!]!
   nextPageToken: String
+}
+
+type SellerDashboard {
+  store: Seller!
+  productsCount: Int!
+  activeProductsCount: Int!
+  pendingOrdersCount: Int!
+  totalOrdersCount: Int!
+  recentOrders: [Order!]!
+  weeklyRevenue: [Float!]!
 }
 
 # ── Dispute Types ─────────────────────────────────────────────────────────────

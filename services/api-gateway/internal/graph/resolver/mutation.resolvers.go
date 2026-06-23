@@ -3,6 +3,7 @@ package resolver
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/wemall/api-gateway/internal/graph/gqlerrors"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -18,6 +19,7 @@ import (
 	paymentv1 "github.com/wemall/gen/payment/v1"
 	promotionv1 "github.com/wemall/gen/promotion/v1"
 	deliveryv1 "github.com/wemall/gen/delivery/v1"
+	chatv1 "github.com/wemall/gen/chat/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -566,14 +568,89 @@ func (r *mutationResolver) ProcessPayment(ctx context.Context, paymentID string,
 	return mapPayment(resp.Payment), nil
 }
 
-// ── Scaffolded Mutations (Placeholder implementations) ───────────────────────
-
 func (r *mutationResolver) CreateChatThread(ctx context.Context, sellerID string, orderID *string) (*model.ChatThread, error) {
-	return nil, errors.New("chat service not implemented")
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	var ordID string
+	if orderID != nil {
+		ordID = *orderID
+	}
+
+	resp, err := r.Clients.Chat.CreateThread(ctx, &chatv1.CreateThreadRequest{
+		BuyerId:  uid,
+		SellerId: sellerID,
+		OrderId:  ordID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch buyer name to populate field
+	buyerUser, err := r.Clients.User.GetUser(ctx, &userv1.GetUserRequest{Id: uid})
+	buyerName := "Customer"
+	if err == nil && buyerUser != nil {
+		buyerName = buyerUser.FullName
+	}
+
+	var orderIDPtr *string
+	if resp.OrderId != "" {
+		orderIDPtr = &resp.OrderId
+	}
+
+	var createdAt, updatedAt time.Time
+	if resp.CreatedAt != nil {
+		createdAt = resp.CreatedAt.AsTime()
+	}
+	if resp.UpdatedAt != nil {
+		updatedAt = resp.UpdatedAt.AsTime()
+	}
+
+	return &model.ChatThread{
+		ID:          resp.Id,
+		BuyerID:     resp.BuyerId,
+		SellerID:    resp.SellerId,
+		OrderID:     orderIDPtr,
+		BuyerName:   buyerName,
+		LastMessage: "",
+		Timestamp:   time.Now().Format(time.RFC3339),
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
+	}, nil
 }
 
 func (r *mutationResolver) SendChatMessage(ctx context.Context, threadID string, content string) (*model.ChatMessage, error) {
-	return nil, errors.New("chat service not implemented")
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	resp, err := r.Clients.Chat.SendMessage(ctx, &chatv1.SendMessageRequest{
+		ThreadId: threadID,
+		SenderId: uid,
+		Type:     chatv1.MessageType_MESSAGE_TYPE_TEXT,
+		Content:  content,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var createdAt time.Time
+	if resp.CreatedAt != nil {
+		createdAt = resp.CreatedAt.AsTime()
+	}
+
+	return &model.ChatMessage{
+		ID:        resp.Id,
+		ThreadID:  resp.ThreadId,
+		SenderID:  resp.SenderId,
+		Content:   resp.Content,
+		IsRead:    resp.IsRead,
+		Timestamp: createdAt.Format(time.RFC3339),
+		CreatedAt: createdAt,
+	}, nil
 }
 
 func (r *mutationResolver) OpenDispute(ctx context.Context, orderID string, reason string, evidenceUrls []string) (*model.Dispute, error) {

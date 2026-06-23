@@ -125,6 +125,7 @@ type ComplexityRoot struct {
 		IsRead    func(childComplexity int) int
 		SenderID  func(childComplexity int) int
 		ThreadID  func(childComplexity int) int
+		Timestamp func(childComplexity int) int
 	}
 
 	ChatMessageList struct {
@@ -133,12 +134,15 @@ type ComplexityRoot struct {
 	}
 
 	ChatThread struct {
-		BuyerID   func(childComplexity int) int
-		CreatedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
-		OrderID   func(childComplexity int) int
-		SellerID  func(childComplexity int) int
-		UpdatedAt func(childComplexity int) int
+		BuyerID     func(childComplexity int) int
+		BuyerName   func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		ID          func(childComplexity int) int
+		LastMessage func(childComplexity int) int
+		OrderID     func(childComplexity int) int
+		SellerID    func(childComplexity int) int
+		Timestamp   func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
 	}
 
 	ChatThreadList struct {
@@ -513,6 +517,7 @@ type ComplexityRoot struct {
 		Products                    func(childComplexity int, filter *model.ProductFilterInput, pageSize *int, pageToken *string, language *string) int
 		RecommendedProducts         func(childComplexity int, pageSize *int, pageToken *string, language *string) int
 		Seller                      func(childComplexity int, id string) int
+		SellerDashboard             func(childComplexity int) int
 		StationInventory            func(childComplexity int, stationID string, unclaimedOnly bool) int
 		TrackPackage                func(childComplexity int, trackingNumber string) int
 		User                        func(childComplexity int, id string) int
@@ -571,6 +576,16 @@ type ComplexityRoot struct {
 		AvgDescription  func(childComplexity int) int
 		AvgService      func(childComplexity int) int
 		ReputationScore func(childComplexity int) int
+	}
+
+	SellerDashboard struct {
+		ActiveProductsCount func(childComplexity int) int
+		PendingOrdersCount  func(childComplexity int) int
+		ProductsCount       func(childComplexity int) int
+		RecentOrders        func(childComplexity int) int
+		Store               func(childComplexity int) int
+		TotalOrdersCount    func(childComplexity int) int
+		WeeklyRevenue       func(childComplexity int) int
 	}
 
 	SellerReply struct {
@@ -698,6 +713,7 @@ type QueryResolver interface {
 	NearbyProducts(ctx context.Context, latitude float64, longitude float64, radiusMeters float64, pageSize *int, pageToken *string) ([]*model.ProductWithDistance, error)
 	RecommendedProducts(ctx context.Context, pageSize *int, pageToken *string, language *string) (*model.ProductList, error)
 	MyStore(ctx context.Context) (*model.Seller, error)
+	SellerDashboard(ctx context.Context) (*model.SellerDashboard, error)
 	Seller(ctx context.Context, id string) (*model.Seller, error)
 	IsFollowingStore(ctx context.Context, sellerID string) (bool, error)
 	MyFollowedStores(ctx context.Context, pageSize *int, pageToken *string) (*model.FollowedStoresList, error)
@@ -707,8 +723,8 @@ type QueryResolver interface {
 	Payment(ctx context.Context, id string) (*model.Payment, error)
 	NotificationPreferences(ctx context.Context) ([]*model.NotificationPreference, error)
 	MyNotifications(ctx context.Context, limit *int, offset *int) ([]*model.NotificationLog, error)
-	MyChatThreads(ctx context.Context) (*model.ChatThreadList, error)
-	ChatMessages(ctx context.Context, threadID string, pageToken *string, pageSize *int) (*model.ChatMessageList, error)
+	MyChatThreads(ctx context.Context) ([]*model.ChatThread, error)
+	ChatMessages(ctx context.Context, threadID string, pageToken *string, pageSize *int) ([]*model.ChatMessage, error)
 	MyDisputes(ctx context.Context) (*model.DisputeList, error)
 	Dispute(ctx context.Context, id string) (*model.Dispute, error)
 	DisputeMessages(ctx context.Context, disputeID string) (*model.DisputeMessageList, error)
@@ -1131,6 +1147,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ChatMessage.ThreadID(childComplexity), true
 
+	case "ChatMessage.timestamp":
+		if e.complexity.ChatMessage.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.ChatMessage.Timestamp(childComplexity), true
+
 	case "ChatMessageList.messages":
 		if e.complexity.ChatMessageList.Messages == nil {
 			break
@@ -1152,6 +1175,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ChatThread.BuyerID(childComplexity), true
 
+	case "ChatThread.buyerName":
+		if e.complexity.ChatThread.BuyerName == nil {
+			break
+		}
+
+		return e.complexity.ChatThread.BuyerName(childComplexity), true
+
 	case "ChatThread.createdAt":
 		if e.complexity.ChatThread.CreatedAt == nil {
 			break
@@ -1166,6 +1196,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ChatThread.ID(childComplexity), true
 
+	case "ChatThread.lastMessage":
+		if e.complexity.ChatThread.LastMessage == nil {
+			break
+		}
+
+		return e.complexity.ChatThread.LastMessage(childComplexity), true
+
 	case "ChatThread.orderId":
 		if e.complexity.ChatThread.OrderID == nil {
 			break
@@ -1179,6 +1216,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ChatThread.SellerID(childComplexity), true
+
+	case "ChatThread.timestamp":
+		if e.complexity.ChatThread.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.ChatThread.Timestamp(childComplexity), true
 
 	case "ChatThread.updatedAt":
 		if e.complexity.ChatThread.UpdatedAt == nil {
@@ -3518,6 +3562,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Seller(childComplexity, args["id"].(string)), true
 
+	case "Query.sellerDashboard":
+		if e.complexity.Query.SellerDashboard == nil {
+			break
+		}
+
+		return e.complexity.Query.SellerDashboard(childComplexity), true
+
 	case "Query.stationInventory":
 		if e.complexity.Query.StationInventory == nil {
 			break
@@ -3854,6 +3905,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SellerDSR.ReputationScore(childComplexity), true
+
+	case "SellerDashboard.activeProductsCount":
+		if e.complexity.SellerDashboard.ActiveProductsCount == nil {
+			break
+		}
+
+		return e.complexity.SellerDashboard.ActiveProductsCount(childComplexity), true
+
+	case "SellerDashboard.pendingOrdersCount":
+		if e.complexity.SellerDashboard.PendingOrdersCount == nil {
+			break
+		}
+
+		return e.complexity.SellerDashboard.PendingOrdersCount(childComplexity), true
+
+	case "SellerDashboard.productsCount":
+		if e.complexity.SellerDashboard.ProductsCount == nil {
+			break
+		}
+
+		return e.complexity.SellerDashboard.ProductsCount(childComplexity), true
+
+	case "SellerDashboard.recentOrders":
+		if e.complexity.SellerDashboard.RecentOrders == nil {
+			break
+		}
+
+		return e.complexity.SellerDashboard.RecentOrders(childComplexity), true
+
+	case "SellerDashboard.store":
+		if e.complexity.SellerDashboard.Store == nil {
+			break
+		}
+
+		return e.complexity.SellerDashboard.Store(childComplexity), true
+
+	case "SellerDashboard.totalOrdersCount":
+		if e.complexity.SellerDashboard.TotalOrdersCount == nil {
+			break
+		}
+
+		return e.complexity.SellerDashboard.TotalOrdersCount(childComplexity), true
+
+	case "SellerDashboard.weeklyRevenue":
+		if e.complexity.SellerDashboard.WeeklyRevenue == nil {
+			break
+		}
+
+		return e.complexity.SellerDashboard.WeeklyRevenue(childComplexity), true
 
 	case "SellerReply.content":
 		if e.complexity.SellerReply.Content == nil {
@@ -4610,6 +4710,7 @@ type Query {
 
   # Seller
   myStore: Seller @hasRole(role: SELLER)
+  sellerDashboard: SellerDashboard! @hasRole(role: SELLER)
   seller(id: ID!): Seller!
   isFollowingStore(sellerId: ID!): Boolean! @hasRole(role: BUYER)
   myFollowedStores(pageSize: Int, pageToken: String): FollowedStoresList! @hasRole(role: BUYER)
@@ -4625,8 +4726,8 @@ type Query {
   myNotifications(limit: Int, offset: Int): [NotificationLog!]! @hasRole(role: BUYER)
 
   # Chat
-  myChatThreads: ChatThreadList!
-  chatMessages(threadId: ID!, pageToken: String, pageSize: Int): ChatMessageList!
+  myChatThreads: [ChatThread!]! @hasRole(role: SELLER)
+  chatMessages(threadId: ID!, pageToken: String, pageSize: Int): [ChatMessage!]!
 
   # Dispute
   myDisputes: DisputeList!
@@ -4944,6 +5045,9 @@ type ChatThread {
   buyerId: ID!
   sellerId: ID!
   orderId: ID
+  buyerName: String!
+  lastMessage: String!
+  timestamp: String!
   createdAt: Time!
   updatedAt: Time!
 }
@@ -4954,6 +5058,7 @@ type ChatMessage {
   senderId: ID!
   content: String!
   isRead: Boolean!
+  timestamp: String!
   createdAt: Time!
 }
 
@@ -4964,6 +5069,16 @@ type ChatThreadList {
 type ChatMessageList {
   messages: [ChatMessage!]!
   nextPageToken: String
+}
+
+type SellerDashboard {
+  store: Seller!
+  productsCount: Int!
+  activeProductsCount: Int!
+  pendingOrdersCount: Int!
+  totalOrdersCount: Int!
+  recentOrders: [Order!]!
+  weeklyRevenue: [Float!]!
 }
 
 # ── Dispute Types ─────────────────────────────────────────────────────────────
@@ -9449,6 +9564,50 @@ func (ec *executionContext) fieldContext_ChatMessage_isRead(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _ChatMessage_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.ChatMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessage_timestamp(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Timestamp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessage_timestamp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ChatMessage_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.ChatMessage) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ChatMessage_createdAt(ctx, field)
 	if err != nil {
@@ -9542,6 +9701,8 @@ func (ec *executionContext) fieldContext_ChatMessageList_messages(ctx context.Co
 				return ec.fieldContext_ChatMessage_content(ctx, field)
 			case "isRead":
 				return ec.fieldContext_ChatMessage_isRead(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ChatMessage_timestamp(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_ChatMessage_createdAt(ctx, field)
 			}
@@ -9765,6 +9926,138 @@ func (ec *executionContext) fieldContext_ChatThread_orderId(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _ChatThread_buyerName(ctx context.Context, field graphql.CollectedField, obj *model.ChatThread) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatThread_buyerName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BuyerName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatThread_buyerName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatThread",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatThread_lastMessage(ctx context.Context, field graphql.CollectedField, obj *model.ChatThread) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatThread_lastMessage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastMessage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatThread_lastMessage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatThread",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatThread_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.ChatThread) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatThread_timestamp(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Timestamp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatThread_timestamp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatThread",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ChatThread_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.ChatThread) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ChatThread_createdAt(ctx, field)
 	if err != nil {
@@ -9900,6 +10193,12 @@ func (ec *executionContext) fieldContext_ChatThreadList_threads(ctx context.Cont
 				return ec.fieldContext_ChatThread_sellerId(ctx, field)
 			case "orderId":
 				return ec.fieldContext_ChatThread_orderId(ctx, field)
+			case "buyerName":
+				return ec.fieldContext_ChatThread_buyerName(ctx, field)
+			case "lastMessage":
+				return ec.fieldContext_ChatThread_lastMessage(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ChatThread_timestamp(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_ChatThread_createdAt(ctx, field)
 			case "updatedAt":
@@ -16467,6 +16766,12 @@ func (ec *executionContext) fieldContext_Mutation_createChatThread(ctx context.C
 				return ec.fieldContext_ChatThread_sellerId(ctx, field)
 			case "orderId":
 				return ec.fieldContext_ChatThread_orderId(ctx, field)
+			case "buyerName":
+				return ec.fieldContext_ChatThread_buyerName(ctx, field)
+			case "lastMessage":
+				return ec.fieldContext_ChatThread_lastMessage(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ChatThread_timestamp(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_ChatThread_createdAt(ctx, field)
 			case "updatedAt":
@@ -16538,6 +16843,8 @@ func (ec *executionContext) fieldContext_Mutation_sendChatMessage(ctx context.Co
 				return ec.fieldContext_ChatMessage_content(ctx, field)
 			case "isRead":
 				return ec.fieldContext_ChatMessage_isRead(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ChatMessage_timestamp(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_ChatMessage_createdAt(ctx, field)
 			}
@@ -24450,6 +24757,90 @@ func (ec *executionContext) fieldContext_Query_myStore(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_sellerDashboard(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_sellerDashboard(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().SellerDashboard(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "SELLER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.SellerDashboard); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/wemall/api-gateway/internal/graph/model.SellerDashboard`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.SellerDashboard)
+	fc.Result = res
+	return ec.marshalNSellerDashboard2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐSellerDashboard(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_sellerDashboard(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "store":
+				return ec.fieldContext_SellerDashboard_store(ctx, field)
+			case "productsCount":
+				return ec.fieldContext_SellerDashboard_productsCount(ctx, field)
+			case "activeProductsCount":
+				return ec.fieldContext_SellerDashboard_activeProductsCount(ctx, field)
+			case "pendingOrdersCount":
+				return ec.fieldContext_SellerDashboard_pendingOrdersCount(ctx, field)
+			case "totalOrdersCount":
+				return ec.fieldContext_SellerDashboard_totalOrdersCount(ctx, field)
+			case "recentOrders":
+				return ec.fieldContext_SellerDashboard_recentOrders(ctx, field)
+			case "weeklyRevenue":
+				return ec.fieldContext_SellerDashboard_weeklyRevenue(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SellerDashboard", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_seller(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_seller(ctx, field)
 	if err != nil {
@@ -25270,8 +25661,32 @@ func (ec *executionContext) _Query_myChatThreads(ctx context.Context, field grap
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().MyChatThreads(rctx)
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().MyChatThreads(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "SELLER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.ChatThread); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/wemall/api-gateway/internal/graph/model.ChatThread`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -25283,9 +25698,9 @@ func (ec *executionContext) _Query_myChatThreads(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.ChatThreadList)
+	res := resTmp.([]*model.ChatThread)
 	fc.Result = res
-	return ec.marshalNChatThreadList2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatThreadList(ctx, field.Selections, res)
+	return ec.marshalNChatThread2ᚕᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatThreadᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_myChatThreads(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -25296,10 +25711,26 @@ func (ec *executionContext) fieldContext_Query_myChatThreads(ctx context.Context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "threads":
-				return ec.fieldContext_ChatThreadList_threads(ctx, field)
+			case "id":
+				return ec.fieldContext_ChatThread_id(ctx, field)
+			case "buyerId":
+				return ec.fieldContext_ChatThread_buyerId(ctx, field)
+			case "sellerId":
+				return ec.fieldContext_ChatThread_sellerId(ctx, field)
+			case "orderId":
+				return ec.fieldContext_ChatThread_orderId(ctx, field)
+			case "buyerName":
+				return ec.fieldContext_ChatThread_buyerName(ctx, field)
+			case "lastMessage":
+				return ec.fieldContext_ChatThread_lastMessage(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ChatThread_timestamp(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ChatThread_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ChatThread_updatedAt(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type ChatThreadList", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type ChatThread", field.Name)
 		},
 	}
 	return fc, nil
@@ -25331,9 +25762,9 @@ func (ec *executionContext) _Query_chatMessages(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.ChatMessageList)
+	res := resTmp.([]*model.ChatMessage)
 	fc.Result = res
-	return ec.marshalNChatMessageList2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatMessageList(ctx, field.Selections, res)
+	return ec.marshalNChatMessage2ᚕᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatMessageᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_chatMessages(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -25344,12 +25775,22 @@ func (ec *executionContext) fieldContext_Query_chatMessages(ctx context.Context,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "messages":
-				return ec.fieldContext_ChatMessageList_messages(ctx, field)
-			case "nextPageToken":
-				return ec.fieldContext_ChatMessageList_nextPageToken(ctx, field)
+			case "id":
+				return ec.fieldContext_ChatMessage_id(ctx, field)
+			case "threadId":
+				return ec.fieldContext_ChatMessage_threadId(ctx, field)
+			case "senderId":
+				return ec.fieldContext_ChatMessage_senderId(ctx, field)
+			case "content":
+				return ec.fieldContext_ChatMessage_content(ctx, field)
+			case "isRead":
+				return ec.fieldContext_ChatMessage_isRead(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ChatMessage_timestamp(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ChatMessage_createdAt(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type ChatMessageList", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type ChatMessage", field.Name)
 		},
 	}
 	defer func() {
@@ -28531,6 +28972,382 @@ func (ec *executionContext) fieldContext_SellerDSR_reputationScore(ctx context.C
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SellerDashboard_store(ctx context.Context, field graphql.CollectedField, obj *model.SellerDashboard) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SellerDashboard_store(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Store, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Seller)
+	fc.Result = res
+	return ec.marshalNSeller2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐSeller(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SellerDashboard_store(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SellerDashboard",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Seller_id(ctx, field)
+			case "userId":
+				return ec.fieldContext_Seller_userId(ctx, field)
+			case "storeName":
+				return ec.fieldContext_Seller_storeName(ctx, field)
+			case "storeSlug":
+				return ec.fieldContext_Seller_storeSlug(ctx, field)
+			case "logoUrl":
+				return ec.fieldContext_Seller_logoUrl(ctx, field)
+			case "bannerUrl":
+				return ec.fieldContext_Seller_bannerUrl(ctx, field)
+			case "description":
+				return ec.fieldContext_Seller_description(ctx, field)
+			case "rating":
+				return ec.fieldContext_Seller_rating(ctx, field)
+			case "totalSales":
+				return ec.fieldContext_Seller_totalSales(ctx, field)
+			case "isVerified":
+				return ec.fieldContext_Seller_isVerified(ctx, field)
+			case "status":
+				return ec.fieldContext_Seller_status(ctx, field)
+			case "latitude":
+				return ec.fieldContext_Seller_latitude(ctx, field)
+			case "longitude":
+				return ec.fieldContext_Seller_longitude(ctx, field)
+			case "storeLocation":
+				return ec.fieldContext_Seller_storeLocation(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Seller_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Seller_updatedAt(ctx, field)
+			case "dsr":
+				return ec.fieldContext_Seller_dsr(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SellerDashboard_productsCount(ctx context.Context, field graphql.CollectedField, obj *model.SellerDashboard) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SellerDashboard_productsCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProductsCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SellerDashboard_productsCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SellerDashboard",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SellerDashboard_activeProductsCount(ctx context.Context, field graphql.CollectedField, obj *model.SellerDashboard) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SellerDashboard_activeProductsCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ActiveProductsCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SellerDashboard_activeProductsCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SellerDashboard",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SellerDashboard_pendingOrdersCount(ctx context.Context, field graphql.CollectedField, obj *model.SellerDashboard) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SellerDashboard_pendingOrdersCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PendingOrdersCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SellerDashboard_pendingOrdersCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SellerDashboard",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SellerDashboard_totalOrdersCount(ctx context.Context, field graphql.CollectedField, obj *model.SellerDashboard) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SellerDashboard_totalOrdersCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalOrdersCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SellerDashboard_totalOrdersCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SellerDashboard",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SellerDashboard_recentOrders(ctx context.Context, field graphql.CollectedField, obj *model.SellerDashboard) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SellerDashboard_recentOrders(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RecentOrders, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Order)
+	fc.Result = res
+	return ec.marshalNOrder2ᚕᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐOrderᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SellerDashboard_recentOrders(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SellerDashboard",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Order_id(ctx, field)
+			case "orderNumber":
+				return ec.fieldContext_Order_orderNumber(ctx, field)
+			case "userId":
+				return ec.fieldContext_Order_userId(ctx, field)
+			case "status":
+				return ec.fieldContext_Order_status(ctx, field)
+			case "subtotal":
+				return ec.fieldContext_Order_subtotal(ctx, field)
+			case "shippingFee":
+				return ec.fieldContext_Order_shippingFee(ctx, field)
+			case "discountAmount":
+				return ec.fieldContext_Order_discountAmount(ctx, field)
+			case "total":
+				return ec.fieldContext_Order_total(ctx, field)
+			case "shippingAddress":
+				return ec.fieldContext_Order_shippingAddress(ctx, field)
+			case "items":
+				return ec.fieldContext_Order_items(ctx, field)
+			case "couponCode":
+				return ec.fieldContext_Order_couponCode(ctx, field)
+			case "notes":
+				return ec.fieldContext_Order_notes(ctx, field)
+			case "currency":
+				return ec.fieldContext_Order_currency(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Order_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Order_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Order", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SellerDashboard_weeklyRevenue(ctx context.Context, field graphql.CollectedField, obj *model.SellerDashboard) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SellerDashboard_weeklyRevenue(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WeeklyRevenue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]float64)
+	fc.Result = res
+	return ec.marshalNFloat2ᚕfloat64ᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SellerDashboard_weeklyRevenue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SellerDashboard",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
@@ -33478,6 +34295,11 @@ func (ec *executionContext) _ChatMessage(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "timestamp":
+			out.Values[i] = ec._ChatMessage_timestamp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createdAt":
 			out.Values[i] = ec._ChatMessage_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -33575,6 +34397,21 @@ func (ec *executionContext) _ChatThread(ctx context.Context, sel ast.SelectionSe
 			}
 		case "orderId":
 			out.Values[i] = ec._ChatThread_orderId(ctx, field, obj)
+		case "buyerName":
+			out.Values[i] = ec._ChatThread_buyerName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lastMessage":
+			out.Values[i] = ec._ChatThread_lastMessage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "timestamp":
+			out.Values[i] = ec._ChatThread_timestamp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createdAt":
 			out.Values[i] = ec._ChatThread_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -36290,6 +37127,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "sellerDashboard":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_sellerDashboard(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "seller":
 			field := field
 
@@ -37175,6 +38034,75 @@ func (ec *executionContext) _SellerDSR(ctx context.Context, sel ast.SelectionSet
 			}
 		case "reputationScore":
 			out.Values[i] = ec._SellerDSR_reputationScore(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var sellerDashboardImplementors = []string{"SellerDashboard"}
+
+func (ec *executionContext) _SellerDashboard(ctx context.Context, sel ast.SelectionSet, obj *model.SellerDashboard) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sellerDashboardImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SellerDashboard")
+		case "store":
+			out.Values[i] = ec._SellerDashboard_store(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "productsCount":
+			out.Values[i] = ec._SellerDashboard_productsCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "activeProductsCount":
+			out.Values[i] = ec._SellerDashboard_activeProductsCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pendingOrdersCount":
+			out.Values[i] = ec._SellerDashboard_pendingOrdersCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalOrdersCount":
+			out.Values[i] = ec._SellerDashboard_totalOrdersCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "recentOrders":
+			out.Values[i] = ec._SellerDashboard_recentOrders(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "weeklyRevenue":
+			out.Values[i] = ec._SellerDashboard_weeklyRevenue(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -38142,20 +39070,6 @@ func (ec *executionContext) marshalNChatMessage2ᚖgithubᚗcomᚋwemallᚋapi�
 	return ec._ChatMessage(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNChatMessageList2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatMessageList(ctx context.Context, sel ast.SelectionSet, v model.ChatMessageList) graphql.Marshaler {
-	return ec._ChatMessageList(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNChatMessageList2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatMessageList(ctx context.Context, sel ast.SelectionSet, v *model.ChatMessageList) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._ChatMessageList(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNChatThread2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatThread(ctx context.Context, sel ast.SelectionSet, v model.ChatThread) graphql.Marshaler {
 	return ec._ChatThread(ctx, sel, &v)
 }
@@ -38212,20 +39126,6 @@ func (ec *executionContext) marshalNChatThread2ᚖgithubᚗcomᚋwemallᚋapiᚑ
 		return graphql.Null
 	}
 	return ec._ChatThread(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNChatThreadList2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatThreadList(ctx context.Context, sel ast.SelectionSet, v model.ChatThreadList) graphql.Marshaler {
-	return ec._ChatThreadList(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNChatThreadList2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatThreadList(ctx context.Context, sel ast.SelectionSet, v *model.ChatThreadList) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._ChatThreadList(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNCheckoutInput2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐCheckoutInput(ctx context.Context, v interface{}) (model.CheckoutInput, error) {
@@ -38715,6 +39615,38 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNFloat2ᚕfloat64ᚄ(ctx context.Context, v interface{}) ([]float64, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]float64, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNFloat2float64(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNFloat2ᚕfloat64ᚄ(ctx context.Context, sel ast.SelectionSet, v []float64) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNFloat2float64(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNFollowedStoresList2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐFollowedStoresList(ctx context.Context, sel ast.SelectionSet, v model.FollowedStoresList) graphql.Marshaler {
@@ -39648,6 +40580,20 @@ func (ec *executionContext) marshalNSellerDSR2ᚖgithubᚗcomᚋwemallᚋapiᚑg
 		return graphql.Null
 	}
 	return ec._SellerDSR(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNSellerDashboard2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐSellerDashboard(ctx context.Context, sel ast.SelectionSet, v model.SellerDashboard) graphql.Marshaler {
+	return ec._SellerDashboard(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSellerDashboard2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐSellerDashboard(ctx context.Context, sel ast.SelectionSet, v *model.SellerDashboard) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SellerDashboard(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNSellerReply2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐSellerReply(ctx context.Context, sel ast.SelectionSet, v model.SellerReply) graphql.Marshaler {

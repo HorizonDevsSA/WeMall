@@ -36,6 +36,7 @@ type ChatMessage struct {
 	SenderID  string    `json:"senderId"`
 	Content   string    `json:"content"`
 	IsRead    bool      `json:"isRead"`
+	Timestamp string    `json:"timestamp"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
@@ -45,12 +46,15 @@ type ChatMessageList struct {
 }
 
 type ChatThread struct {
-	ID        string    `json:"id"`
-	BuyerID   string    `json:"buyerId"`
-	SellerID  string    `json:"sellerId"`
-	OrderID   *string   `json:"orderId,omitempty"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID          string    `json:"id"`
+	BuyerID     string    `json:"buyerId"`
+	SellerID    string    `json:"sellerId"`
+	OrderID     *string   `json:"orderId,omitempty"`
+	BuyerName   string    `json:"buyerName"`
+	LastMessage string    `json:"lastMessage"`
+	Timestamp   string    `json:"timestamp"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
 type ChatThreadList struct {
@@ -311,6 +315,16 @@ type SellerDsr struct {
 	AvgService      float64 `json:"avgService"`
 	AvgDelivery     float64 `json:"avgDelivery"`
 	ReputationScore int     `json:"reputationScore"`
+}
+
+type SellerDashboard struct {
+	Store               *Seller   `json:"store"`
+	ProductsCount       int       `json:"productsCount"`
+	ActiveProductsCount int       `json:"activeProductsCount"`
+	PendingOrdersCount  int       `json:"pendingOrdersCount"`
+	TotalOrdersCount    int       `json:"totalOrdersCount"`
+	RecentOrders        []*Order  `json:"recentOrders"`
+	WeeklyRevenue       []float64 `json:"weeklyRevenue"`
 }
 
 type SellerReply struct {
