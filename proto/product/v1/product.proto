@@ -112,6 +112,7 @@ message ProductFilter {
   repeated string        tags         = 7;
   double                 min_rating   = 8;
   bool                   in_stock_only= 9;
+  repeated ProductStatus statuses     = 10;
 }
 
 // ── Request / Response Messages ───────────────────────────────────────────────

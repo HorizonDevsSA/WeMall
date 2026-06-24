@@ -597,6 +597,22 @@ func (s *ProductService) ListProducts(ctx context.Context, req *productv1.ListPr
 		if req.Filter.Attributes != nil {
 			filter.Attributes = req.Filter.Attributes.AsMap()
 		}
+		if len(req.Filter.Statuses) > 0 {
+			statuses := make([]string, 0, len(req.Filter.Statuses))
+			for _, st := range req.Filter.Statuses {
+				switch st {
+				case productv1.ProductStatus_PRODUCT_STATUS_DRAFT:
+					statuses = append(statuses, "draft")
+				case productv1.ProductStatus_PRODUCT_STATUS_ACTIVE:
+					statuses = append(statuses, "active")
+				case productv1.ProductStatus_PRODUCT_STATUS_PAUSED:
+					statuses = append(statuses, "paused")
+				case productv1.ProductStatus_PRODUCT_STATUS_BANNED:
+					statuses = append(statuses, "banned")
+				}
+			}
+			filter.Statuses = statuses
+		}
 	}
 
 	pageSize := int32(20)

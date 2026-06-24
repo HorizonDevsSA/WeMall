@@ -20,6 +20,7 @@ type ProductFilter struct {
 	Tags        []string
 	Attributes  map[string]interface{}
 	InStockOnly bool
+	Statuses    []string
 }
 
 func (q *Queries) ListProducts(ctx context.Context, filter ProductFilter, limit int32, pageToken string, lang string) ([]ProductWithTranslation, int32, string, error) {
@@ -32,7 +33,17 @@ func (q *Queries) ListProducts(ctx context.Context, filter ProductFilter, limit 
 
 	// Filter active products and non-deleted
 	wheres = append(wheres, "p.deleted_at IS NULL")
-	wheres = append(wheres, "p.status = 'active'")
+	if len(filter.Statuses) > 0 {
+		var statusWheres []string
+		for _, s := range filter.Statuses {
+			argCount++
+			args = append(args, s)
+			statusWheres = append(statusWheres, fmt.Sprintf("$%d", argCount))
+		}
+		wheres = append(wheres, fmt.Sprintf("p.status::text IN (%s)", strings.Join(statusWheres, ", ")))
+	} else {
+		wheres = append(wheres, "p.status = 'active'")
+	}
 
 	if filter.Search != nil && *filter.Search != "" {
 		argCount++

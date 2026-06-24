@@ -4656,6 +4656,7 @@ input ProductFilterInput {
   tags:        [String!]
   attributes:  JSON
   inStockOnly: Boolean
+  statuses:    [ProductStatus!]
 }
 
 input VariantInput {
@@ -33820,7 +33821,7 @@ func (ec *executionContext) unmarshalInputProductFilterInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"search", "categoryId", "sellerId", "minPrice", "maxPrice", "minRating", "tags", "attributes", "inStockOnly"}
+	fieldsInOrder := [...]string{"search", "categoryId", "sellerId", "minPrice", "maxPrice", "minRating", "tags", "attributes", "inStockOnly", "statuses"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -33890,6 +33891,13 @@ func (ec *executionContext) unmarshalInputProductFilterInput(ctx context.Context
 				return it, err
 			}
 			it.InStockOnly = data
+		case "statuses":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statuses"))
+			data, err := ec.unmarshalOProductStatus2ᚕgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐProductStatusᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Statuses = data
 		}
 	}
 
@@ -41910,6 +41918,73 @@ func (ec *executionContext) unmarshalOProductFilterInput2ᚖgithubᚗcomᚋwemal
 	}
 	res, err := ec.unmarshalInputProductFilterInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOProductStatus2ᚕgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐProductStatusᚄ(ctx context.Context, v interface{}) ([]model.ProductStatus, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]model.ProductStatus, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNProductStatus2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐProductStatus(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOProductStatus2ᚕgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐProductStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []model.ProductStatus) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNProductStatus2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐProductStatus(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOProductStatus2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐProductStatus(ctx context.Context, v interface{}) (*model.ProductStatus, error) {

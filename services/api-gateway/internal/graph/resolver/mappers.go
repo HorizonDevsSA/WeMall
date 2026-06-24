@@ -221,6 +221,21 @@ func mapImage(img *productv1.ProductImage) *model.ProductImage {
 	}
 }
 
+func mapProductStatus(s model.ProductStatus) productv1.ProductStatus {
+	switch s {
+	case model.ProductStatusDraft:
+		return productv1.ProductStatus_PRODUCT_STATUS_DRAFT
+	case model.ProductStatusActive:
+		return productv1.ProductStatus_PRODUCT_STATUS_ACTIVE
+	case model.ProductStatusPaused:
+		return productv1.ProductStatus_PRODUCT_STATUS_PAUSED
+	case model.ProductStatusBanned:
+		return productv1.ProductStatus_PRODUCT_STATUS_BANNED
+	default:
+		return productv1.ProductStatus_PRODUCT_STATUS_UNSPECIFIED
+	}
+}
+
 func mapProductFilter(f *model.ProductFilterInput) *productv1.ProductFilter {
 	if f == nil {
 		return nil
@@ -228,6 +243,13 @@ func mapProductFilter(f *model.ProductFilterInput) *productv1.ProductFilter {
 	var attrs *structpb.Struct
 	if f.Attributes != nil {
 		attrs, _ = structpb.NewStruct(jsonToMap(f.Attributes))
+	}
+	var statuses []productv1.ProductStatus
+	if f.Statuses != nil {
+		statuses = make([]productv1.ProductStatus, len(f.Statuses))
+		for i, s := range f.Statuses {
+			statuses[i] = mapProductStatus(s)
+		}
 	}
 	return &productv1.ProductFilter{
 		Search:      derefStr(f.Search),
@@ -239,6 +261,7 @@ func mapProductFilter(f *model.ProductFilterInput) *productv1.ProductFilter {
 		Tags:        f.Tags,
 		Attributes:  attrs,
 		InStockOnly: derefBool(f.InStockOnly),
+		Statuses:    statuses,
 	}
 }
 
