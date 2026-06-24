@@ -9,7 +9,7 @@ package orderv1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	_ "google.golang.org/protobuf/types/known/emptypb"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	structpb "google.golang.org/protobuf/types/known/structpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
@@ -1314,6 +1314,126 @@ func (x *CancelOrderRequest) GetUserId() string {
 	return ""
 }
 
+type ListSellerOrdersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SellerId      string                 `protobuf:"bytes,1,opt,name=seller_id,json=sellerId,proto3" json:"seller_id,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken     string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSellerOrdersRequest) Reset() {
+	*x = ListSellerOrdersRequest{}
+	mi := &file_order_v1_order_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSellerOrdersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSellerOrdersRequest) ProtoMessage() {}
+
+func (x *ListSellerOrdersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSellerOrdersRequest.ProtoReflect.Descriptor instead.
+func (*ListSellerOrdersRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ListSellerOrdersRequest) GetSellerId() string {
+	if x != nil {
+		return x.SellerId
+	}
+	return ""
+}
+
+func (x *ListSellerOrdersRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListSellerOrdersRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type UpdateSellerOrderItemStatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	SellerId      string                 `protobuf:"bytes,2,opt,name=seller_id,json=sellerId,proto3" json:"seller_id,omitempty"`
+	Status        string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSellerOrderItemStatusRequest) Reset() {
+	*x = UpdateSellerOrderItemStatusRequest{}
+	mi := &file_order_v1_order_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSellerOrderItemStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSellerOrderItemStatusRequest) ProtoMessage() {}
+
+func (x *UpdateSellerOrderItemStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSellerOrderItemStatusRequest.ProtoReflect.Descriptor instead.
+func (*UpdateSellerOrderItemStatusRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *UpdateSellerOrderItemStatusRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *UpdateSellerOrderItemStatusRequest) GetSellerId() string {
+	if x != nil {
+		return x.SellerId
+	}
+	return ""
+}
+
+func (x *UpdateSellerOrderItemStatusRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
 var File_order_v1_order_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_proto_rawDesc = "" +
@@ -1427,7 +1547,16 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x05total\x18\x03 \x01(\x05R\x05total\"=\n" +
 	"\x12CancelOrderRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId*\xce\x01\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\"r\n" +
+	"\x17ListSellerOrdersRequest\x12\x1b\n" +
+	"\tseller_id\x18\x01 \x01(\tR\bsellerId\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x03 \x01(\tR\tpageToken\"t\n" +
+	"\"UpdateSellerOrderItemStatusRequest\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x1b\n" +
+	"\tseller_id\x18\x02 \x01(\tR\bsellerId\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status*\xce\x01\n" +
 	"\vOrderStatus\x12\x1c\n" +
 	"\x18ORDER_STATUS_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14ORDER_STATUS_PENDING\x10\x01\x12\x1a\n" +
@@ -1456,7 +1585,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x1dPRODUCT_TYPE_DIGITAL_PRODUCTS\x10\x0f\x12\x19\n" +
 	"\x15PRODUCT_TYPE_SERVICES\x10\x10\x12\x18\n" +
 	"\x14PRODUCT_TYPE_LIQUIDS\x10\x11\x12\x1a\n" +
-	"\x16PRODUCT_TYPE_BEVERAGES\x10\x122\xb2\x04\n" +
+	"\x16PRODUCT_TYPE_BEVERAGES\x10\x122\xec\x05\n" +
 	"\fOrderService\x123\n" +
 	"\aGetCart\x12\x18.order.v1.GetCartRequest\x1a\x0e.order.v1.Cart\x127\n" +
 	"\tAddToCart\x12\x1a.order.v1.AddToCartRequest\x1a\x0e.order.v1.Cart\x12A\n" +
@@ -1467,7 +1596,9 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\bGetOrder\x12\x19.order.v1.GetOrderRequest\x1a\x0f.order.v1.Order\x12G\n" +
 	"\n" +
 	"ListOrders\x12\x1b.order.v1.ListOrdersRequest\x1a\x1c.order.v1.ListOrdersResponse\x12<\n" +
-	"\vCancelOrder\x12\x1c.order.v1.CancelOrderRequest\x1a\x0f.order.v1.OrderB(Z&github.com/wemall/gen/order/v1;orderv1b\x06proto3"
+	"\vCancelOrder\x12\x1c.order.v1.CancelOrderRequest\x1a\x0f.order.v1.Order\x12S\n" +
+	"\x10ListSellerOrders\x12!.order.v1.ListSellerOrdersRequest\x1a\x1c.order.v1.ListOrdersResponse\x12c\n" +
+	"\x1bUpdateSellerOrderItemStatus\x12,.order.v1.UpdateSellerOrderItemStatusRequest\x1a\x16.google.protobuf.EmptyB(Z&github.com/wemall/gen/order/v1;orderv1b\x06proto3"
 
 var (
 	file_order_v1_order_proto_rawDescOnce sync.Once
@@ -1482,42 +1613,45 @@ func file_order_v1_order_proto_rawDescGZIP() []byte {
 }
 
 var file_order_v1_order_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_order_v1_order_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_order_v1_order_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_order_v1_order_proto_goTypes = []any{
-	(OrderStatus)(0),              // 0: order.v1.OrderStatus
-	(ProductType)(0),              // 1: order.v1.ProductType
-	(*CartItem)(nil),              // 2: order.v1.CartItem
-	(*Cart)(nil),                  // 3: order.v1.Cart
-	(*OrderItem)(nil),             // 4: order.v1.OrderItem
-	(*Order)(nil),                 // 5: order.v1.Order
-	(*GetCartRequest)(nil),        // 6: order.v1.GetCartRequest
-	(*AddToCartRequest)(nil),      // 7: order.v1.AddToCartRequest
-	(*UpdateCartItemRequest)(nil), // 8: order.v1.UpdateCartItemRequest
-	(*RemoveCartItemRequest)(nil), // 9: order.v1.RemoveCartItemRequest
-	(*ClearCartRequest)(nil),      // 10: order.v1.ClearCartRequest
-	(*CheckoutInput)(nil),         // 11: order.v1.CheckoutInput
-	(*CheckoutRequest)(nil),       // 12: order.v1.CheckoutRequest
-	(*GetOrderRequest)(nil),       // 13: order.v1.GetOrderRequest
-	(*ListOrdersRequest)(nil),     // 14: order.v1.ListOrdersRequest
-	(*ListOrdersResponse)(nil),    // 15: order.v1.ListOrdersResponse
-	(*CancelOrderRequest)(nil),    // 16: order.v1.CancelOrderRequest
-	(*structpb.Struct)(nil),       // 17: google.protobuf.Struct
-	(*timestamppb.Timestamp)(nil), // 18: google.protobuf.Timestamp
+	(OrderStatus)(0),                           // 0: order.v1.OrderStatus
+	(ProductType)(0),                           // 1: order.v1.ProductType
+	(*CartItem)(nil),                           // 2: order.v1.CartItem
+	(*Cart)(nil),                               // 3: order.v1.Cart
+	(*OrderItem)(nil),                          // 4: order.v1.OrderItem
+	(*Order)(nil),                              // 5: order.v1.Order
+	(*GetCartRequest)(nil),                     // 6: order.v1.GetCartRequest
+	(*AddToCartRequest)(nil),                   // 7: order.v1.AddToCartRequest
+	(*UpdateCartItemRequest)(nil),              // 8: order.v1.UpdateCartItemRequest
+	(*RemoveCartItemRequest)(nil),              // 9: order.v1.RemoveCartItemRequest
+	(*ClearCartRequest)(nil),                   // 10: order.v1.ClearCartRequest
+	(*CheckoutInput)(nil),                      // 11: order.v1.CheckoutInput
+	(*CheckoutRequest)(nil),                    // 12: order.v1.CheckoutRequest
+	(*GetOrderRequest)(nil),                    // 13: order.v1.GetOrderRequest
+	(*ListOrdersRequest)(nil),                  // 14: order.v1.ListOrdersRequest
+	(*ListOrdersResponse)(nil),                 // 15: order.v1.ListOrdersResponse
+	(*CancelOrderRequest)(nil),                 // 16: order.v1.CancelOrderRequest
+	(*ListSellerOrdersRequest)(nil),            // 17: order.v1.ListSellerOrdersRequest
+	(*UpdateSellerOrderItemStatusRequest)(nil), // 18: order.v1.UpdateSellerOrderItemStatusRequest
+	(*structpb.Struct)(nil),                    // 19: google.protobuf.Struct
+	(*timestamppb.Timestamp)(nil),              // 20: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),                      // 21: google.protobuf.Empty
 }
 var file_order_v1_order_proto_depIdxs = []int32{
-	17, // 0: order.v1.CartItem.options:type_name -> google.protobuf.Struct
+	19, // 0: order.v1.CartItem.options:type_name -> google.protobuf.Struct
 	1,  // 1: order.v1.CartItem.product_type:type_name -> order.v1.ProductType
 	2,  // 2: order.v1.Cart.items:type_name -> order.v1.CartItem
-	17, // 3: order.v1.OrderItem.snapshot:type_name -> google.protobuf.Struct
+	19, // 3: order.v1.OrderItem.snapshot:type_name -> google.protobuf.Struct
 	0,  // 4: order.v1.OrderItem.status:type_name -> order.v1.OrderStatus
-	17, // 5: order.v1.OrderItem.options:type_name -> google.protobuf.Struct
+	19, // 5: order.v1.OrderItem.options:type_name -> google.protobuf.Struct
 	1,  // 6: order.v1.OrderItem.product_type:type_name -> order.v1.ProductType
 	0,  // 7: order.v1.Order.status:type_name -> order.v1.OrderStatus
-	17, // 8: order.v1.Order.shipping_address:type_name -> google.protobuf.Struct
+	19, // 8: order.v1.Order.shipping_address:type_name -> google.protobuf.Struct
 	4,  // 9: order.v1.Order.items:type_name -> order.v1.OrderItem
-	18, // 10: order.v1.Order.created_at:type_name -> google.protobuf.Timestamp
-	18, // 11: order.v1.Order.updated_at:type_name -> google.protobuf.Timestamp
-	17, // 12: order.v1.CheckoutInput.shipping_address:type_name -> google.protobuf.Struct
+	20, // 10: order.v1.Order.created_at:type_name -> google.protobuf.Timestamp
+	20, // 11: order.v1.Order.updated_at:type_name -> google.protobuf.Timestamp
+	19, // 12: order.v1.CheckoutInput.shipping_address:type_name -> google.protobuf.Struct
 	11, // 13: order.v1.CheckoutRequest.input:type_name -> order.v1.CheckoutInput
 	5,  // 14: order.v1.ListOrdersResponse.orders:type_name -> order.v1.Order
 	6,  // 15: order.v1.OrderService.GetCart:input_type -> order.v1.GetCartRequest
@@ -1529,17 +1663,21 @@ var file_order_v1_order_proto_depIdxs = []int32{
 	13, // 21: order.v1.OrderService.GetOrder:input_type -> order.v1.GetOrderRequest
 	14, // 22: order.v1.OrderService.ListOrders:input_type -> order.v1.ListOrdersRequest
 	16, // 23: order.v1.OrderService.CancelOrder:input_type -> order.v1.CancelOrderRequest
-	3,  // 24: order.v1.OrderService.GetCart:output_type -> order.v1.Cart
-	3,  // 25: order.v1.OrderService.AddToCart:output_type -> order.v1.Cart
-	3,  // 26: order.v1.OrderService.UpdateCartItem:output_type -> order.v1.Cart
-	3,  // 27: order.v1.OrderService.RemoveCartItem:output_type -> order.v1.Cart
-	3,  // 28: order.v1.OrderService.ClearCart:output_type -> order.v1.Cart
-	5,  // 29: order.v1.OrderService.Checkout:output_type -> order.v1.Order
-	5,  // 30: order.v1.OrderService.GetOrder:output_type -> order.v1.Order
-	15, // 31: order.v1.OrderService.ListOrders:output_type -> order.v1.ListOrdersResponse
-	5,  // 32: order.v1.OrderService.CancelOrder:output_type -> order.v1.Order
-	24, // [24:33] is the sub-list for method output_type
-	15, // [15:24] is the sub-list for method input_type
+	17, // 24: order.v1.OrderService.ListSellerOrders:input_type -> order.v1.ListSellerOrdersRequest
+	18, // 25: order.v1.OrderService.UpdateSellerOrderItemStatus:input_type -> order.v1.UpdateSellerOrderItemStatusRequest
+	3,  // 26: order.v1.OrderService.GetCart:output_type -> order.v1.Cart
+	3,  // 27: order.v1.OrderService.AddToCart:output_type -> order.v1.Cart
+	3,  // 28: order.v1.OrderService.UpdateCartItem:output_type -> order.v1.Cart
+	3,  // 29: order.v1.OrderService.RemoveCartItem:output_type -> order.v1.Cart
+	3,  // 30: order.v1.OrderService.ClearCart:output_type -> order.v1.Cart
+	5,  // 31: order.v1.OrderService.Checkout:output_type -> order.v1.Order
+	5,  // 32: order.v1.OrderService.GetOrder:output_type -> order.v1.Order
+	15, // 33: order.v1.OrderService.ListOrders:output_type -> order.v1.ListOrdersResponse
+	5,  // 34: order.v1.OrderService.CancelOrder:output_type -> order.v1.Order
+	15, // 35: order.v1.OrderService.ListSellerOrders:output_type -> order.v1.ListOrdersResponse
+	21, // 36: order.v1.OrderService.UpdateSellerOrderItemStatus:output_type -> google.protobuf.Empty
+	26, // [26:37] is the sub-list for method output_type
+	15, // [15:26] is the sub-list for method input_type
 	15, // [15:15] is the sub-list for extension type_name
 	15, // [15:15] is the sub-list for extension extendee
 	0,  // [0:15] is the sub-list for field type_name
@@ -1556,7 +1694,7 @@ func file_order_v1_order_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_order_proto_rawDesc), len(file_order_v1_order_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   15,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

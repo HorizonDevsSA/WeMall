@@ -581,3 +581,92 @@ func (q *Queries) UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusPa
 	_, err := q.db.Exec(ctx, updateOrderStatus, arg.ID, arg.Column2)
 	return err
 }
+
+// ── Seller order queries (hand-written) ──────────────────────────────────────
+
+const listOrdersBySeller = `-- name: ListOrdersBySeller :many
+SELECT DISTINCT o.id, o.order_number, o.user_id, o.status, o.subtotal, o.shipping_fee,
+       o.discount_amount, o.total, o.shipping_address, o.coupon_code, o.notes, o.currency,
+       o.created_at, o.updated_at
+FROM orders o
+JOIN order_items oi ON oi.order_id = o.id
+WHERE oi.seller_id = $1
+ORDER BY o.created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type ListOrdersBySellerParams struct {
+	SellerID uuid.UUID `json:"seller_id"`
+	Limit    int32     `json:"limit"`
+	Offset   int32     `json:"offset"`
+}
+
+// ListOrdersBySeller returns all orders that contain at least one item belonging to the given seller.
+func (q *Queries) ListOrdersBySeller(ctx context.Context, arg ListOrdersBySellerParams) ([]Order, error) {
+	rows, err := q.db.Query(ctx, listOrdersBySeller, arg.SellerID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Order
+	for rows.Next() {
+		var i Order
+		if err := rows.Scan(
+			&i.ID,
+			&i.OrderNumber,
+			&i.UserID,
+			&i.Status,
+			&i.Subtotal,
+			&i.ShippingFee,
+			&i.DiscountAmount,
+			&i.Total,
+			&i.ShippingAddress,
+			&i.CouponCode,
+			&i.Notes,
+			&i.Currency,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const countOrdersBySeller = `-- name: CountOrdersBySeller :one
+SELECT COUNT(DISTINCT o.id)
+FROM orders o
+JOIN order_items oi ON oi.order_id = o.id
+WHERE oi.seller_id = $1
+`
+
+// CountOrdersBySeller returns the total distinct order count for a seller.
+func (q *Queries) CountOrdersBySeller(ctx context.Context, sellerID uuid.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, countOrdersBySeller, sellerID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const updateOrderItemStatusBySeller = `-- name: UpdateOrderItemStatusBySeller :exec
+UPDATE order_items
+SET status = $3::order_status
+WHERE order_id = $1 AND seller_id = $2
+`
+
+type UpdateOrderItemStatusBySellerParams struct {
+	OrderID  uuid.UUID `json:"order_id"`
+	SellerID uuid.UUID `json:"seller_id"`
+	Column3  string    `json:"column_3"`
+}
+
+// UpdateOrderItemStatusBySeller updates the status of order items belonging to a specific seller within an order.
+func (q *Queries) UpdateOrderItemStatusBySeller(ctx context.Context, arg UpdateOrderItemStatusBySellerParams) error {
+	_, err := q.db.Exec(ctx, updateOrderItemStatusBySeller, arg.OrderID, arg.SellerID, arg.Column3)
+	return err
+}
+

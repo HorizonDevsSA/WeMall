@@ -97,3 +97,24 @@ WHERE c.code = $1
 -- name: IncrementCouponUses :exec
 UPDATE coupons SET used_count = used_count + 1
 WHERE code = $1;
+
+-- name: ListOrdersBySeller :many
+SELECT DISTINCT o.id, o.order_number, o.user_id, o.status, o.subtotal, o.shipping_fee,
+       o.discount_amount, o.total, o.shipping_address, o.coupon_code, o.notes, o.currency,
+       o.created_at, o.updated_at
+FROM orders o
+JOIN order_items oi ON oi.order_id = o.id
+WHERE oi.seller_id = $1
+ORDER BY o.created_at DESC
+LIMIT $2 OFFSET $3;
+
+-- name: CountOrdersBySeller :one
+SELECT COUNT(DISTINCT o.id)
+FROM orders o
+JOIN order_items oi ON oi.order_id = o.id
+WHERE oi.seller_id = $1;
+
+-- name: UpdateOrderItemStatusBySeller :exec
+UPDATE order_items
+SET status = $3::order_status
+WHERE order_id = $1 AND seller_id = $2;

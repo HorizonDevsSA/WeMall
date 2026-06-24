@@ -991,3 +991,45 @@ func (r *mutationResolver) StationCheckOutPackage(ctx context.Context, stationID
 	}
 	return resp.Success, nil
 }
+
+func (r *mutationResolver) UpdateSellerOrderItemStatus(ctx context.Context, orderID string, newStatus model.OrderStatus) (bool, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return false, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	sellerStore, err := r.Clients.Seller.GetSellerByUserID(ctx, &sellerv1.GetSellerByUserIDRequest{UserId: uid})
+	if err != nil {
+		return false, err
+	}
+	storeID := sellerStore.Id
+
+	var statusStr string
+	switch newStatus {
+	case model.OrderStatusPending:
+		statusStr = "pending"
+	case model.OrderStatusConfirmed:
+		statusStr = "confirmed"
+	case model.OrderStatusShipped:
+		statusStr = "shipped"
+	case model.OrderStatusDelivered:
+		statusStr = "delivered"
+	case model.OrderStatusCancelled:
+		statusStr = "cancelled"
+	case model.OrderStatusRefunded:
+		statusStr = "refunded"
+	default:
+		statusStr = "pending"
+	}
+
+	_, err = r.Clients.Order.UpdateSellerOrderItemStatus(ctx, &orderv1.UpdateSellerOrderItemStatusRequest{
+		OrderId:  orderID,
+		SellerId: storeID,
+		Status:   statusStr,
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}

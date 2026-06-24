@@ -524,16 +524,62 @@ func (r *queryResolver) SellerDashboard(ctx context.Context) (*model.SellerDashb
 		}
 	}
 
-	// 3. Mock some values for pendingOrdersCount, totalOrdersCount, weeklyRevenue, and recentOrders as approved in implementation plan
-	pendingOrdersCount := 3
-	totalOrdersCount := 28
-	weeklyRevenue := []float64{1200.50, 1850.20, 950.00, 2200.10, 3100.40, 1500.00, 2800.75}
+	// 3. Query seller orders
+	var pendingOrdersCount int
+	var totalOrdersCount int
+	weeklyRevenue := make([]float64, 7)
+	recentOrders := []*model.Order{}
+
+	ordersResp, err := r.Clients.Order.ListSellerOrders(ctx, &orderv1.ListSellerOrdersRequest{
+		SellerId:  storeID,
+		PageSize:  100,
+		PageToken: "",
+	})
+	if err == nil && ordersResp != nil {
+		totalOrdersCount = int(ordersResp.Total)
+		now := time.Now()
+		
+		getSellerOrderRevenue := func(o *orderv1.Order, sellerID string) float64 {
+			var rev float64
+			for _, item := range o.Items {
+				if item.SellerId == sellerID {
+					rev += item.UnitPrice * float64(item.Quantity)
+				}
+			}
+			return rev
+		}
+
+		for _, o := range ordersResp.Orders {
+			if o.Status == orderv1.OrderStatus_ORDER_STATUS_PENDING {
+				pendingOrdersCount++
+			}
+			
+			if o.CreatedAt != nil {
+				t := o.CreatedAt.AsTime()
+				daysDiff := int(now.Sub(t).Hours() / 24)
+				if daysDiff >= 0 && daysDiff < 7 {
+					weeklyRevenue[6-daysDiff] += getSellerOrderRevenue(o, storeID)
+				}
+			}
+		}
+
+		recentCount := len(ordersResp.Orders)
+		if recentCount > 5 {
+			recentCount = 5
+		}
+		recentOrders = make([]*model.Order, recentCount)
+		for i := 0; i < recentCount; i++ {
+			recentOrders[i] = mapOrder(ordersResp.Orders[i])
+		}
+	} else {
+		// Fallback mocks if service fails or is empty to ensure smooth UI
+		pendingOrdersCount = 0
+		totalOrdersCount = 0
+		weeklyRevenue = []float64{0, 0, 0, 0, 0, 0, 0}
+	}
 
 	// Map seller to model.Seller
 	modelStore := mapSeller(sellerStore)
-
-	// Mock recent orders
-	recentOrders := []*model.Order{}
 
 	return &model.SellerDashboard{
 		Store:               modelStore,
@@ -543,6 +589,58 @@ func (r *queryResolver) SellerDashboard(ctx context.Context) (*model.SellerDashb
 		TotalOrdersCount:    totalOrdersCount,
 		RecentOrders:        recentOrders,
 		WeeklyRevenue:       weeklyRevenue,
+	}, nil
+}
+
+func (r *queryResolver) MySellerOrders(ctx context.Context, pageSize *int, pageToken *string, status *model.OrderStatus) (*model.SellerOrderList, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	// 1. Get seller profile to get store ID
+	sellerStore, err := r.Clients.Seller.GetSellerByUserID(ctx, &sellerv1.GetSellerByUserIDRequest{UserId: uid})
+	if err != nil {
+		return nil, err
+	}
+	storeID := sellerStore.Id
+
+	ps := int32(20)
+	if pageSize != nil {
+		ps = int32(*pageSize)
+	}
+	pt := ""
+	if pageToken != nil {
+		pt = *pageToken
+	}
+
+	resp, err := r.Clients.Order.ListSellerOrders(ctx, &orderv1.ListSellerOrdersRequest{
+		SellerId:  storeID,
+		PageSize:  ps,
+		PageToken: pt,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	orders := []*model.Order{}
+	for _, o := range resp.Orders {
+		mo := mapOrder(o)
+		if status != nil && mo.Status != *status {
+			continue
+		}
+		orders = append(orders, mo)
+	}
+
+	var nextPageToken *string
+	if resp.NextPageToken != "" {
+		nextPageToken = &resp.NextPageToken
+	}
+
+	return &model.SellerOrderList{
+		Orders:        orders,
+		NextPageToken: nextPageToken,
+		Total:         int(resp.Total),
 	}, nil
 }
 

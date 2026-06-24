@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	orderv1 "github.com/wemall/gen/order/v1"
 	"github.com/wemall/order-service/internal/service"
@@ -159,3 +160,37 @@ func (h *OrderHandler) CancelOrder(ctx context.Context, req *orderv1.CancelOrder
 	}
 	return order, nil
 }
+
+// ListSellerOrders returns all orders containing items from the given seller.
+func (h *OrderHandler) ListSellerOrders(ctx context.Context, req *orderv1.ListSellerOrdersRequest) (*orderv1.ListOrdersResponse, error) {
+	sid, err := uuid.Parse(req.SellerId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid seller id")
+	}
+	orders, total, nextToken, err := h.orderSvc.ListSellerOrders(ctx, sid, req.PageSize, req.PageToken)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to list seller orders")
+	}
+	return &orderv1.ListOrdersResponse{
+		Orders:        orders,
+		NextPageToken: nextToken,
+		Total:         total,
+	}, nil
+}
+
+// UpdateSellerOrderItemStatus updates the status of all items belonging to this seller in an order.
+func (h *OrderHandler) UpdateSellerOrderItemStatus(ctx context.Context, req *orderv1.UpdateSellerOrderItemStatusRequest) (*emptypb.Empty, error) {
+	oid, err := uuid.Parse(req.OrderId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid order id")
+	}
+	sid, err := uuid.Parse(req.SellerId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid seller id")
+	}
+	if err := h.orderSvc.UpdateSellerOrderItemStatus(ctx, oid, sid, req.Status); err != nil {
+		return nil, status.Error(codes.Internal, "failed to update order item status")
+	}
+	return &emptypb.Empty{}, nil
+}
+

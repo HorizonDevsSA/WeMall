@@ -327,6 +327,12 @@ type SellerDashboard struct {
 	WeeklyRevenue       []float64 `json:"weeklyRevenue"`
 }
 
+type SellerOrderList struct {
+	Orders        []*Order `json:"orders"`
+	NextPageToken *string  `json:"nextPageToken,omitempty"`
+	Total         int      `json:"total"`
+}
+
 type SellerReply struct {
 	ID        string    `json:"id"`
 	ReplyType string    `json:"replyType"`

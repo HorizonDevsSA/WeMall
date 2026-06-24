@@ -67,9 +67,9 @@ def gql_request(query, variables=None, token=None):
 def main():
     print("=== 1. Checking Store ===")
     my_store_data = gql_request("query { myStore { id storeName status } }", token=SELLER_TOKEN)
-    if not my_store_data:
-        return
-    store = my_store_data.get("myStore")
+    store = None
+    if my_store_data:
+        store = my_store_data.get("myStore")
     if not store:
         print("Creating Store...")
         store_res = gql_request("""

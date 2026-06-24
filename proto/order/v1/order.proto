@@ -162,6 +162,18 @@ message CancelOrderRequest {
   string user_id = 2;
 }
 
+message ListSellerOrdersRequest {
+  string seller_id  = 1;
+  int32  page_size  = 2;
+  string page_token = 3;
+}
+
+message UpdateSellerOrderItemStatusRequest {
+  string order_id  = 1;
+  string seller_id = 2;
+  string status    = 3;
+}
+
 // ── Service ───────────────────────────────────────────────────────────────────
 
 service OrderService {
@@ -177,4 +189,6 @@ service OrderService {
   rpc GetOrder(GetOrderRequest)             returns (Order);
   rpc ListOrders(ListOrdersRequest)         returns (ListOrdersResponse);
   rpc CancelOrder(CancelOrderRequest)       returns (Order);
+  rpc ListSellerOrders(ListSellerOrdersRequest) returns (ListOrdersResponse);
+  rpc UpdateSellerOrderItemStatus(UpdateSellerOrderItemStatusRequest) returns (google.protobuf.Empty);
 }

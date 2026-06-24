@@ -407,6 +407,7 @@ type Query {
   # Seller
   myStore: Seller @hasRole(role: SELLER)
   sellerDashboard: SellerDashboard! @hasRole(role: SELLER)
+  mySellerOrders(pageSize: Int, pageToken: String, status: OrderStatus): SellerOrderList! @hasRole(role: SELLER)
   seller(id: ID!): Seller!
   isFollowingStore(sellerId: ID!): Boolean! @hasRole(role: BUYER)
   myFollowedStores(pageSize: Int, pageToken: String): FollowedStoresList! @hasRole(role: BUYER)
@@ -527,6 +528,9 @@ type Mutation {
   # Orders
   checkout(input: CheckoutInput!): Order! @hasRole(role: BUYER)
   cancelOrder(id: ID!): Order! @hasRole(role: BUYER)
+
+  # Seller order management
+  updateSellerOrderItemStatus(orderId: ID!, newStatus: OrderStatus!): Boolean! @hasRole(role: SELLER)
 
   # Payments
   initiatePayment(orderId: ID!, provider: PaymentProvider!): InitiatePaymentResponse! @hasRole(role: BUYER)
@@ -775,6 +779,12 @@ type SellerDashboard {
   totalOrdersCount: Int!
   recentOrders: [Order!]!
   weeklyRevenue: [Float!]!
+}
+
+type SellerOrderList {
+  orders: [Order!]!
+  nextPageToken: String
+  total: Int!
 }
 
 # ── Dispute Types ─────────────────────────────────────────────────────────────

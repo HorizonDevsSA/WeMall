@@ -318,6 +318,7 @@ type ComplexityRoot struct {
 		UpdateProduct                 func(childComplexity int, id string, input model.UpdateProductInput) int
 		UpdateProfile                 func(childComplexity int, fullName *string, avatarURL *string) int
 		UpdateReview                  func(childComplexity int, input model.UpdateReviewInput) int
+		UpdateSellerOrderItemStatus   func(childComplexity int, orderID string, newStatus model.OrderStatus) int
 		UpdateSellerStatus            func(childComplexity int, sellerID string, status model.SellerStatus) int
 		UpdateStore                   func(childComplexity int, input model.UpdateStoreInput) int
 	}
@@ -504,6 +505,7 @@ type ComplexityRoot struct {
 		MyDisputes                  func(childComplexity int) int
 		MyFollowedStores            func(childComplexity int, pageSize *int, pageToken *string) int
 		MyNotifications             func(childComplexity int, limit *int, offset *int) int
+		MySellerOrders              func(childComplexity int, pageSize *int, pageToken *string, status *model.OrderStatus) int
 		MyStore                     func(childComplexity int) int
 		NearbyProducts              func(childComplexity int, latitude float64, longitude float64, radiusMeters float64, pageSize *int, pageToken *string) int
 		NearbyStations              func(childComplexity int, latitude float64, longitude float64, radiusMeters float64) int
@@ -588,6 +590,12 @@ type ComplexityRoot struct {
 		WeeklyRevenue       func(childComplexity int) int
 	}
 
+	SellerOrderList struct {
+		NextPageToken func(childComplexity int) int
+		Orders        func(childComplexity int) int
+		Total         func(childComplexity int) int
+	}
+
 	SellerReply struct {
 		Content   func(childComplexity int) int
 		CreatedAt func(childComplexity int) int
@@ -662,6 +670,7 @@ type MutationResolver interface {
 	ClearCart(ctx context.Context) (*model.Cart, error)
 	Checkout(ctx context.Context, input model.CheckoutInput) (*model.Order, error)
 	CancelOrder(ctx context.Context, id string) (*model.Order, error)
+	UpdateSellerOrderItemStatus(ctx context.Context, orderID string, newStatus model.OrderStatus) (bool, error)
 	InitiatePayment(ctx context.Context, orderID string, provider model.PaymentProvider) (*model.InitiatePaymentResponse, error)
 	ProcessPayment(ctx context.Context, paymentID string, token string) (*model.Payment, error)
 	RegisterDeviceToken(ctx context.Context, token string, platform string, deviceName *string) (bool, error)
@@ -714,6 +723,7 @@ type QueryResolver interface {
 	RecommendedProducts(ctx context.Context, pageSize *int, pageToken *string, language *string) (*model.ProductList, error)
 	MyStore(ctx context.Context) (*model.Seller, error)
 	SellerDashboard(ctx context.Context) (*model.SellerDashboard, error)
+	MySellerOrders(ctx context.Context, pageSize *int, pageToken *string, status *model.OrderStatus) (*model.SellerOrderList, error)
 	Seller(ctx context.Context, id string) (*model.Seller, error)
 	IsFollowingStore(ctx context.Context, sellerID string) (bool, error)
 	MyFollowedStores(ctx context.Context, pageSize *int, pageToken *string) (*model.FollowedStoresList, error)
@@ -2385,6 +2395,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateReview(childComplexity, args["input"].(model.UpdateReviewInput)), true
 
+	case "Mutation.updateSellerOrderItemStatus":
+		if e.complexity.Mutation.UpdateSellerOrderItemStatus == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateSellerOrderItemStatus_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateSellerOrderItemStatus(childComplexity, args["orderId"].(string), args["newStatus"].(model.OrderStatus)), true
+
 	case "Mutation.updateSellerStatus":
 		if e.complexity.Mutation.UpdateSellerStatus == nil {
 			break
@@ -3426,6 +3448,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.MyNotifications(childComplexity, args["limit"].(*int), args["offset"].(*int)), true
 
+	case "Query.mySellerOrders":
+		if e.complexity.Query.MySellerOrders == nil {
+			break
+		}
+
+		args, err := ec.field_Query_mySellerOrders_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MySellerOrders(childComplexity, args["pageSize"].(*int), args["pageToken"].(*string), args["status"].(*model.OrderStatus)), true
+
 	case "Query.myStore":
 		if e.complexity.Query.MyStore == nil {
 			break
@@ -3954,6 +3988,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SellerDashboard.WeeklyRevenue(childComplexity), true
+
+	case "SellerOrderList.nextPageToken":
+		if e.complexity.SellerOrderList.NextPageToken == nil {
+			break
+		}
+
+		return e.complexity.SellerOrderList.NextPageToken(childComplexity), true
+
+	case "SellerOrderList.orders":
+		if e.complexity.SellerOrderList.Orders == nil {
+			break
+		}
+
+		return e.complexity.SellerOrderList.Orders(childComplexity), true
+
+	case "SellerOrderList.total":
+		if e.complexity.SellerOrderList.Total == nil {
+			break
+		}
+
+		return e.complexity.SellerOrderList.Total(childComplexity), true
 
 	case "SellerReply.content":
 		if e.complexity.SellerReply.Content == nil {
@@ -4711,6 +4766,7 @@ type Query {
   # Seller
   myStore: Seller @hasRole(role: SELLER)
   sellerDashboard: SellerDashboard! @hasRole(role: SELLER)
+  mySellerOrders(pageSize: Int, pageToken: String, status: OrderStatus): SellerOrderList! @hasRole(role: SELLER)
   seller(id: ID!): Seller!
   isFollowingStore(sellerId: ID!): Boolean! @hasRole(role: BUYER)
   myFollowedStores(pageSize: Int, pageToken: String): FollowedStoresList! @hasRole(role: BUYER)
@@ -4831,6 +4887,9 @@ type Mutation {
   # Orders
   checkout(input: CheckoutInput!): Order! @hasRole(role: BUYER)
   cancelOrder(id: ID!): Order! @hasRole(role: BUYER)
+
+  # Seller order management
+  updateSellerOrderItemStatus(orderId: ID!, newStatus: OrderStatus!): Boolean! @hasRole(role: SELLER)
 
   # Payments
   initiatePayment(orderId: ID!, provider: PaymentProvider!): InitiatePaymentResponse! @hasRole(role: BUYER)
@@ -5079,6 +5138,12 @@ type SellerDashboard {
   totalOrdersCount: Int!
   recentOrders: [Order!]!
   weeklyRevenue: [Float!]!
+}
+
+type SellerOrderList {
+  orders: [Order!]!
+  nextPageToken: String
+  total: Int!
 }
 
 # ── Dispute Types ─────────────────────────────────────────────────────────────
@@ -6462,6 +6527,30 @@ func (ec *executionContext) field_Mutation_updateReview_args(ctx context.Context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateSellerOrderItemStatus_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["orderId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderId"] = arg0
+	var arg1 model.OrderStatus
+	if tmp, ok := rawArgs["newStatus"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newStatus"))
+		arg1, err = ec.unmarshalNOrderStatus2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐOrderStatus(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["newStatus"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateSellerStatus_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -6780,6 +6869,39 @@ func (ec *executionContext) field_Query_myNotifications_args(ctx context.Context
 		}
 	}
 	args["offset"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_mySellerOrders_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["pageSize"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageSize"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageSize"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["pageToken"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageToken"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageToken"] = arg1
+	var arg2 *model.OrderStatus
+	if tmp, ok := rawArgs["status"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+		arg2, err = ec.unmarshalOOrderStatus2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐOrderStatus(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["status"] = arg2
 	return args, nil
 }
 
@@ -15761,6 +15883,85 @@ func (ec *executionContext) fieldContext_Mutation_cancelOrder(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_cancelOrder_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateSellerOrderItemStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateSellerOrderItemStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateSellerOrderItemStatus(rctx, fc.Args["orderId"].(string), fc.Args["newStatus"].(model.OrderStatus))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "SELLER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateSellerOrderItemStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateSellerOrderItemStatus_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -24841,6 +25042,93 @@ func (ec *executionContext) fieldContext_Query_sellerDashboard(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_mySellerOrders(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_mySellerOrders(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().MySellerOrders(rctx, fc.Args["pageSize"].(*int), fc.Args["pageToken"].(*string), fc.Args["status"].(*model.OrderStatus))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "SELLER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.SellerOrderList); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/wemall/api-gateway/internal/graph/model.SellerOrderList`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.SellerOrderList)
+	fc.Result = res
+	return ec.marshalNSellerOrderList2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐSellerOrderList(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_mySellerOrders(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "orders":
+				return ec.fieldContext_SellerOrderList_orders(ctx, field)
+			case "nextPageToken":
+				return ec.fieldContext_SellerOrderList_nextPageToken(ctx, field)
+			case "total":
+				return ec.fieldContext_SellerOrderList_total(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SellerOrderList", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_mySellerOrders_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_seller(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_seller(ctx, field)
 	if err != nil {
@@ -29348,6 +29636,167 @@ func (ec *executionContext) fieldContext_SellerDashboard_weeklyRevenue(ctx conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SellerOrderList_orders(ctx context.Context, field graphql.CollectedField, obj *model.SellerOrderList) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SellerOrderList_orders(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Orders, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Order)
+	fc.Result = res
+	return ec.marshalNOrder2ᚕᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐOrderᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SellerOrderList_orders(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SellerOrderList",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Order_id(ctx, field)
+			case "orderNumber":
+				return ec.fieldContext_Order_orderNumber(ctx, field)
+			case "userId":
+				return ec.fieldContext_Order_userId(ctx, field)
+			case "status":
+				return ec.fieldContext_Order_status(ctx, field)
+			case "subtotal":
+				return ec.fieldContext_Order_subtotal(ctx, field)
+			case "shippingFee":
+				return ec.fieldContext_Order_shippingFee(ctx, field)
+			case "discountAmount":
+				return ec.fieldContext_Order_discountAmount(ctx, field)
+			case "total":
+				return ec.fieldContext_Order_total(ctx, field)
+			case "shippingAddress":
+				return ec.fieldContext_Order_shippingAddress(ctx, field)
+			case "items":
+				return ec.fieldContext_Order_items(ctx, field)
+			case "couponCode":
+				return ec.fieldContext_Order_couponCode(ctx, field)
+			case "notes":
+				return ec.fieldContext_Order_notes(ctx, field)
+			case "currency":
+				return ec.fieldContext_Order_currency(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Order_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Order_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Order", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SellerOrderList_nextPageToken(ctx context.Context, field graphql.CollectedField, obj *model.SellerOrderList) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SellerOrderList_nextPageToken(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NextPageToken, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SellerOrderList_nextPageToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SellerOrderList",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SellerOrderList_total(ctx context.Context, field graphql.CollectedField, obj *model.SellerOrderList) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SellerOrderList_total(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Total, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SellerOrderList_total(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SellerOrderList",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -35481,6 +35930,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "updateSellerOrderItemStatus":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateSellerOrderItemStatus(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "initiatePayment":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_initiatePayment(ctx, field)
@@ -37149,6 +37605,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "mySellerOrders":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_mySellerOrders(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "seller":
 			field := field
 
@@ -38103,6 +38581,52 @@ func (ec *executionContext) _SellerDashboard(ctx context.Context, sel ast.Select
 			}
 		case "weeklyRevenue":
 			out.Values[i] = ec._SellerDashboard_weeklyRevenue(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var sellerOrderListImplementors = []string{"SellerOrderList"}
+
+func (ec *executionContext) _SellerOrderList(ctx context.Context, sel ast.SelectionSet, obj *model.SellerOrderList) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sellerOrderListImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SellerOrderList")
+		case "orders":
+			out.Values[i] = ec._SellerOrderList_orders(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "nextPageToken":
+			out.Values[i] = ec._SellerOrderList_nextPageToken(ctx, field, obj)
+		case "total":
+			out.Values[i] = ec._SellerOrderList_total(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -40596,6 +41120,20 @@ func (ec *executionContext) marshalNSellerDashboard2ᚖgithubᚗcomᚋwemallᚋa
 	return ec._SellerDashboard(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNSellerOrderList2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐSellerOrderList(ctx context.Context, sel ast.SelectionSet, v model.SellerOrderList) graphql.Marshaler {
+	return ec._SellerOrderList(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSellerOrderList2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐSellerOrderList(ctx context.Context, sel ast.SelectionSet, v *model.SellerOrderList) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SellerOrderList(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNSellerReply2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐSellerReply(ctx context.Context, sel ast.SelectionSet, v model.SellerReply) graphql.Marshaler {
 	return ec._SellerReply(ctx, sel, &v)
 }
@@ -41346,6 +41884,23 @@ func (ec *executionContext) marshalOJSON2map(ctx context.Context, sel ast.Select
 		return graphql.Null
 	}
 	res := graphql.MarshalMap(v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOOrderStatus2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐOrderStatus(ctx context.Context, v interface{}) (*model.OrderStatus, error) {
+	if v == nil {
+		return nil, nil
+	}
+	tmp, err := graphql.UnmarshalString(v)
+	res := model.OrderStatus(tmp)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOOrderStatus2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐOrderStatus(ctx context.Context, sel ast.SelectionSet, v *model.OrderStatus) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalString(string(*v))
 	return res
 }
 

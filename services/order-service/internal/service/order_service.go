@@ -351,6 +351,58 @@ func (s *OrderService) CancelOrder(ctx context.Context, id, userID uuid.UUID) (*
 	return assembleOrder(&o, items), nil
 }
 
+func (s *OrderService) ListSellerOrders(ctx context.Context, sellerID uuid.UUID, pageSize int32, pageToken string) ([]*orderv1.Order, int32, string, error) {
+	limit := int32(20)
+	if pageSize > 0 {
+		limit = pageSize
+	}
+
+	offset := int32(0)
+	if pageToken != "" {
+		var o int32
+		if _, err := fmt.Sscanf(pageToken, "offset_%d", &o); err == nil {
+			offset = o
+		}
+	}
+
+	totalCount, err := s.q.CountOrdersBySeller(ctx, sellerID)
+	if err != nil {
+		return nil, 0, "", fmt.Errorf("count seller orders: %w", err)
+	}
+
+	list, err := s.q.ListOrdersBySeller(ctx, db.ListOrdersBySellerParams{
+		SellerID: sellerID,
+		Limit:    limit,
+		Offset:   offset,
+	})
+	if err != nil {
+		return nil, 0, "", fmt.Errorf("list seller orders: %w", err)
+	}
+
+	res := make([]*orderv1.Order, len(list))
+	for i := range list {
+		items, _ := s.q.GetOrderItems(ctx, list[i].ID)
+		res[i] = assembleOrder(&list[i], items)
+	}
+
+	nextPageToken := ""
+	total := int32(totalCount)
+	if offset+limit < total {
+		nextPageToken = fmt.Sprintf("offset_%d", offset+limit)
+	}
+
+	return res, total, nextPageToken, nil
+}
+
+func (s *OrderService) UpdateSellerOrderItemStatus(ctx context.Context, orderID, sellerID uuid.UUID, newStatus string) error {
+	return s.q.UpdateOrderItemStatusBySeller(ctx, db.UpdateOrderItemStatusBySellerParams{
+		OrderID:  orderID,
+		SellerID: sellerID,
+		Column3:  newStatus,
+	})
+}
+
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 func jsonToStruct(b []byte) *structpb.Struct {

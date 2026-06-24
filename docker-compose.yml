@@ -413,7 +413,9 @@ services:
     ports: ['9012:9012']
     environment:
       DB_URL: postgres://wemall:wemall_secret@postgres-chat:5432/wemall_chat?sslmode=disable
+      DATABASE_URL: postgres://wemall:wemall_secret@postgres-chat:5432/wemall_chat?sslmode=disable
       GRPC_PORT: '9012'
+      PORT: '9012'
       NATS_URL: nats://nats:4222
       ENVIRONMENT: development
     depends_on:
@@ -471,7 +473,9 @@ services:
     ports: ['9015:9015']
     environment:
       DB_URL: postgres://wemall:wemall_secret@postgres-promotion:5432/wemall_promotion?sslmode=disable
+      DATABASE_URL: postgres://wemall:wemall_secret@postgres-promotion:5432/wemall_promotion?sslmode=disable
       GRPC_PORT: '9015'
+      PORT: '9015'
       NATS_URL: nats://nats:4222
       ENVIRONMENT: development
     depends_on:
@@ -488,7 +492,9 @@ services:
     ports: ['9016:9016']
     environment:
       DB_URL: postgres://wemall:wemall_secret@postgres-recommendation:5432/wemall_recommendation?sslmode=disable
+      DATABASE_URL: postgres://wemall:wemall_secret@postgres-recommendation:5432/wemall_recommendation?sslmode=disable
       GRPC_PORT: '9016'
+      PORT: '9016'
       NATS_URL: nats://nats:4222
       ENVIRONMENT: development
     depends_on:
