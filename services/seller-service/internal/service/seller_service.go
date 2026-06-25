@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 
 	"github.com/google/uuid"
@@ -373,32 +374,134 @@ func (s *SellerService) CreatePayout(ctx context.Context, sellerID uuid.UUID, am
 		return nil, werr.FailedPrecondition(fmt.Sprintf("insufficient withdrawable balance: have %.2f, requested %.2f", balances.WithdrawableBalance, amount))
 	}
 
-	// Fetch sum of earned items
-	earnedSum, err := qtx.GetEarnedSumBySeller(ctx, sellerID)
+	// Fetch all earned earnings ordered by created_at ASC (FIFO)
+	earnedEntries, err := qtx.GetEarnedEarnings(ctx, sellerID)
 	if err != nil {
 		return nil, werr.Internal(err)
 	}
 
-	// Create payout in DB
+	// Pre-calculate FIFO allocation and cumulative totals
+	type allocation struct {
+		entry          db.SellerEarning
+		isSplit        bool
+		grossPortion   float64
+		feePortion     float64
+		netPortion     float64
+		remainingGross float64
+		remainingFee   float64
+		remainingNet   float64
+	}
+
+	var allocations []allocation
+	var grossSum, feeSum, netSum float64
+	remainingPayout := amount
+
+	for _, entry := range earnedEntries {
+		if remainingPayout <= 0 {
+			break
+		}
+
+		if entry.NetAmount <= remainingPayout {
+			// Fully paid
+			allocations = append(allocations, allocation{
+				entry:        entry,
+				isSplit:      false,
+				grossPortion: entry.GrossAmount,
+				feePortion:   entry.CommissionFee,
+				netPortion:   entry.NetAmount,
+			})
+			grossSum += entry.GrossAmount
+			feeSum += entry.CommissionFee
+			netSum += entry.NetAmount
+			remainingPayout -= entry.NetAmount
+		} else {
+			// Partially paid - this entry must be split
+			netPortion := remainingPayout
+			ratio := netPortion / entry.NetAmount
+			feePortion := math.Round(entry.CommissionFee*ratio*100) / 100
+			grossPortion := netPortion + feePortion
+
+			netRemain := entry.NetAmount - netPortion
+			feeRemain := entry.CommissionFee - feePortion
+			grossRemain := entry.GrossAmount - grossPortion
+
+			allocations = append(allocations, allocation{
+				entry:          entry,
+				isSplit:        true,
+				grossPortion:   grossPortion,
+				feePortion:     feePortion,
+				netPortion:     netPortion,
+				remainingGross: grossRemain,
+				remainingFee:   feeRemain,
+				remainingNet:   netRemain,
+			})
+
+			grossSum += grossPortion
+			feeSum += feePortion
+			netSum += netPortion
+			remainingPayout = 0
+		}
+	}
+
+	// Create payout in DB with calculated sums
 	payout, err := qtx.CreatePayout(ctx, db.CreatePayoutParams{
 		SellerID:    sellerID,
 		Amount:      amount,
 		Currency:    currency,
-		GrossAmount: earnedSum.GrossSum,
-		PlatformFee: earnedSum.FeeSum,
-		NetAmount:   earnedSum.NetSum,
+		GrossAmount: grossSum,
+		PlatformFee: feeSum,
+		NetAmount:   netSum,
 	})
 	if err != nil {
 		return nil, werr.Internal(err)
 	}
 
-	// Link payout to earnings and change status to 'payout_released'
-	err = qtx.BulkLinkPayoutToEarnings(ctx, db.BulkLinkPayoutToEarningsParams{
-		SellerID: sellerID,
-		PayoutID: pgtype.UUID{Bytes: payout.ID, Valid: true},
-	})
-	if err != nil {
-		return nil, werr.Internal(err)
+	payoutUUID := pgtype.UUID{Bytes: payout.ID, Valid: true}
+
+	// Perform database updates/inserts based on pre-calculated allocations
+	for _, alloc := range allocations {
+		if !alloc.isSplit {
+			_, err = qtx.UpdateEarningAmountsAndStatus(ctx, db.UpdateEarningAmountsAndStatusParams{
+				ID:            alloc.entry.ID,
+				Status:        "payout_released",
+				PayoutID:      payoutUUID,
+				GrossAmount:   alloc.grossPortion,
+				CommissionFee: alloc.feePortion,
+				NetAmount:     alloc.netPortion,
+			})
+			if err != nil {
+				return nil, werr.Internal(err)
+			}
+		} else {
+			// Update the original row with the paid portion
+			_, err = qtx.UpdateEarningAmountsAndStatus(ctx, db.UpdateEarningAmountsAndStatusParams{
+				ID:            alloc.entry.ID,
+				Status:        "payout_released",
+				PayoutID:      payoutUUID,
+				GrossAmount:   alloc.grossPortion,
+				CommissionFee: alloc.feePortion,
+				NetAmount:     alloc.netPortion,
+			})
+			if err != nil {
+				return nil, werr.Internal(err)
+			}
+
+			// Insert a new row for the remaining unpaid portion
+			_, err = qtx.CreateEarningEntryWithDetails(ctx, db.CreateEarningEntryWithDetailsParams{
+				SellerID:      alloc.entry.SellerID,
+				OrderID:       alloc.entry.OrderID,
+				OrderItemID:   alloc.entry.OrderItemID,
+				GrossAmount:   alloc.remainingGross,
+				CommissionFee: alloc.remainingFee,
+				NetAmount:     alloc.remainingNet,
+				Status:        "earned",
+				CreatedAt:     alloc.entry.CreatedAt,
+				SettledAt:     alloc.entry.SettledAt,
+			})
+			if err != nil {
+				return nil, werr.Internal(err)
+			}
+		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {

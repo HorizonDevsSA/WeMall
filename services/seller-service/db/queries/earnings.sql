@@ -45,3 +45,24 @@ SELECT
 FROM seller_earnings
 WHERE seller_id = $1 AND status = 'earned';
 
+-- name: GetEarnedEarnings :many
+SELECT * FROM seller_earnings
+WHERE seller_id = $1 AND status = 'earned'
+ORDER BY created_at ASC;
+
+-- name: UpdateEarningAmountsAndStatus :one
+UPDATE seller_earnings
+SET status = $2,
+    payout_id = $3,
+    gross_amount = $4,
+    commission_fee = $5,
+    net_amount = $6
+WHERE id = $1
+RETURNING *;
+
+-- name: CreateEarningEntryWithDetails :one
+INSERT INTO seller_earnings (seller_id, order_id, order_item_id, gross_amount, commission_fee, net_amount, status, created_at, settled_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+RETURNING *;
+
+

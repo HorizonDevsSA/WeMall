@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -100,6 +101,101 @@ func (q *Queries) CreateEarningEntry(ctx context.Context, arg CreateEarningEntry
 		&i.PayoutID,
 	)
 	return i, err
+}
+
+const createEarningEntryWithDetails = `-- name: CreateEarningEntryWithDetails :one
+INSERT INTO seller_earnings (seller_id, order_id, order_item_id, gross_amount, commission_fee, net_amount, status, created_at, settled_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+RETURNING id, seller_id, order_id, order_item_id, gross_amount, commission_fee, net_amount, status, created_at, settled_at, payout_id
+`
+
+type CreateEarningEntryWithDetailsParams struct {
+	SellerID      uuid.UUID          `json:"seller_id"`
+	OrderID       uuid.UUID          `json:"order_id"`
+	OrderItemID   uuid.UUID          `json:"order_item_id"`
+	GrossAmount   float64            `json:"gross_amount"`
+	CommissionFee float64            `json:"commission_fee"`
+	NetAmount     float64            `json:"net_amount"`
+	Status        string             `json:"status"`
+	CreatedAt     time.Time          `json:"created_at"`
+	SettledAt     pgtype.Timestamptz `json:"settled_at"`
+}
+
+// CreateEarningEntryWithDetails
+//
+//	INSERT INTO seller_earnings (seller_id, order_id, order_item_id, gross_amount, commission_fee, net_amount, status, created_at, settled_at)
+//	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+//	RETURNING id, seller_id, order_id, order_item_id, gross_amount, commission_fee, net_amount, status, created_at, settled_at, payout_id
+func (q *Queries) CreateEarningEntryWithDetails(ctx context.Context, arg CreateEarningEntryWithDetailsParams) (SellerEarning, error) {
+	row := q.db.QueryRow(ctx, createEarningEntryWithDetails,
+		arg.SellerID,
+		arg.OrderID,
+		arg.OrderItemID,
+		arg.GrossAmount,
+		arg.CommissionFee,
+		arg.NetAmount,
+		arg.Status,
+		arg.CreatedAt,
+		arg.SettledAt,
+	)
+	var i SellerEarning
+	err := row.Scan(
+		&i.ID,
+		&i.SellerID,
+		&i.OrderID,
+		&i.OrderItemID,
+		&i.GrossAmount,
+		&i.CommissionFee,
+		&i.NetAmount,
+		&i.Status,
+		&i.CreatedAt,
+		&i.SettledAt,
+		&i.PayoutID,
+	)
+	return i, err
+}
+
+const getEarnedEarnings = `-- name: GetEarnedEarnings :many
+SELECT id, seller_id, order_id, order_item_id, gross_amount, commission_fee, net_amount, status, created_at, settled_at, payout_id FROM seller_earnings
+WHERE seller_id = $1 AND status = 'earned'
+ORDER BY created_at ASC
+`
+
+// GetEarnedEarnings
+//
+//	SELECT id, seller_id, order_id, order_item_id, gross_amount, commission_fee, net_amount, status, created_at, settled_at, payout_id FROM seller_earnings
+//	WHERE seller_id = $1 AND status = 'earned'
+//	ORDER BY created_at ASC
+func (q *Queries) GetEarnedEarnings(ctx context.Context, sellerID uuid.UUID) ([]SellerEarning, error) {
+	rows, err := q.db.Query(ctx, getEarnedEarnings, sellerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SellerEarning
+	for rows.Next() {
+		var i SellerEarning
+		if err := rows.Scan(
+			&i.ID,
+			&i.SellerID,
+			&i.OrderID,
+			&i.OrderItemID,
+			&i.GrossAmount,
+			&i.CommissionFee,
+			&i.NetAmount,
+			&i.Status,
+			&i.CreatedAt,
+			&i.SettledAt,
+			&i.PayoutID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getEarnedSumBySeller = `-- name: GetEarnedSumBySeller :one
@@ -214,6 +310,62 @@ func (q *Queries) ListEarningsLedger(ctx context.Context, arg ListEarningsLedger
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateEarningAmountsAndStatus = `-- name: UpdateEarningAmountsAndStatus :one
+UPDATE seller_earnings
+SET status = $2,
+    payout_id = $3,
+    gross_amount = $4,
+    commission_fee = $5,
+    net_amount = $6
+WHERE id = $1
+RETURNING id, seller_id, order_id, order_item_id, gross_amount, commission_fee, net_amount, status, created_at, settled_at, payout_id
+`
+
+type UpdateEarningAmountsAndStatusParams struct {
+	ID            uuid.UUID   `json:"id"`
+	Status        string      `json:"status"`
+	PayoutID      pgtype.UUID `json:"payout_id"`
+	GrossAmount   float64     `json:"gross_amount"`
+	CommissionFee float64     `json:"commission_fee"`
+	NetAmount     float64     `json:"net_amount"`
+}
+
+// UpdateEarningAmountsAndStatus
+//
+//	UPDATE seller_earnings
+//	SET status = $2,
+//	    payout_id = $3,
+//	    gross_amount = $4,
+//	    commission_fee = $5,
+//	    net_amount = $6
+//	WHERE id = $1
+//	RETURNING id, seller_id, order_id, order_item_id, gross_amount, commission_fee, net_amount, status, created_at, settled_at, payout_id
+func (q *Queries) UpdateEarningAmountsAndStatus(ctx context.Context, arg UpdateEarningAmountsAndStatusParams) (SellerEarning, error) {
+	row := q.db.QueryRow(ctx, updateEarningAmountsAndStatus,
+		arg.ID,
+		arg.Status,
+		arg.PayoutID,
+		arg.GrossAmount,
+		arg.CommissionFee,
+		arg.NetAmount,
+	)
+	var i SellerEarning
+	err := row.Scan(
+		&i.ID,
+		&i.SellerID,
+		&i.OrderID,
+		&i.OrderItemID,
+		&i.GrossAmount,
+		&i.CommissionFee,
+		&i.NetAmount,
+		&i.Status,
+		&i.CreatedAt,
+		&i.SettledAt,
+		&i.PayoutID,
+	)
+	return i, err
 }
 
 const updateEarningStatusByOrderAndSeller = `-- name: UpdateEarningStatusByOrderAndSeller :exec

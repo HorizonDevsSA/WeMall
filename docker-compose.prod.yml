@@ -159,9 +159,12 @@ services:
     environment:
       - GRPC_PORT=9002
       - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_sellers?sslmode=disable
+      - NATS_URL=nats://nats:4222
       - ENVIRONMENT=production
     depends_on:
       postgres:
+        condition: service_healthy
+      nats:
         condition: service_healthy
     networks:
       - wemall-net
