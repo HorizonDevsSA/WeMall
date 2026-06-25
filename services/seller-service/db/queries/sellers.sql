@@ -68,3 +68,18 @@ FROM sellers
 WHERE latitude IS NOT NULL AND longitude IS NOT NULL
     AND (6371 * acos(cos(radians($1)) * cos(radians(latitude)) * cos(radians(longitude) - radians($2)) + sin(radians($1)) * sin(radians(latitude)))) <= $3
 ORDER BY (6371 * acos(cos(radians($1)) * cos(radians(latitude)) * cos(radians(longitude) - radians($2)) + sin(radians($1)) * sin(radians(latitude))));
+
+-- name: UpdateSellerAdCredit :one
+UPDATE sellers SET
+    ad_credit_balance = ad_credit_balance + $2,
+    updated_at  = NOW()
+WHERE id = $1
+RETURNING *;
+
+-- name: UpdateSellerCommissionRate :one
+UPDATE sellers SET
+    commission_rate = $2,
+    updated_at  = NOW()
+WHERE id = $1
+RETURNING *;
+

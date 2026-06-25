@@ -112,6 +112,7 @@ func mapPayment(p *db.Payment) *paymentv1.Payment {
 		TransactionId: txnID,
 		CreatedAt:     timestamppb.New(p.CreatedAt),
 		UpdatedAt:     timestamppb.New(p.UpdatedAt),
+		PlatformFee:   p.PlatformFee,
 	}
 }
 

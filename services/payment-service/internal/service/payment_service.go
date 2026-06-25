@@ -53,13 +53,17 @@ func (s *PaymentService) CreatePayment(ctx context.Context, orderID, userID uuid
 		return nil, "", werr.InvalidArgument("invalid payment provider")
 	}
 
+	// Standard platform/gateway fee is 2% of transaction amount
+	platformFee := amount * 0.02
+
 	// Create payment in database
 	payment, err := s.q.CreatePayment(ctx, db.CreatePaymentParams{
-		OrderID:  orderID,
-		UserID:   userID,
-		Amount:   amount,
-		Currency: currency,
-		Provider: providerStr,
+		OrderID:     orderID,
+		UserID:      userID,
+		Amount:      amount,
+		Currency:    currency,
+		Provider:    providerStr,
+		PlatformFee: platformFee,
 	})
 	if err != nil {
 		return nil, "", werr.Internal(err)

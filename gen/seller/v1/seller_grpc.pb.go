@@ -20,21 +20,25 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SellerService_GetSeller_FullMethodName          = "/seller.v1.SellerService/GetSeller"
-	SellerService_GetSellerByUserID_FullMethodName  = "/seller.v1.SellerService/GetSellerByUserID"
-	SellerService_GetSellerBatch_FullMethodName     = "/seller.v1.SellerService/GetSellerBatch"
-	SellerService_CreateStore_FullMethodName        = "/seller.v1.SellerService/CreateStore"
-	SellerService_UpdateStore_FullMethodName        = "/seller.v1.SellerService/UpdateStore"
-	SellerService_VerifySeller_FullMethodName       = "/seller.v1.SellerService/VerifySeller"
-	SellerService_UpdateSellerStatus_FullMethodName = "/seller.v1.SellerService/UpdateSellerStatus"
-	SellerService_FollowStore_FullMethodName        = "/seller.v1.SellerService/FollowStore"
-	SellerService_UnfollowStore_FullMethodName      = "/seller.v1.SellerService/UnfollowStore"
-	SellerService_IsFollowingStore_FullMethodName   = "/seller.v1.SellerService/IsFollowingStore"
-	SellerService_ListFollowedStores_FullMethodName = "/seller.v1.SellerService/ListFollowedStores"
-	SellerService_ListStoreFollowers_FullMethodName = "/seller.v1.SellerService/ListStoreFollowers"
-	SellerService_ListPayouts_FullMethodName        = "/seller.v1.SellerService/ListPayouts"
-	SellerService_GetPayout_FullMethodName          = "/seller.v1.SellerService/GetPayout"
-	SellerService_CreatePayout_FullMethodName       = "/seller.v1.SellerService/CreatePayout"
+	SellerService_GetSeller_FullMethodName                   = "/seller.v1.SellerService/GetSeller"
+	SellerService_GetSellerByUserID_FullMethodName           = "/seller.v1.SellerService/GetSellerByUserID"
+	SellerService_GetSellerBatch_FullMethodName              = "/seller.v1.SellerService/GetSellerBatch"
+	SellerService_CreateStore_FullMethodName                 = "/seller.v1.SellerService/CreateStore"
+	SellerService_UpdateStore_FullMethodName                 = "/seller.v1.SellerService/UpdateStore"
+	SellerService_VerifySeller_FullMethodName                = "/seller.v1.SellerService/VerifySeller"
+	SellerService_UpdateSellerStatus_FullMethodName          = "/seller.v1.SellerService/UpdateSellerStatus"
+	SellerService_FollowStore_FullMethodName                 = "/seller.v1.SellerService/FollowStore"
+	SellerService_UnfollowStore_FullMethodName               = "/seller.v1.SellerService/UnfollowStore"
+	SellerService_IsFollowingStore_FullMethodName            = "/seller.v1.SellerService/IsFollowingStore"
+	SellerService_ListFollowedStores_FullMethodName          = "/seller.v1.SellerService/ListFollowedStores"
+	SellerService_ListStoreFollowers_FullMethodName          = "/seller.v1.SellerService/ListStoreFollowers"
+	SellerService_ListPayouts_FullMethodName                 = "/seller.v1.SellerService/ListPayouts"
+	SellerService_GetPayout_FullMethodName                   = "/seller.v1.SellerService/GetPayout"
+	SellerService_CreatePayout_FullMethodName                = "/seller.v1.SellerService/CreatePayout"
+	SellerService_GetSellerBalance_FullMethodName            = "/seller.v1.SellerService/GetSellerBalance"
+	SellerService_GetSellerEarningsLedger_FullMethodName     = "/seller.v1.SellerService/GetSellerEarningsLedger"
+	SellerService_AddAdCredit_FullMethodName                 = "/seller.v1.SellerService/AddAdCredit"
+	SellerService_GetSellerMonetizationConfig_FullMethodName = "/seller.v1.SellerService/GetSellerMonetizationConfig"
 )
 
 // SellerServiceClient is the client API for SellerService service.
@@ -57,6 +61,11 @@ type SellerServiceClient interface {
 	ListPayouts(ctx context.Context, in *ListPayoutsRequest, opts ...grpc.CallOption) (*ListPayoutsResponse, error)
 	GetPayout(ctx context.Context, in *GetPayoutRequest, opts ...grpc.CallOption) (*Payout, error)
 	CreatePayout(ctx context.Context, in *CreatePayoutRequest, opts ...grpc.CallOption) (*Payout, error)
+	// Monetization & Ledger APIs
+	GetSellerBalance(ctx context.Context, in *GetSellerBalanceRequest, opts ...grpc.CallOption) (*SellerBalanceResponse, error)
+	GetSellerEarningsLedger(ctx context.Context, in *GetSellerEarningsLedgerRequest, opts ...grpc.CallOption) (*SellerEarningsLedgerResponse, error)
+	AddAdCredit(ctx context.Context, in *AddAdCreditRequest, opts ...grpc.CallOption) (*AddAdCreditResponse, error)
+	GetSellerMonetizationConfig(ctx context.Context, in *GetSellerMonetizationConfigRequest, opts ...grpc.CallOption) (*SellerMonetizationConfig, error)
 }
 
 type sellerServiceClient struct {
@@ -217,6 +226,46 @@ func (c *sellerServiceClient) CreatePayout(ctx context.Context, in *CreatePayout
 	return out, nil
 }
 
+func (c *sellerServiceClient) GetSellerBalance(ctx context.Context, in *GetSellerBalanceRequest, opts ...grpc.CallOption) (*SellerBalanceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SellerBalanceResponse)
+	err := c.cc.Invoke(ctx, SellerService_GetSellerBalance_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sellerServiceClient) GetSellerEarningsLedger(ctx context.Context, in *GetSellerEarningsLedgerRequest, opts ...grpc.CallOption) (*SellerEarningsLedgerResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SellerEarningsLedgerResponse)
+	err := c.cc.Invoke(ctx, SellerService_GetSellerEarningsLedger_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sellerServiceClient) AddAdCredit(ctx context.Context, in *AddAdCreditRequest, opts ...grpc.CallOption) (*AddAdCreditResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddAdCreditResponse)
+	err := c.cc.Invoke(ctx, SellerService_AddAdCredit_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sellerServiceClient) GetSellerMonetizationConfig(ctx context.Context, in *GetSellerMonetizationConfigRequest, opts ...grpc.CallOption) (*SellerMonetizationConfig, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SellerMonetizationConfig)
+	err := c.cc.Invoke(ctx, SellerService_GetSellerMonetizationConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SellerServiceServer is the server API for SellerService service.
 // All implementations should embed UnimplementedSellerServiceServer
 // for forward compatibility.
@@ -237,6 +286,11 @@ type SellerServiceServer interface {
 	ListPayouts(context.Context, *ListPayoutsRequest) (*ListPayoutsResponse, error)
 	GetPayout(context.Context, *GetPayoutRequest) (*Payout, error)
 	CreatePayout(context.Context, *CreatePayoutRequest) (*Payout, error)
+	// Monetization & Ledger APIs
+	GetSellerBalance(context.Context, *GetSellerBalanceRequest) (*SellerBalanceResponse, error)
+	GetSellerEarningsLedger(context.Context, *GetSellerEarningsLedgerRequest) (*SellerEarningsLedgerResponse, error)
+	AddAdCredit(context.Context, *AddAdCreditRequest) (*AddAdCreditResponse, error)
+	GetSellerMonetizationConfig(context.Context, *GetSellerMonetizationConfigRequest) (*SellerMonetizationConfig, error)
 }
 
 // UnimplementedSellerServiceServer should be embedded to have
@@ -290,6 +344,18 @@ func (UnimplementedSellerServiceServer) GetPayout(context.Context, *GetPayoutReq
 }
 func (UnimplementedSellerServiceServer) CreatePayout(context.Context, *CreatePayoutRequest) (*Payout, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreatePayout not implemented")
+}
+func (UnimplementedSellerServiceServer) GetSellerBalance(context.Context, *GetSellerBalanceRequest) (*SellerBalanceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSellerBalance not implemented")
+}
+func (UnimplementedSellerServiceServer) GetSellerEarningsLedger(context.Context, *GetSellerEarningsLedgerRequest) (*SellerEarningsLedgerResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSellerEarningsLedger not implemented")
+}
+func (UnimplementedSellerServiceServer) AddAdCredit(context.Context, *AddAdCreditRequest) (*AddAdCreditResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AddAdCredit not implemented")
+}
+func (UnimplementedSellerServiceServer) GetSellerMonetizationConfig(context.Context, *GetSellerMonetizationConfigRequest) (*SellerMonetizationConfig, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSellerMonetizationConfig not implemented")
 }
 func (UnimplementedSellerServiceServer) testEmbeddedByValue() {}
 
@@ -581,6 +647,78 @@ func _SellerService_CreatePayout_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SellerService_GetSellerBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSellerBalanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SellerServiceServer).GetSellerBalance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SellerService_GetSellerBalance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SellerServiceServer).GetSellerBalance(ctx, req.(*GetSellerBalanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SellerService_GetSellerEarningsLedger_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSellerEarningsLedgerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SellerServiceServer).GetSellerEarningsLedger(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SellerService_GetSellerEarningsLedger_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SellerServiceServer).GetSellerEarningsLedger(ctx, req.(*GetSellerEarningsLedgerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SellerService_AddAdCredit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddAdCreditRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SellerServiceServer).AddAdCredit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SellerService_AddAdCredit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SellerServiceServer).AddAdCredit(ctx, req.(*AddAdCreditRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SellerService_GetSellerMonetizationConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSellerMonetizationConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SellerServiceServer).GetSellerMonetizationConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SellerService_GetSellerMonetizationConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SellerServiceServer).GetSellerMonetizationConfig(ctx, req.(*GetSellerMonetizationConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SellerService_ServiceDesc is the grpc.ServiceDesc for SellerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -647,6 +785,22 @@ var SellerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreatePayout",
 			Handler:    _SellerService_CreatePayout_Handler,
+		},
+		{
+			MethodName: "GetSellerBalance",
+			Handler:    _SellerService_GetSellerBalance_Handler,
+		},
+		{
+			MethodName: "GetSellerEarningsLedger",
+			Handler:    _SellerService_GetSellerEarningsLedger_Handler,
+		},
+		{
+			MethodName: "AddAdCredit",
+			Handler:    _SellerService_AddAdCredit_Handler,
+		},
+		{
+			MethodName: "GetSellerMonetizationConfig",
+			Handler:    _SellerService_GetSellerMonetizationConfig_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

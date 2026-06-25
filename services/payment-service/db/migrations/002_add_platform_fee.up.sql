@@ -1,0 +1,2 @@
+ALTER TABLE payments 
+ADD COLUMN platform_fee NUMERIC(12,2) NOT NULL DEFAULT 0.00;

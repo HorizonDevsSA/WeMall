@@ -29,6 +29,7 @@ message Payment {
   string                    transaction_id = 8;
   google.protobuf.Timestamp created_at     = 9;
   google.protobuf.Timestamp updated_at     = 10;
+  double                    platform_fee   = 11;
 }
 
 message CreatePaymentRequest {

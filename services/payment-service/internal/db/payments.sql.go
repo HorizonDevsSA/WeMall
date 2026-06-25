@@ -12,24 +12,25 @@ import (
 )
 
 const createPayment = `-- name: CreatePayment :one
-INSERT INTO payments (order_id, user_id, amount, currency, provider, status)
-VALUES ($1, $2, $3, $4, $5, 'pending')
-RETURNING id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at
+INSERT INTO payments (order_id, user_id, amount, currency, provider, status, platform_fee)
+VALUES ($1, $2, $3, $4, $5, 'pending', $6)
+RETURNING id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at, platform_fee
 `
 
 type CreatePaymentParams struct {
-	OrderID  uuid.UUID `json:"order_id"`
-	UserID   uuid.UUID `json:"user_id"`
-	Amount   float64   `json:"amount"`
-	Currency string    `json:"currency"`
-	Provider string    `json:"provider"`
+	OrderID     uuid.UUID `json:"order_id"`
+	UserID      uuid.UUID `json:"user_id"`
+	Amount      float64   `json:"amount"`
+	Currency    string    `json:"currency"`
+	Provider    string    `json:"provider"`
+	PlatformFee float64   `json:"platform_fee"`
 }
 
 // CreatePayment
 //
-//	INSERT INTO payments (order_id, user_id, amount, currency, provider, status)
-//	VALUES ($1, $2, $3, $4, $5, 'pending')
-//	RETURNING id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at
+//	INSERT INTO payments (order_id, user_id, amount, currency, provider, status, platform_fee)
+//	VALUES ($1, $2, $3, $4, $5, 'pending', $6)
+//	RETURNING id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at, platform_fee
 func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (Payment, error) {
 	row := q.db.QueryRow(ctx, createPayment,
 		arg.OrderID,
@@ -37,6 +38,7 @@ func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (P
 		arg.Amount,
 		arg.Currency,
 		arg.Provider,
+		arg.PlatformFee,
 	)
 	var i Payment
 	err := row.Scan(
@@ -50,17 +52,18 @@ func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (P
 		&i.TransactionID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PlatformFee,
 	)
 	return i, err
 }
 
 const getPayment = `-- name: GetPayment :one
-SELECT id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at FROM payments WHERE id = $1
+SELECT id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at, platform_fee FROM payments WHERE id = $1
 `
 
 // GetPayment
 //
-//	SELECT id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at FROM payments WHERE id = $1
+//	SELECT id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at, platform_fee FROM payments WHERE id = $1
 func (q *Queries) GetPayment(ctx context.Context, id uuid.UUID) (Payment, error) {
 	row := q.db.QueryRow(ctx, getPayment, id)
 	var i Payment
@@ -75,17 +78,18 @@ func (q *Queries) GetPayment(ctx context.Context, id uuid.UUID) (Payment, error)
 		&i.TransactionID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PlatformFee,
 	)
 	return i, err
 }
 
 const getPaymentByOrderID = `-- name: GetPaymentByOrderID :one
-SELECT id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at FROM payments WHERE order_id = $1
+SELECT id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at, platform_fee FROM payments WHERE order_id = $1
 `
 
 // GetPaymentByOrderID
 //
-//	SELECT id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at FROM payments WHERE order_id = $1
+//	SELECT id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at, platform_fee FROM payments WHERE order_id = $1
 func (q *Queries) GetPaymentByOrderID(ctx context.Context, orderID uuid.UUID) (Payment, error) {
 	row := q.db.QueryRow(ctx, getPaymentByOrderID, orderID)
 	var i Payment
@@ -100,6 +104,7 @@ func (q *Queries) GetPaymentByOrderID(ctx context.Context, orderID uuid.UUID) (P
 		&i.TransactionID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PlatformFee,
 	)
 	return i, err
 }
@@ -108,7 +113,7 @@ const updatePaymentStatus = `-- name: UpdatePaymentStatus :one
 UPDATE payments
 SET status = $2, updated_at = NOW()
 WHERE id = $1
-RETURNING id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at
+RETURNING id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at, platform_fee
 `
 
 type UpdatePaymentStatusParams struct {
@@ -121,7 +126,7 @@ type UpdatePaymentStatusParams struct {
 //	UPDATE payments
 //	SET status = $2, updated_at = NOW()
 //	WHERE id = $1
-//	RETURNING id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at
+//	RETURNING id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at, platform_fee
 func (q *Queries) UpdatePaymentStatus(ctx context.Context, arg UpdatePaymentStatusParams) (Payment, error) {
 	row := q.db.QueryRow(ctx, updatePaymentStatus, arg.ID, arg.Status)
 	var i Payment
@@ -136,6 +141,7 @@ func (q *Queries) UpdatePaymentStatus(ctx context.Context, arg UpdatePaymentStat
 		&i.TransactionID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PlatformFee,
 	)
 	return i, err
 }
@@ -144,7 +150,7 @@ const updatePaymentTransaction = `-- name: UpdatePaymentTransaction :one
 UPDATE payments
 SET status = $2, transaction_id = $3, updated_at = NOW()
 WHERE id = $1
-RETURNING id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at
+RETURNING id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at, platform_fee
 `
 
 type UpdatePaymentTransactionParams struct {
@@ -158,7 +164,7 @@ type UpdatePaymentTransactionParams struct {
 //	UPDATE payments
 //	SET status = $2, transaction_id = $3, updated_at = NOW()
 //	WHERE id = $1
-//	RETURNING id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at
+//	RETURNING id, order_id, user_id, amount, currency, provider, status, transaction_id, created_at, updated_at, platform_fee
 func (q *Queries) UpdatePaymentTransaction(ctx context.Context, arg UpdatePaymentTransactionParams) (Payment, error) {
 	row := q.db.QueryRow(ctx, updatePaymentTransaction, arg.ID, arg.Status, arg.TransactionID)
 	var i Payment
@@ -173,6 +179,7 @@ func (q *Queries) UpdatePaymentTransaction(ctx context.Context, arg UpdatePaymen
 		&i.TransactionID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PlatformFee,
 	)
 	return i, err
 }

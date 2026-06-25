@@ -307,6 +307,9 @@ type Payout struct {
 	ProviderRef   string                 `protobuf:"bytes,6,opt,name=provider_ref,json=providerRef,proto3" json:"provider_ref,omitempty"`
 	PaidAt        *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=paid_at,json=paidAt,proto3" json:"paid_at,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	GrossAmount   float64                `protobuf:"fixed64,9,opt,name=gross_amount,json=grossAmount,proto3" json:"gross_amount,omitempty"`
+	PlatformFee   float64                `protobuf:"fixed64,10,opt,name=platform_fee,json=platformFee,proto3" json:"platform_fee,omitempty"`
+	NetAmount     float64                `protobuf:"fixed64,11,opt,name=net_amount,json=netAmount,proto3" json:"net_amount,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -395,6 +398,27 @@ func (x *Payout) GetCreatedAt() *timestamppb.Timestamp {
 		return x.CreatedAt
 	}
 	return nil
+}
+
+func (x *Payout) GetGrossAmount() float64 {
+	if x != nil {
+		return x.GrossAmount
+	}
+	return 0
+}
+
+func (x *Payout) GetPlatformFee() float64 {
+	if x != nil {
+		return x.PlatformFee
+	}
+	return 0
+}
+
+func (x *Payout) GetNetAmount() float64 {
+	if x != nil {
+		return x.NetAmount
+	}
+	return 0
 }
 
 type GetSellerRequest struct {
@@ -1517,6 +1541,538 @@ func (x *CreatePayoutRequest) GetCurrency() string {
 	return ""
 }
 
+type GetSellerBalanceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SellerId      string                 `protobuf:"bytes,1,opt,name=seller_id,json=sellerId,proto3" json:"seller_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSellerBalanceRequest) Reset() {
+	*x = GetSellerBalanceRequest{}
+	mi := &file_seller_v1_seller_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSellerBalanceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSellerBalanceRequest) ProtoMessage() {}
+
+func (x *GetSellerBalanceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_seller_v1_seller_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSellerBalanceRequest.ProtoReflect.Descriptor instead.
+func (*GetSellerBalanceRequest) Descriptor() ([]byte, []int) {
+	return file_seller_v1_seller_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *GetSellerBalanceRequest) GetSellerId() string {
+	if x != nil {
+		return x.SellerId
+	}
+	return ""
+}
+
+type SellerBalanceResponse struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	EscrowedBalance     float64                `protobuf:"fixed64,1,opt,name=escrowed_balance,json=escrowedBalance,proto3" json:"escrowed_balance,omitempty"`
+	WithdrawableBalance float64                `protobuf:"fixed64,2,opt,name=withdrawable_balance,json=withdrawableBalance,proto3" json:"withdrawable_balance,omitempty"`
+	TotalSales          float64                `protobuf:"fixed64,3,opt,name=total_sales,json=totalSales,proto3" json:"total_sales,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *SellerBalanceResponse) Reset() {
+	*x = SellerBalanceResponse{}
+	mi := &file_seller_v1_seller_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SellerBalanceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SellerBalanceResponse) ProtoMessage() {}
+
+func (x *SellerBalanceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_seller_v1_seller_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SellerBalanceResponse.ProtoReflect.Descriptor instead.
+func (*SellerBalanceResponse) Descriptor() ([]byte, []int) {
+	return file_seller_v1_seller_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *SellerBalanceResponse) GetEscrowedBalance() float64 {
+	if x != nil {
+		return x.EscrowedBalance
+	}
+	return 0
+}
+
+func (x *SellerBalanceResponse) GetWithdrawableBalance() float64 {
+	if x != nil {
+		return x.WithdrawableBalance
+	}
+	return 0
+}
+
+func (x *SellerBalanceResponse) GetTotalSales() float64 {
+	if x != nil {
+		return x.TotalSales
+	}
+	return 0
+}
+
+type GetSellerEarningsLedgerRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SellerId      string                 `protobuf:"bytes,1,opt,name=seller_id,json=sellerId,proto3" json:"seller_id,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken     string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	StatusFilter  string                 `protobuf:"bytes,4,opt,name=status_filter,json=statusFilter,proto3" json:"status_filter,omitempty"` // escrowed, earned, refunded, payout_released
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSellerEarningsLedgerRequest) Reset() {
+	*x = GetSellerEarningsLedgerRequest{}
+	mi := &file_seller_v1_seller_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSellerEarningsLedgerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSellerEarningsLedgerRequest) ProtoMessage() {}
+
+func (x *GetSellerEarningsLedgerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_seller_v1_seller_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSellerEarningsLedgerRequest.ProtoReflect.Descriptor instead.
+func (*GetSellerEarningsLedgerRequest) Descriptor() ([]byte, []int) {
+	return file_seller_v1_seller_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *GetSellerEarningsLedgerRequest) GetSellerId() string {
+	if x != nil {
+		return x.SellerId
+	}
+	return ""
+}
+
+func (x *GetSellerEarningsLedgerRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *GetSellerEarningsLedgerRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+func (x *GetSellerEarningsLedgerRequest) GetStatusFilter() string {
+	if x != nil {
+		return x.StatusFilter
+	}
+	return ""
+}
+
+type EarningsLedgerEntry struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrderId       string                 `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	OrderItemId   string                 `protobuf:"bytes,3,opt,name=order_item_id,json=orderItemId,proto3" json:"order_item_id,omitempty"`
+	GrossAmount   float64                `protobuf:"fixed64,4,opt,name=gross_amount,json=grossAmount,proto3" json:"gross_amount,omitempty"`
+	CommissionFee float64                `protobuf:"fixed64,5,opt,name=commission_fee,json=commissionFee,proto3" json:"commission_fee,omitempty"`
+	NetAmount     float64                `protobuf:"fixed64,6,opt,name=net_amount,json=netAmount,proto3" json:"net_amount,omitempty"`
+	Status        string                 `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	SettledAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=settled_at,json=settledAt,proto3" json:"settled_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EarningsLedgerEntry) Reset() {
+	*x = EarningsLedgerEntry{}
+	mi := &file_seller_v1_seller_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EarningsLedgerEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EarningsLedgerEntry) ProtoMessage() {}
+
+func (x *EarningsLedgerEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_seller_v1_seller_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EarningsLedgerEntry.ProtoReflect.Descriptor instead.
+func (*EarningsLedgerEntry) Descriptor() ([]byte, []int) {
+	return file_seller_v1_seller_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *EarningsLedgerEntry) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *EarningsLedgerEntry) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *EarningsLedgerEntry) GetOrderItemId() string {
+	if x != nil {
+		return x.OrderItemId
+	}
+	return ""
+}
+
+func (x *EarningsLedgerEntry) GetGrossAmount() float64 {
+	if x != nil {
+		return x.GrossAmount
+	}
+	return 0
+}
+
+func (x *EarningsLedgerEntry) GetCommissionFee() float64 {
+	if x != nil {
+		return x.CommissionFee
+	}
+	return 0
+}
+
+func (x *EarningsLedgerEntry) GetNetAmount() float64 {
+	if x != nil {
+		return x.NetAmount
+	}
+	return 0
+}
+
+func (x *EarningsLedgerEntry) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *EarningsLedgerEntry) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *EarningsLedgerEntry) GetSettledAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.SettledAt
+	}
+	return nil
+}
+
+type SellerEarningsLedgerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Entries       []*EarningsLedgerEntry `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
+	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SellerEarningsLedgerResponse) Reset() {
+	*x = SellerEarningsLedgerResponse{}
+	mi := &file_seller_v1_seller_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SellerEarningsLedgerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SellerEarningsLedgerResponse) ProtoMessage() {}
+
+func (x *SellerEarningsLedgerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_seller_v1_seller_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SellerEarningsLedgerResponse.ProtoReflect.Descriptor instead.
+func (*SellerEarningsLedgerResponse) Descriptor() ([]byte, []int) {
+	return file_seller_v1_seller_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *SellerEarningsLedgerResponse) GetEntries() []*EarningsLedgerEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
+func (x *SellerEarningsLedgerResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+type AddAdCreditRequest struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	SellerId              string                 `protobuf:"bytes,1,opt,name=seller_id,json=sellerId,proto3" json:"seller_id,omitempty"`
+	Amount                float64                `protobuf:"fixed64,2,opt,name=amount,proto3" json:"amount,omitempty"`
+	FundFromPayoutBalance bool                   `protobuf:"varint,3,opt,name=fund_from_payout_balance,json=fundFromPayoutBalance,proto3" json:"fund_from_payout_balance,omitempty"` // If true, transfers from pending payout balance
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *AddAdCreditRequest) Reset() {
+	*x = AddAdCreditRequest{}
+	mi := &file_seller_v1_seller_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddAdCreditRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddAdCreditRequest) ProtoMessage() {}
+
+func (x *AddAdCreditRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_seller_v1_seller_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddAdCreditRequest.ProtoReflect.Descriptor instead.
+func (*AddAdCreditRequest) Descriptor() ([]byte, []int) {
+	return file_seller_v1_seller_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *AddAdCreditRequest) GetSellerId() string {
+	if x != nil {
+		return x.SellerId
+	}
+	return ""
+}
+
+func (x *AddAdCreditRequest) GetAmount() float64 {
+	if x != nil {
+		return x.Amount
+	}
+	return 0
+}
+
+func (x *AddAdCreditRequest) GetFundFromPayoutBalance() bool {
+	if x != nil {
+		return x.FundFromPayoutBalance
+	}
+	return false
+}
+
+type AddAdCreditResponse struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	NewAdCreditBalance float64                `protobuf:"fixed64,1,opt,name=new_ad_credit_balance,json=newAdCreditBalance,proto3" json:"new_ad_credit_balance,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *AddAdCreditResponse) Reset() {
+	*x = AddAdCreditResponse{}
+	mi := &file_seller_v1_seller_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddAdCreditResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddAdCreditResponse) ProtoMessage() {}
+
+func (x *AddAdCreditResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_seller_v1_seller_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddAdCreditResponse.ProtoReflect.Descriptor instead.
+func (*AddAdCreditResponse) Descriptor() ([]byte, []int) {
+	return file_seller_v1_seller_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *AddAdCreditResponse) GetNewAdCreditBalance() float64 {
+	if x != nil {
+		return x.NewAdCreditBalance
+	}
+	return 0
+}
+
+type GetSellerMonetizationConfigRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SellerId      string                 `protobuf:"bytes,1,opt,name=seller_id,json=sellerId,proto3" json:"seller_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSellerMonetizationConfigRequest) Reset() {
+	*x = GetSellerMonetizationConfigRequest{}
+	mi := &file_seller_v1_seller_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSellerMonetizationConfigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSellerMonetizationConfigRequest) ProtoMessage() {}
+
+func (x *GetSellerMonetizationConfigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_seller_v1_seller_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSellerMonetizationConfigRequest.ProtoReflect.Descriptor instead.
+func (*GetSellerMonetizationConfigRequest) Descriptor() ([]byte, []int) {
+	return file_seller_v1_seller_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *GetSellerMonetizationConfigRequest) GetSellerId() string {
+	if x != nil {
+		return x.SellerId
+	}
+	return ""
+}
+
+type SellerMonetizationConfig struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	CommissionRate  float64                `protobuf:"fixed64,1,opt,name=commission_rate,json=commissionRate,proto3" json:"commission_rate,omitempty"`
+	AdCreditBalance float64                `protobuf:"fixed64,2,opt,name=ad_credit_balance,json=adCreditBalance,proto3" json:"ad_credit_balance,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *SellerMonetizationConfig) Reset() {
+	*x = SellerMonetizationConfig{}
+	mi := &file_seller_v1_seller_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SellerMonetizationConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SellerMonetizationConfig) ProtoMessage() {}
+
+func (x *SellerMonetizationConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_seller_v1_seller_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SellerMonetizationConfig.ProtoReflect.Descriptor instead.
+func (*SellerMonetizationConfig) Descriptor() ([]byte, []int) {
+	return file_seller_v1_seller_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *SellerMonetizationConfig) GetCommissionRate() float64 {
+	if x != nil {
+		return x.CommissionRate
+	}
+	return 0
+}
+
+func (x *SellerMonetizationConfig) GetAdCreditBalance() float64 {
+	if x != nil {
+		return x.AdCreditBalance
+	}
+	return 0
+}
+
 var File_seller_v1_seller_proto protoreflect.FileDescriptor
 
 const file_seller_v1_seller_proto_rawDesc = "" +
@@ -1546,7 +2102,7 @@ const file_seller_v1_seller_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12/\n" +
 	"\x06status\x18\x0f \x01(\x0e2\x17.seller.v1.SellerStatusR\x06status\x12%\n" +
-	"\x0estore_location\x18\x10 \x01(\tR\rstoreLocation\"\xad\x02\n" +
+	"\x0estore_location\x18\x10 \x01(\tR\rstoreLocation\"\x92\x03\n" +
 	"\x06Payout\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tseller_id\x18\x02 \x01(\tR\bsellerId\x12\x16\n" +
@@ -1556,7 +2112,12 @@ const file_seller_v1_seller_proto_rawDesc = "" +
 	"\fprovider_ref\x18\x06 \x01(\tR\vproviderRef\x123\n" +
 	"\apaid_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\x06paidAt\x129\n" +
 	"\n" +
-	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\"\n" +
+	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12!\n" +
+	"\fgross_amount\x18\t \x01(\x01R\vgrossAmount\x12!\n" +
+	"\fplatform_fee\x18\n" +
+	" \x01(\x01R\vplatformFee\x12\x1d\n" +
+	"\n" +
+	"net_amount\x18\v \x01(\x01R\tnetAmount\"\"\n" +
 	"\x10GetSellerRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"3\n" +
 	"\x18GetSellerByUserIDRequest\x12\x17\n" +
@@ -1635,7 +2196,47 @@ const file_seller_v1_seller_proto_rawDesc = "" +
 	"\x13CreatePayoutRequest\x12\x1b\n" +
 	"\tseller_id\x18\x01 \x01(\tR\bsellerId\x12\x16\n" +
 	"\x06amount\x18\x02 \x01(\x01R\x06amount\x12\x1a\n" +
-	"\bcurrency\x18\x03 \x01(\tR\bcurrency*\x9f\x01\n" +
+	"\bcurrency\x18\x03 \x01(\tR\bcurrency\"6\n" +
+	"\x17GetSellerBalanceRequest\x12\x1b\n" +
+	"\tseller_id\x18\x01 \x01(\tR\bsellerId\"\x96\x01\n" +
+	"\x15SellerBalanceResponse\x12)\n" +
+	"\x10escrowed_balance\x18\x01 \x01(\x01R\x0fescrowedBalance\x121\n" +
+	"\x14withdrawable_balance\x18\x02 \x01(\x01R\x13withdrawableBalance\x12\x1f\n" +
+	"\vtotal_sales\x18\x03 \x01(\x01R\n" +
+	"totalSales\"\x9e\x01\n" +
+	"\x1eGetSellerEarningsLedgerRequest\x12\x1b\n" +
+	"\tseller_id\x18\x01 \x01(\tR\bsellerId\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x03 \x01(\tR\tpageToken\x12#\n" +
+	"\rstatus_filter\x18\x04 \x01(\tR\fstatusFilter\"\xdb\x02\n" +
+	"\x13EarningsLedgerEntry\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\border_id\x18\x02 \x01(\tR\aorderId\x12\"\n" +
+	"\rorder_item_id\x18\x03 \x01(\tR\vorderItemId\x12!\n" +
+	"\fgross_amount\x18\x04 \x01(\x01R\vgrossAmount\x12%\n" +
+	"\x0ecommission_fee\x18\x05 \x01(\x01R\rcommissionFee\x12\x1d\n" +
+	"\n" +
+	"net_amount\x18\x06 \x01(\x01R\tnetAmount\x12\x16\n" +
+	"\x06status\x18\a \x01(\tR\x06status\x129\n" +
+	"\n" +
+	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"settled_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tsettledAt\"\x80\x01\n" +
+	"\x1cSellerEarningsLedgerResponse\x128\n" +
+	"\aentries\x18\x01 \x03(\v2\x1e.seller.v1.EarningsLedgerEntryR\aentries\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x82\x01\n" +
+	"\x12AddAdCreditRequest\x12\x1b\n" +
+	"\tseller_id\x18\x01 \x01(\tR\bsellerId\x12\x16\n" +
+	"\x06amount\x18\x02 \x01(\x01R\x06amount\x127\n" +
+	"\x18fund_from_payout_balance\x18\x03 \x01(\bR\x15fundFromPayoutBalance\"H\n" +
+	"\x13AddAdCreditResponse\x121\n" +
+	"\x15new_ad_credit_balance\x18\x01 \x01(\x01R\x12newAdCreditBalance\"A\n" +
+	"\"GetSellerMonetizationConfigRequest\x12\x1b\n" +
+	"\tseller_id\x18\x01 \x01(\tR\bsellerId\"o\n" +
+	"\x18SellerMonetizationConfig\x12'\n" +
+	"\x0fcommission_rate\x18\x01 \x01(\x01R\x0ecommissionRate\x12*\n" +
+	"\x11ad_credit_balance\x18\x02 \x01(\x01R\x0fadCreditBalance*\x9f\x01\n" +
 	"\fSellerStatus\x12\x1d\n" +
 	"\x19SELLER_STATUS_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15SELLER_STATUS_PENDING\x10\x01\x12\x1c\n" +
@@ -1647,7 +2248,7 @@ const file_seller_v1_seller_proto_rawDesc = "" +
 	"\x15PAYOUT_STATUS_PENDING\x10\x01\x12\x1c\n" +
 	"\x18PAYOUT_STATUS_PROCESSING\x10\x02\x12\x16\n" +
 	"\x12PAYOUT_STATUS_PAID\x10\x03\x12\x18\n" +
-	"\x14PAYOUT_STATUS_FAILED\x10\x042\x85\t\n" +
+	"\x14PAYOUT_STATUS_FAILED\x10\x042\x8f\f\n" +
 	"\rSellerService\x12;\n" +
 	"\tGetSeller\x12\x1b.seller.v1.GetSellerRequest\x1a\x11.seller.v1.Seller\x12K\n" +
 	"\x11GetSellerByUserID\x12#.seller.v1.GetSellerByUserIDRequest\x1a\x11.seller.v1.Seller\x12U\n" +
@@ -1663,7 +2264,11 @@ const file_seller_v1_seller_proto_rawDesc = "" +
 	"\x12ListStoreFollowers\x12$.seller.v1.ListStoreFollowersRequest\x1a%.seller.v1.ListStoreFollowersResponse\x12L\n" +
 	"\vListPayouts\x12\x1d.seller.v1.ListPayoutsRequest\x1a\x1e.seller.v1.ListPayoutsResponse\x12;\n" +
 	"\tGetPayout\x12\x1b.seller.v1.GetPayoutRequest\x1a\x11.seller.v1.Payout\x12A\n" +
-	"\fCreatePayout\x12\x1e.seller.v1.CreatePayoutRequest\x1a\x11.seller.v1.PayoutB*Z(github.com/wemall/gen/seller/v1;sellerv1b\x06proto3"
+	"\fCreatePayout\x12\x1e.seller.v1.CreatePayoutRequest\x1a\x11.seller.v1.Payout\x12X\n" +
+	"\x10GetSellerBalance\x12\".seller.v1.GetSellerBalanceRequest\x1a .seller.v1.SellerBalanceResponse\x12m\n" +
+	"\x17GetSellerEarningsLedger\x12).seller.v1.GetSellerEarningsLedgerRequest\x1a'.seller.v1.SellerEarningsLedgerResponse\x12L\n" +
+	"\vAddAdCredit\x12\x1d.seller.v1.AddAdCreditRequest\x1a\x1e.seller.v1.AddAdCreditResponse\x12q\n" +
+	"\x1bGetSellerMonetizationConfig\x12-.seller.v1.GetSellerMonetizationConfigRequest\x1a#.seller.v1.SellerMonetizationConfigB*Z(github.com/wemall/gen/seller/v1;sellerv1b\x06proto3"
 
 var (
 	file_seller_v1_seller_proto_rawDescOnce sync.Once
@@ -1678,83 +2283,103 @@ func file_seller_v1_seller_proto_rawDescGZIP() []byte {
 }
 
 var file_seller_v1_seller_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_seller_v1_seller_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_seller_v1_seller_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
 var file_seller_v1_seller_proto_goTypes = []any{
-	(SellerStatus)(0),                  // 0: seller.v1.SellerStatus
-	(PayoutStatus)(0),                  // 1: seller.v1.PayoutStatus
-	(*Seller)(nil),                     // 2: seller.v1.Seller
-	(*Payout)(nil),                     // 3: seller.v1.Payout
-	(*GetSellerRequest)(nil),           // 4: seller.v1.GetSellerRequest
-	(*GetSellerByUserIDRequest)(nil),   // 5: seller.v1.GetSellerByUserIDRequest
-	(*GetSellerBatchRequest)(nil),      // 6: seller.v1.GetSellerBatchRequest
-	(*GetSellerBatchResponse)(nil),     // 7: seller.v1.GetSellerBatchResponse
-	(*CreateStoreRequest)(nil),         // 8: seller.v1.CreateStoreRequest
-	(*UpdateStoreRequest)(nil),         // 9: seller.v1.UpdateStoreRequest
-	(*VerifySellerRequest)(nil),        // 10: seller.v1.VerifySellerRequest
-	(*UpdateSellerStatusRequest)(nil),  // 11: seller.v1.UpdateSellerStatusRequest
-	(*FollowStoreRequest)(nil),         // 12: seller.v1.FollowStoreRequest
-	(*UnfollowStoreRequest)(nil),       // 13: seller.v1.UnfollowStoreRequest
-	(*IsFollowingStoreRequest)(nil),    // 14: seller.v1.IsFollowingStoreRequest
-	(*IsFollowingStoreResponse)(nil),   // 15: seller.v1.IsFollowingStoreResponse
-	(*ListFollowedStoresRequest)(nil),  // 16: seller.v1.ListFollowedStoresRequest
-	(*ListFollowedStoresResponse)(nil), // 17: seller.v1.ListFollowedStoresResponse
-	(*ListStoreFollowersRequest)(nil),  // 18: seller.v1.ListStoreFollowersRequest
-	(*ListStoreFollowersResponse)(nil), // 19: seller.v1.ListStoreFollowersResponse
-	(*ListPayoutsRequest)(nil),         // 20: seller.v1.ListPayoutsRequest
-	(*ListPayoutsResponse)(nil),        // 21: seller.v1.ListPayoutsResponse
-	(*GetPayoutRequest)(nil),           // 22: seller.v1.GetPayoutRequest
-	(*CreatePayoutRequest)(nil),        // 23: seller.v1.CreatePayoutRequest
-	nil,                                // 24: seller.v1.GetSellerBatchResponse.SellersEntry
-	(*timestamppb.Timestamp)(nil),      // 25: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),              // 26: google.protobuf.Empty
+	(SellerStatus)(0),                          // 0: seller.v1.SellerStatus
+	(PayoutStatus)(0),                          // 1: seller.v1.PayoutStatus
+	(*Seller)(nil),                             // 2: seller.v1.Seller
+	(*Payout)(nil),                             // 3: seller.v1.Payout
+	(*GetSellerRequest)(nil),                   // 4: seller.v1.GetSellerRequest
+	(*GetSellerByUserIDRequest)(nil),           // 5: seller.v1.GetSellerByUserIDRequest
+	(*GetSellerBatchRequest)(nil),              // 6: seller.v1.GetSellerBatchRequest
+	(*GetSellerBatchResponse)(nil),             // 7: seller.v1.GetSellerBatchResponse
+	(*CreateStoreRequest)(nil),                 // 8: seller.v1.CreateStoreRequest
+	(*UpdateStoreRequest)(nil),                 // 9: seller.v1.UpdateStoreRequest
+	(*VerifySellerRequest)(nil),                // 10: seller.v1.VerifySellerRequest
+	(*UpdateSellerStatusRequest)(nil),          // 11: seller.v1.UpdateSellerStatusRequest
+	(*FollowStoreRequest)(nil),                 // 12: seller.v1.FollowStoreRequest
+	(*UnfollowStoreRequest)(nil),               // 13: seller.v1.UnfollowStoreRequest
+	(*IsFollowingStoreRequest)(nil),            // 14: seller.v1.IsFollowingStoreRequest
+	(*IsFollowingStoreResponse)(nil),           // 15: seller.v1.IsFollowingStoreResponse
+	(*ListFollowedStoresRequest)(nil),          // 16: seller.v1.ListFollowedStoresRequest
+	(*ListFollowedStoresResponse)(nil),         // 17: seller.v1.ListFollowedStoresResponse
+	(*ListStoreFollowersRequest)(nil),          // 18: seller.v1.ListStoreFollowersRequest
+	(*ListStoreFollowersResponse)(nil),         // 19: seller.v1.ListStoreFollowersResponse
+	(*ListPayoutsRequest)(nil),                 // 20: seller.v1.ListPayoutsRequest
+	(*ListPayoutsResponse)(nil),                // 21: seller.v1.ListPayoutsResponse
+	(*GetPayoutRequest)(nil),                   // 22: seller.v1.GetPayoutRequest
+	(*CreatePayoutRequest)(nil),                // 23: seller.v1.CreatePayoutRequest
+	(*GetSellerBalanceRequest)(nil),            // 24: seller.v1.GetSellerBalanceRequest
+	(*SellerBalanceResponse)(nil),              // 25: seller.v1.SellerBalanceResponse
+	(*GetSellerEarningsLedgerRequest)(nil),     // 26: seller.v1.GetSellerEarningsLedgerRequest
+	(*EarningsLedgerEntry)(nil),                // 27: seller.v1.EarningsLedgerEntry
+	(*SellerEarningsLedgerResponse)(nil),       // 28: seller.v1.SellerEarningsLedgerResponse
+	(*AddAdCreditRequest)(nil),                 // 29: seller.v1.AddAdCreditRequest
+	(*AddAdCreditResponse)(nil),                // 30: seller.v1.AddAdCreditResponse
+	(*GetSellerMonetizationConfigRequest)(nil), // 31: seller.v1.GetSellerMonetizationConfigRequest
+	(*SellerMonetizationConfig)(nil),           // 32: seller.v1.SellerMonetizationConfig
+	nil,                                        // 33: seller.v1.GetSellerBatchResponse.SellersEntry
+	(*timestamppb.Timestamp)(nil),              // 34: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),                      // 35: google.protobuf.Empty
 }
 var file_seller_v1_seller_proto_depIdxs = []int32{
-	25, // 0: seller.v1.Seller.created_at:type_name -> google.protobuf.Timestamp
-	25, // 1: seller.v1.Seller.updated_at:type_name -> google.protobuf.Timestamp
+	34, // 0: seller.v1.Seller.created_at:type_name -> google.protobuf.Timestamp
+	34, // 1: seller.v1.Seller.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 2: seller.v1.Seller.status:type_name -> seller.v1.SellerStatus
 	1,  // 3: seller.v1.Payout.status:type_name -> seller.v1.PayoutStatus
-	25, // 4: seller.v1.Payout.paid_at:type_name -> google.protobuf.Timestamp
-	25, // 5: seller.v1.Payout.created_at:type_name -> google.protobuf.Timestamp
-	24, // 6: seller.v1.GetSellerBatchResponse.sellers:type_name -> seller.v1.GetSellerBatchResponse.SellersEntry
+	34, // 4: seller.v1.Payout.paid_at:type_name -> google.protobuf.Timestamp
+	34, // 5: seller.v1.Payout.created_at:type_name -> google.protobuf.Timestamp
+	33, // 6: seller.v1.GetSellerBatchResponse.sellers:type_name -> seller.v1.GetSellerBatchResponse.SellersEntry
 	0,  // 7: seller.v1.UpdateSellerStatusRequest.status:type_name -> seller.v1.SellerStatus
 	2,  // 8: seller.v1.ListFollowedStoresResponse.sellers:type_name -> seller.v1.Seller
 	3,  // 9: seller.v1.ListPayoutsResponse.payouts:type_name -> seller.v1.Payout
-	2,  // 10: seller.v1.GetSellerBatchResponse.SellersEntry.value:type_name -> seller.v1.Seller
-	4,  // 11: seller.v1.SellerService.GetSeller:input_type -> seller.v1.GetSellerRequest
-	5,  // 12: seller.v1.SellerService.GetSellerByUserID:input_type -> seller.v1.GetSellerByUserIDRequest
-	6,  // 13: seller.v1.SellerService.GetSellerBatch:input_type -> seller.v1.GetSellerBatchRequest
-	8,  // 14: seller.v1.SellerService.CreateStore:input_type -> seller.v1.CreateStoreRequest
-	9,  // 15: seller.v1.SellerService.UpdateStore:input_type -> seller.v1.UpdateStoreRequest
-	10, // 16: seller.v1.SellerService.VerifySeller:input_type -> seller.v1.VerifySellerRequest
-	11, // 17: seller.v1.SellerService.UpdateSellerStatus:input_type -> seller.v1.UpdateSellerStatusRequest
-	12, // 18: seller.v1.SellerService.FollowStore:input_type -> seller.v1.FollowStoreRequest
-	13, // 19: seller.v1.SellerService.UnfollowStore:input_type -> seller.v1.UnfollowStoreRequest
-	14, // 20: seller.v1.SellerService.IsFollowingStore:input_type -> seller.v1.IsFollowingStoreRequest
-	16, // 21: seller.v1.SellerService.ListFollowedStores:input_type -> seller.v1.ListFollowedStoresRequest
-	18, // 22: seller.v1.SellerService.ListStoreFollowers:input_type -> seller.v1.ListStoreFollowersRequest
-	20, // 23: seller.v1.SellerService.ListPayouts:input_type -> seller.v1.ListPayoutsRequest
-	22, // 24: seller.v1.SellerService.GetPayout:input_type -> seller.v1.GetPayoutRequest
-	23, // 25: seller.v1.SellerService.CreatePayout:input_type -> seller.v1.CreatePayoutRequest
-	2,  // 26: seller.v1.SellerService.GetSeller:output_type -> seller.v1.Seller
-	2,  // 27: seller.v1.SellerService.GetSellerByUserID:output_type -> seller.v1.Seller
-	7,  // 28: seller.v1.SellerService.GetSellerBatch:output_type -> seller.v1.GetSellerBatchResponse
-	2,  // 29: seller.v1.SellerService.CreateStore:output_type -> seller.v1.Seller
-	2,  // 30: seller.v1.SellerService.UpdateStore:output_type -> seller.v1.Seller
-	2,  // 31: seller.v1.SellerService.VerifySeller:output_type -> seller.v1.Seller
-	2,  // 32: seller.v1.SellerService.UpdateSellerStatus:output_type -> seller.v1.Seller
-	26, // 33: seller.v1.SellerService.FollowStore:output_type -> google.protobuf.Empty
-	26, // 34: seller.v1.SellerService.UnfollowStore:output_type -> google.protobuf.Empty
-	15, // 35: seller.v1.SellerService.IsFollowingStore:output_type -> seller.v1.IsFollowingStoreResponse
-	17, // 36: seller.v1.SellerService.ListFollowedStores:output_type -> seller.v1.ListFollowedStoresResponse
-	19, // 37: seller.v1.SellerService.ListStoreFollowers:output_type -> seller.v1.ListStoreFollowersResponse
-	21, // 38: seller.v1.SellerService.ListPayouts:output_type -> seller.v1.ListPayoutsResponse
-	3,  // 39: seller.v1.SellerService.GetPayout:output_type -> seller.v1.Payout
-	3,  // 40: seller.v1.SellerService.CreatePayout:output_type -> seller.v1.Payout
-	26, // [26:41] is the sub-list for method output_type
-	11, // [11:26] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	34, // 10: seller.v1.EarningsLedgerEntry.created_at:type_name -> google.protobuf.Timestamp
+	34, // 11: seller.v1.EarningsLedgerEntry.settled_at:type_name -> google.protobuf.Timestamp
+	27, // 12: seller.v1.SellerEarningsLedgerResponse.entries:type_name -> seller.v1.EarningsLedgerEntry
+	2,  // 13: seller.v1.GetSellerBatchResponse.SellersEntry.value:type_name -> seller.v1.Seller
+	4,  // 14: seller.v1.SellerService.GetSeller:input_type -> seller.v1.GetSellerRequest
+	5,  // 15: seller.v1.SellerService.GetSellerByUserID:input_type -> seller.v1.GetSellerByUserIDRequest
+	6,  // 16: seller.v1.SellerService.GetSellerBatch:input_type -> seller.v1.GetSellerBatchRequest
+	8,  // 17: seller.v1.SellerService.CreateStore:input_type -> seller.v1.CreateStoreRequest
+	9,  // 18: seller.v1.SellerService.UpdateStore:input_type -> seller.v1.UpdateStoreRequest
+	10, // 19: seller.v1.SellerService.VerifySeller:input_type -> seller.v1.VerifySellerRequest
+	11, // 20: seller.v1.SellerService.UpdateSellerStatus:input_type -> seller.v1.UpdateSellerStatusRequest
+	12, // 21: seller.v1.SellerService.FollowStore:input_type -> seller.v1.FollowStoreRequest
+	13, // 22: seller.v1.SellerService.UnfollowStore:input_type -> seller.v1.UnfollowStoreRequest
+	14, // 23: seller.v1.SellerService.IsFollowingStore:input_type -> seller.v1.IsFollowingStoreRequest
+	16, // 24: seller.v1.SellerService.ListFollowedStores:input_type -> seller.v1.ListFollowedStoresRequest
+	18, // 25: seller.v1.SellerService.ListStoreFollowers:input_type -> seller.v1.ListStoreFollowersRequest
+	20, // 26: seller.v1.SellerService.ListPayouts:input_type -> seller.v1.ListPayoutsRequest
+	22, // 27: seller.v1.SellerService.GetPayout:input_type -> seller.v1.GetPayoutRequest
+	23, // 28: seller.v1.SellerService.CreatePayout:input_type -> seller.v1.CreatePayoutRequest
+	24, // 29: seller.v1.SellerService.GetSellerBalance:input_type -> seller.v1.GetSellerBalanceRequest
+	26, // 30: seller.v1.SellerService.GetSellerEarningsLedger:input_type -> seller.v1.GetSellerEarningsLedgerRequest
+	29, // 31: seller.v1.SellerService.AddAdCredit:input_type -> seller.v1.AddAdCreditRequest
+	31, // 32: seller.v1.SellerService.GetSellerMonetizationConfig:input_type -> seller.v1.GetSellerMonetizationConfigRequest
+	2,  // 33: seller.v1.SellerService.GetSeller:output_type -> seller.v1.Seller
+	2,  // 34: seller.v1.SellerService.GetSellerByUserID:output_type -> seller.v1.Seller
+	7,  // 35: seller.v1.SellerService.GetSellerBatch:output_type -> seller.v1.GetSellerBatchResponse
+	2,  // 36: seller.v1.SellerService.CreateStore:output_type -> seller.v1.Seller
+	2,  // 37: seller.v1.SellerService.UpdateStore:output_type -> seller.v1.Seller
+	2,  // 38: seller.v1.SellerService.VerifySeller:output_type -> seller.v1.Seller
+	2,  // 39: seller.v1.SellerService.UpdateSellerStatus:output_type -> seller.v1.Seller
+	35, // 40: seller.v1.SellerService.FollowStore:output_type -> google.protobuf.Empty
+	35, // 41: seller.v1.SellerService.UnfollowStore:output_type -> google.protobuf.Empty
+	15, // 42: seller.v1.SellerService.IsFollowingStore:output_type -> seller.v1.IsFollowingStoreResponse
+	17, // 43: seller.v1.SellerService.ListFollowedStores:output_type -> seller.v1.ListFollowedStoresResponse
+	19, // 44: seller.v1.SellerService.ListStoreFollowers:output_type -> seller.v1.ListStoreFollowersResponse
+	21, // 45: seller.v1.SellerService.ListPayouts:output_type -> seller.v1.ListPayoutsResponse
+	3,  // 46: seller.v1.SellerService.GetPayout:output_type -> seller.v1.Payout
+	3,  // 47: seller.v1.SellerService.CreatePayout:output_type -> seller.v1.Payout
+	25, // 48: seller.v1.SellerService.GetSellerBalance:output_type -> seller.v1.SellerBalanceResponse
+	28, // 49: seller.v1.SellerService.GetSellerEarningsLedger:output_type -> seller.v1.SellerEarningsLedgerResponse
+	30, // 50: seller.v1.SellerService.AddAdCredit:output_type -> seller.v1.AddAdCreditResponse
+	32, // 51: seller.v1.SellerService.GetSellerMonetizationConfig:output_type -> seller.v1.SellerMonetizationConfig
+	33, // [33:52] is the sub-list for method output_type
+	14, // [14:33] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_seller_v1_seller_proto_init() }
@@ -1768,7 +2393,7 @@ func file_seller_v1_seller_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_seller_v1_seller_proto_rawDesc), len(file_seller_v1_seller_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   23,
+			NumMessages:   32,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -117,7 +117,33 @@ func (w *Worker) handlePaymentCompleted(msg *nats.Msg) {
 	}
 
 	w.logger.Info().Msgf("successfully confirmed order %s after successful payment", event.OrderID)
+
+	if w.nc != nil {
+		// Fetch order items to include in event
+		items, err := w.q.GetOrderItems(ctx, orderID)
+		if err != nil {
+			w.logger.Error().Err(err).Msgf("failed to get order items for order %s event", event.OrderID)
+		} else {
+			evtItems := make([]map[string]interface{}, len(items))
+			for i, item := range items {
+				evtItems[i] = map[string]interface{}{
+					"order_item_id": item.ID.String(),
+					"seller_id":    item.SellerID.String(),
+					"unit_price":   item.UnitPrice,
+					"quantity":    item.Quantity,
+				}
+			}
+			confirmedEvent := map[string]interface{}{
+				"order_id": event.OrderID,
+				"items":    evtItems,
+			}
+			evtBytes, _ := json.Marshal(confirmedEvent)
+			_ = w.nc.Publish("wemall.order.confirmed", evtBytes)
+			w.logger.Info().Msgf("published wemall.order.confirmed for order %s", event.OrderID)
+		}
+	}
 }
+
 
 type paymentFailedEvent struct {
 	OrderID   string `json:"order_id"`

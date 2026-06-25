@@ -267,7 +267,92 @@ func (h *SellerHandler) CreatePayout(ctx context.Context, req *sellerv1.CreatePa
 	return mapPayout(payout), grpcErr(err)
 }
 
+func (h *SellerHandler) GetSellerBalance(ctx context.Context, req *sellerv1.GetSellerBalanceRequest) (*sellerv1.SellerBalanceResponse, error) {
+	sid, err := uuid.Parse(req.SellerId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid seller id")
+	}
+	balances, totalSales, err := h.svc.GetSellerBalance(ctx, sid)
+	if err != nil {
+		return nil, grpcErr(err)
+	}
+	return &sellerv1.SellerBalanceResponse{
+		EscrowedBalance:     balances.EscrowedBalance,
+		WithdrawableBalance: balances.WithdrawableBalance,
+		TotalSales:          totalSales,
+	}, nil
+}
+
+func (h *SellerHandler) GetSellerEarningsLedger(ctx context.Context, req *sellerv1.GetSellerEarningsLedgerRequest) (*sellerv1.SellerEarningsLedgerResponse, error) {
+	sid, err := uuid.Parse(req.SellerId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid seller id")
+	}
+	rows, _, nextToken, err := h.svc.ListEarningsLedger(ctx, sid, req.PageSize, req.PageToken, req.StatusFilter)
+	if err != nil {
+		return nil, grpcErr(err)
+	}
+	entries := make([]*sellerv1.EarningsLedgerEntry, len(rows))
+	for i := range rows {
+		entries[i] = mapEarningEntry(&rows[i])
+	}
+	return &sellerv1.SellerEarningsLedgerResponse{
+		Entries:         entries,
+		NextPageToken: nextToken,
+	}, nil
+}
+
+func (h *SellerHandler) AddAdCredit(ctx context.Context, req *sellerv1.AddAdCreditRequest) (*sellerv1.AddAdCreditResponse, error) {
+	sid, err := uuid.Parse(req.SellerId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid seller id")
+	}
+	newBalance, err := h.svc.AddAdCredit(ctx, sid, req.Amount, req.FundFromPayoutBalance)
+	if err != nil {
+		return nil, grpcErr(err)
+	}
+	return &sellerv1.AddAdCreditResponse{
+		NewAdCreditBalance: newBalance,
+	}, nil
+}
+
+func (h *SellerHandler) GetSellerMonetizationConfig(ctx context.Context, req *sellerv1.GetSellerMonetizationConfigRequest) (*sellerv1.SellerMonetizationConfig, error) {
+	sid, err := uuid.Parse(req.SellerId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid seller id")
+	}
+	seller, err := h.svc.GetSeller(ctx, sid)
+	if err != nil {
+		return nil, grpcErr(err)
+	}
+	return &sellerv1.SellerMonetizationConfig{
+		CommissionRate:  seller.CommissionRate,
+		AdCreditBalance: seller.AdCreditBalance,
+	}, nil
+}
+
+func mapEarningEntry(e *db.SellerEarning) *sellerv1.EarningsLedgerEntry {
+	if e == nil {
+		return nil
+	}
+	entry := &sellerv1.EarningsLedgerEntry{
+		Id:            e.ID.String(),
+		OrderId:       e.OrderID.String(),
+		OrderItemId:   e.OrderItemID.String(),
+		GrossAmount:   e.GrossAmount,
+		CommissionFee: e.CommissionFee,
+		NetAmount:     e.NetAmount,
+		Status:        e.Status,
+		CreatedAt:     timestamppb.New(e.CreatedAt),
+	}
+	if e.SettledAt.Valid {
+		entry.SettledAt = timestamppb.New(e.SettledAt.Time)
+	}
+	return entry
+}
+
 // ── Mappers ───────────────────────────────────────────────────────────────────
+
 
 func mapSeller(s *db.Seller) *sellerv1.Seller {
 	if s == nil {
@@ -308,12 +393,15 @@ func mapPayout(p *db.SellerPayout) *sellerv1.Payout {
 		return nil
 	}
 	out := &sellerv1.Payout{
-		Id:        p.ID.String(),
-		SellerId:  p.SellerID.String(),
-		Amount:    p.Amount,
-		Currency:  p.Currency,
-		Status:    mapPayoutStatus(p.Status),
-		CreatedAt: timestamppb.New(p.CreatedAt),
+		Id:          p.ID.String(),
+		SellerId:    p.SellerID.String(),
+		Amount:      p.Amount,
+		Currency:    p.Currency,
+		Status:      mapPayoutStatus(p.Status),
+		CreatedAt:   timestamppb.New(p.CreatedAt),
+		GrossAmount: p.GrossAmount,
+		PlatformFee: p.PlatformFee,
+		NetAmount:   p.NetAmount,
 	}
 	if p.ProviderRef != nil {
 		out.ProviderRef = *p.ProviderRef
@@ -323,6 +411,7 @@ func mapPayout(p *db.SellerPayout) *sellerv1.Payout {
 	}
 	return out
 }
+
 
 func mapPayoutStatus(s string) sellerv1.PayoutStatus {
 	switch s {

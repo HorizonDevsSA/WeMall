@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nats-io/nats.go"
 	"google.golang.org/grpc"
 
 	sellerv1 "github.com/wemall/gen/seller/v1"
@@ -18,7 +19,9 @@ import (
 	"github.com/wemall/seller-service/internal/db"
 	"github.com/wemall/seller-service/internal/handler"
 	"github.com/wemall/seller-service/internal/service"
+	"github.com/wemall/seller-service/internal/worker"
 )
+
 
 func main() {
 	cfg, err := config.Load()
@@ -44,8 +47,25 @@ func main() {
 	queries := db.New(dbPool)
 	sellerSvc := service.NewSellerService(queries, dbPool)
 
+	// Connect to NATS
+	nc, err := nats.Connect(cfg.NatsURL)
+	if err != nil {
+		log.Warn().Err(err).Msgf("failed to connect to NATS at %s, proceeding without NATS events", cfg.NatsURL)
+	} else {
+		defer nc.Close()
+		log.Info().Msg("NATS connected successfully")
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	bgWorker := worker.NewWorker(nc, queries, dbPool, log)
+	if err := bgWorker.Start(ctx); err != nil {
+		log.Fatal().Err(err).Msg("failed to start background workers")
+	}
+
 	grpcServer := grpc.NewServer(grpcutil.UnaryServerOptions(log)...)
 	sellerv1.RegisterSellerServiceServer(grpcServer, handler.NewSellerHandler(sellerSvc))
+
 
 	lis, err := net.Listen("tcp", ":"+cfg.GRPCPort)
 	if err != nil {

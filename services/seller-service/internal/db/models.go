@@ -74,10 +74,26 @@ type Seller struct {
 	Latitude *float64 `json:"latitude"`
 	// Longitude coordinate for seller location (-180 to 180)
 	Longitude *float64 `json:"longitude"`
-	// Human-readable address string for the store location
-	StoreLocation *string `json:"store_location"`
 	// Review status: pending → processing → verified | suspended
 	Status SellerStatus `json:"status"`
+	// Human-readable address string for the store location, derived from latitude/longitude coordinates
+	StoreLocation   *string `json:"store_location"`
+	CommissionRate  float64 `json:"commission_rate"`
+	AdCreditBalance float64 `json:"ad_credit_balance"`
+}
+
+type SellerEarning struct {
+	ID            uuid.UUID          `json:"id"`
+	SellerID      uuid.UUID          `json:"seller_id"`
+	OrderID       uuid.UUID          `json:"order_id"`
+	OrderItemID   uuid.UUID          `json:"order_item_id"`
+	GrossAmount   float64            `json:"gross_amount"`
+	CommissionFee float64            `json:"commission_fee"`
+	NetAmount     float64            `json:"net_amount"`
+	Status        string             `json:"status"`
+	CreatedAt     time.Time          `json:"created_at"`
+	SettledAt     pgtype.Timestamptz `json:"settled_at"`
+	PayoutID      pgtype.UUID        `json:"payout_id"`
 }
 
 type SellerPayout struct {
@@ -89,6 +105,9 @@ type SellerPayout struct {
 	ProviderRef *string            `json:"provider_ref"`
 	PaidAt      pgtype.Timestamptz `json:"paid_at"`
 	CreatedAt   time.Time          `json:"created_at"`
+	GrossAmount float64            `json:"gross_amount"`
+	PlatformFee float64            `json:"platform_fee"`
+	NetAmount   float64            `json:"net_amount"`
 }
 
 // Tracks which users follow which seller stores

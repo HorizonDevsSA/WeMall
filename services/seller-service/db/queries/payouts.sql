@@ -1,6 +1,6 @@
 -- name: CreatePayout :one
-INSERT INTO seller_payouts (seller_id, amount, currency, status)
-VALUES ($1, $2, $3, 'pending')
+INSERT INTO seller_payouts (seller_id, amount, currency, status, gross_amount, platform_fee, net_amount)
+VALUES ($1, $2, $3, 'pending', $4, $5, $6)
 RETURNING *;
 
 -- name: GetPayoutByID :one

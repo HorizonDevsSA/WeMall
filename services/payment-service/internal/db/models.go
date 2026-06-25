@@ -21,4 +21,5 @@ type Payment struct {
 	TransactionID *string   `json:"transaction_id"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
+	PlatformFee   float64   `json:"platform_fee"`
 }

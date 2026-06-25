@@ -26,24 +26,34 @@ func (q *Queries) CountPayoutsBySeller(ctx context.Context, sellerID uuid.UUID) 
 }
 
 const createPayout = `-- name: CreatePayout :one
-INSERT INTO seller_payouts (seller_id, amount, currency, status)
-VALUES ($1, $2, $3, 'pending')
-RETURNING id, seller_id, amount, currency, status, provider_ref, paid_at, created_at
+INSERT INTO seller_payouts (seller_id, amount, currency, status, gross_amount, platform_fee, net_amount)
+VALUES ($1, $2, $3, 'pending', $4, $5, $6)
+RETURNING id, seller_id, amount, currency, status, provider_ref, paid_at, created_at, gross_amount, platform_fee, net_amount
 `
 
 type CreatePayoutParams struct {
-	SellerID uuid.UUID `json:"seller_id"`
-	Amount   float64   `json:"amount"`
-	Currency string    `json:"currency"`
+	SellerID    uuid.UUID `json:"seller_id"`
+	Amount      float64   `json:"amount"`
+	Currency    string    `json:"currency"`
+	GrossAmount float64   `json:"gross_amount"`
+	PlatformFee float64   `json:"platform_fee"`
+	NetAmount   float64   `json:"net_amount"`
 }
 
 // CreatePayout
 //
-//	INSERT INTO seller_payouts (seller_id, amount, currency, status)
-//	VALUES ($1, $2, $3, 'pending')
-//	RETURNING id, seller_id, amount, currency, status, provider_ref, paid_at, created_at
+//	INSERT INTO seller_payouts (seller_id, amount, currency, status, gross_amount, platform_fee, net_amount)
+//	VALUES ($1, $2, $3, 'pending', $4, $5, $6)
+//	RETURNING id, seller_id, amount, currency, status, provider_ref, paid_at, created_at, gross_amount, platform_fee, net_amount
 func (q *Queries) CreatePayout(ctx context.Context, arg CreatePayoutParams) (SellerPayout, error) {
-	row := q.db.QueryRow(ctx, createPayout, arg.SellerID, arg.Amount, arg.Currency)
+	row := q.db.QueryRow(ctx, createPayout,
+		arg.SellerID,
+		arg.Amount,
+		arg.Currency,
+		arg.GrossAmount,
+		arg.PlatformFee,
+		arg.NetAmount,
+	)
 	var i SellerPayout
 	err := row.Scan(
 		&i.ID,
@@ -54,17 +64,20 @@ func (q *Queries) CreatePayout(ctx context.Context, arg CreatePayoutParams) (Sel
 		&i.ProviderRef,
 		&i.PaidAt,
 		&i.CreatedAt,
+		&i.GrossAmount,
+		&i.PlatformFee,
+		&i.NetAmount,
 	)
 	return i, err
 }
 
 const getPayoutByID = `-- name: GetPayoutByID :one
-SELECT id, seller_id, amount, currency, status, provider_ref, paid_at, created_at FROM seller_payouts WHERE id = $1
+SELECT id, seller_id, amount, currency, status, provider_ref, paid_at, created_at, gross_amount, platform_fee, net_amount FROM seller_payouts WHERE id = $1
 `
 
 // GetPayoutByID
 //
-//	SELECT id, seller_id, amount, currency, status, provider_ref, paid_at, created_at FROM seller_payouts WHERE id = $1
+//	SELECT id, seller_id, amount, currency, status, provider_ref, paid_at, created_at, gross_amount, platform_fee, net_amount FROM seller_payouts WHERE id = $1
 func (q *Queries) GetPayoutByID(ctx context.Context, id uuid.UUID) (SellerPayout, error) {
 	row := q.db.QueryRow(ctx, getPayoutByID, id)
 	var i SellerPayout
@@ -77,12 +90,15 @@ func (q *Queries) GetPayoutByID(ctx context.Context, id uuid.UUID) (SellerPayout
 		&i.ProviderRef,
 		&i.PaidAt,
 		&i.CreatedAt,
+		&i.GrossAmount,
+		&i.PlatformFee,
+		&i.NetAmount,
 	)
 	return i, err
 }
 
 const getPayoutByIDForSeller = `-- name: GetPayoutByIDForSeller :one
-SELECT id, seller_id, amount, currency, status, provider_ref, paid_at, created_at FROM seller_payouts WHERE id = $1 AND seller_id = $2
+SELECT id, seller_id, amount, currency, status, provider_ref, paid_at, created_at, gross_amount, platform_fee, net_amount FROM seller_payouts WHERE id = $1 AND seller_id = $2
 `
 
 type GetPayoutByIDForSellerParams struct {
@@ -92,7 +108,7 @@ type GetPayoutByIDForSellerParams struct {
 
 // GetPayoutByIDForSeller
 //
-//	SELECT id, seller_id, amount, currency, status, provider_ref, paid_at, created_at FROM seller_payouts WHERE id = $1 AND seller_id = $2
+//	SELECT id, seller_id, amount, currency, status, provider_ref, paid_at, created_at, gross_amount, platform_fee, net_amount FROM seller_payouts WHERE id = $1 AND seller_id = $2
 func (q *Queries) GetPayoutByIDForSeller(ctx context.Context, arg GetPayoutByIDForSellerParams) (SellerPayout, error) {
 	row := q.db.QueryRow(ctx, getPayoutByIDForSeller, arg.ID, arg.SellerID)
 	var i SellerPayout
@@ -105,12 +121,15 @@ func (q *Queries) GetPayoutByIDForSeller(ctx context.Context, arg GetPayoutByIDF
 		&i.ProviderRef,
 		&i.PaidAt,
 		&i.CreatedAt,
+		&i.GrossAmount,
+		&i.PlatformFee,
+		&i.NetAmount,
 	)
 	return i, err
 }
 
 const listPayoutsBySeller = `-- name: ListPayoutsBySeller :many
-SELECT id, seller_id, amount, currency, status, provider_ref, paid_at, created_at FROM seller_payouts
+SELECT id, seller_id, amount, currency, status, provider_ref, paid_at, created_at, gross_amount, platform_fee, net_amount FROM seller_payouts
 WHERE seller_id = $1
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
@@ -124,7 +143,7 @@ type ListPayoutsBySellerParams struct {
 
 // ListPayoutsBySeller
 //
-//	SELECT id, seller_id, amount, currency, status, provider_ref, paid_at, created_at FROM seller_payouts
+//	SELECT id, seller_id, amount, currency, status, provider_ref, paid_at, created_at, gross_amount, platform_fee, net_amount FROM seller_payouts
 //	WHERE seller_id = $1
 //	ORDER BY created_at DESC
 //	LIMIT $2 OFFSET $3
@@ -146,6 +165,9 @@ func (q *Queries) ListPayoutsBySeller(ctx context.Context, arg ListPayoutsBySell
 			&i.ProviderRef,
 			&i.PaidAt,
 			&i.CreatedAt,
+			&i.GrossAmount,
+			&i.PlatformFee,
+			&i.NetAmount,
 		); err != nil {
 			return nil, err
 		}

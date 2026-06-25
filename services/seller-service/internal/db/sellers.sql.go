@@ -15,7 +15,7 @@ import (
 const createSeller = `-- name: CreateSeller :one
 INSERT INTO sellers (user_id, store_name, store_slug, logo_url, banner_url, description, latitude, longitude, store_location)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, store_location, status
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
 `
 
 type CreateSellerParams struct {
@@ -30,6 +30,11 @@ type CreateSellerParams struct {
 	StoreLocation *string   `json:"store_location"`
 }
 
+// CreateSeller
+//
+//	INSERT INTO sellers (user_id, store_name, store_slug, logo_url, banner_url, description, latitude, longitude, store_location)
+//	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
 func (q *Queries) CreateSeller(ctx context.Context, arg CreateSellerParams) (Seller, error) {
 	row := q.db.QueryRow(ctx, createSeller,
 		arg.UserID,
@@ -58,16 +63,21 @@ func (q *Queries) CreateSeller(ctx context.Context, arg CreateSellerParams) (Sel
 		&i.UpdatedAt,
 		&i.Latitude,
 		&i.Longitude,
-		&i.StoreLocation,
 		&i.Status,
+		&i.StoreLocation,
+		&i.CommissionRate,
+		&i.AdCreditBalance,
 	)
 	return i, err
 }
 
 const getSellerByID = `-- name: GetSellerByID :one
-SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, store_location, status FROM sellers WHERE id = $1
+SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance FROM sellers WHERE id = $1
 `
 
+// GetSellerByID
+//
+//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance FROM sellers WHERE id = $1
 func (q *Queries) GetSellerByID(ctx context.Context, id uuid.UUID) (Seller, error) {
 	row := q.db.QueryRow(ctx, getSellerByID, id)
 	var i Seller
@@ -86,16 +96,21 @@ func (q *Queries) GetSellerByID(ctx context.Context, id uuid.UUID) (Seller, erro
 		&i.UpdatedAt,
 		&i.Latitude,
 		&i.Longitude,
-		&i.StoreLocation,
 		&i.Status,
+		&i.StoreLocation,
+		&i.CommissionRate,
+		&i.AdCreditBalance,
 	)
 	return i, err
 }
 
 const getSellerByStoreSlug = `-- name: GetSellerByStoreSlug :one
-SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, store_location, status FROM sellers WHERE store_slug = $1
+SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance FROM sellers WHERE store_slug = $1
 `
 
+// GetSellerByStoreSlug
+//
+//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance FROM sellers WHERE store_slug = $1
 func (q *Queries) GetSellerByStoreSlug(ctx context.Context, storeSlug string) (Seller, error) {
 	row := q.db.QueryRow(ctx, getSellerByStoreSlug, storeSlug)
 	var i Seller
@@ -114,16 +129,21 @@ func (q *Queries) GetSellerByStoreSlug(ctx context.Context, storeSlug string) (S
 		&i.UpdatedAt,
 		&i.Latitude,
 		&i.Longitude,
-		&i.StoreLocation,
 		&i.Status,
+		&i.StoreLocation,
+		&i.CommissionRate,
+		&i.AdCreditBalance,
 	)
 	return i, err
 }
 
 const getSellerByUserID = `-- name: GetSellerByUserID :one
-SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, store_location, status FROM sellers WHERE user_id = $1
+SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance FROM sellers WHERE user_id = $1
 `
 
+// GetSellerByUserID
+//
+//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance FROM sellers WHERE user_id = $1
 func (q *Queries) GetSellerByUserID(ctx context.Context, userID uuid.UUID) (Seller, error) {
 	row := q.db.QueryRow(ctx, getSellerByUserID, userID)
 	var i Seller
@@ -142,16 +162,21 @@ func (q *Queries) GetSellerByUserID(ctx context.Context, userID uuid.UUID) (Sell
 		&i.UpdatedAt,
 		&i.Latitude,
 		&i.Longitude,
-		&i.StoreLocation,
 		&i.Status,
+		&i.StoreLocation,
+		&i.CommissionRate,
+		&i.AdCreditBalance,
 	)
 	return i, err
 }
 
 const getSellersByIDs = `-- name: GetSellersByIDs :many
-SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, store_location, status FROM sellers WHERE id = ANY($1::uuid[])
+SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance FROM sellers WHERE id = ANY($1::uuid[])
 `
 
+// GetSellersByIDs
+//
+//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance FROM sellers WHERE id = ANY($1::uuid[])
 func (q *Queries) GetSellersByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]Seller, error) {
 	rows, err := q.db.Query(ctx, getSellersByIDs, dollar_1)
 	if err != nil {
@@ -176,8 +201,10 @@ func (q *Queries) GetSellersByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]
 			&i.UpdatedAt,
 			&i.Latitude,
 			&i.Longitude,
-			&i.StoreLocation,
 			&i.Status,
+			&i.StoreLocation,
+			&i.CommissionRate,
+			&i.AdCreditBalance,
 		); err != nil {
 			return nil, err
 		}
@@ -190,7 +217,7 @@ func (q *Queries) GetSellersByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]
 }
 
 const getSellersNearLocation = `-- name: GetSellersNearLocation :many
-SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, 
+SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, 
     (6371 * acos(cos(radians($2)) * cos(radians(latitude)) * cos(radians(longitude) - radians($3)) + sin(radians($2)) * sin(radians(latitude)))) AS distance_km
 FROM sellers 
 WHERE latitude IS NOT NULL AND longitude IS NOT NULL
@@ -209,27 +236,30 @@ type GetSellersNearLocationParams struct {
 }
 
 type GetSellersNearLocationRow struct {
-	ID          uuid.UUID    `json:"id"`
-	UserID      uuid.UUID    `json:"user_id"`
-	StoreName   string       `json:"store_name"`
-	StoreSlug   string       `json:"store_slug"`
-	LogoUrl     *string      `json:"logo_url"`
-	BannerUrl   *string      `json:"banner_url"`
-	Description *string      `json:"description"`
-	Rating      float64      `json:"rating"`
-	TotalSales  int32        `json:"total_sales"`
-	IsVerified  bool         `json:"is_verified"`
-	CreatedAt   time.Time    `json:"created_at"`
-	UpdatedAt   time.Time    `json:"updated_at"`
-	Latitude    *float64     `json:"latitude"`
-	Longitude   *float64     `json:"longitude"`
-	Status      SellerStatus `json:"status"`
-	DistanceKm  int32        `json:"distance_km"`
+	ID              uuid.UUID    `json:"id"`
+	UserID          uuid.UUID    `json:"user_id"`
+	StoreName       string       `json:"store_name"`
+	StoreSlug       string       `json:"store_slug"`
+	LogoUrl         *string      `json:"logo_url"`
+	BannerUrl       *string      `json:"banner_url"`
+	Description     *string      `json:"description"`
+	Rating          float64      `json:"rating"`
+	TotalSales      int32        `json:"total_sales"`
+	IsVerified      bool         `json:"is_verified"`
+	CreatedAt       time.Time    `json:"created_at"`
+	UpdatedAt       time.Time    `json:"updated_at"`
+	Latitude        *float64     `json:"latitude"`
+	Longitude       *float64     `json:"longitude"`
+	Status          SellerStatus `json:"status"`
+	StoreLocation   *string      `json:"store_location"`
+	CommissionRate  float64      `json:"commission_rate"`
+	AdCreditBalance float64      `json:"ad_credit_balance"`
+	DistanceKm      int32        `json:"distance_km"`
 }
 
 // GetSellersNearLocation
 //
-//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status,
+//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance,
 //	    (6371 * acos(cos(radians($2)) * cos(radians(latitude)) * cos(radians(longitude) - radians($3)) + sin(radians($2)) * sin(radians(latitude)))) AS distance_km
 //	FROM sellers
 //	WHERE latitude IS NOT NULL AND longitude IS NOT NULL
@@ -268,6 +298,9 @@ func (q *Queries) GetSellersNearLocation(ctx context.Context, arg GetSellersNear
 			&i.Latitude,
 			&i.Longitude,
 			&i.Status,
+			&i.StoreLocation,
+			&i.CommissionRate,
+			&i.AdCreditBalance,
 			&i.DistanceKm,
 		); err != nil {
 			return nil, err
@@ -281,7 +314,7 @@ func (q *Queries) GetSellersNearLocation(ctx context.Context, arg GetSellersNear
 }
 
 const getSellersWithinRadius = `-- name: GetSellersWithinRadius :many
-SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status,
+SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance,
     (6371 * acos(cos(radians($1)) * cos(radians(latitude)) * cos(radians(longitude) - radians($2)) + sin(radians($1)) * sin(radians(latitude)))) AS distance_km
 FROM sellers 
 WHERE latitude IS NOT NULL AND longitude IS NOT NULL
@@ -296,27 +329,30 @@ type GetSellersWithinRadiusParams struct {
 }
 
 type GetSellersWithinRadiusRow struct {
-	ID          uuid.UUID    `json:"id"`
-	UserID      uuid.UUID    `json:"user_id"`
-	StoreName   string       `json:"store_name"`
-	StoreSlug   string       `json:"store_slug"`
-	LogoUrl     *string      `json:"logo_url"`
-	BannerUrl   *string      `json:"banner_url"`
-	Description *string      `json:"description"`
-	Rating      float64      `json:"rating"`
-	TotalSales  int32        `json:"total_sales"`
-	IsVerified  bool         `json:"is_verified"`
-	CreatedAt   time.Time    `json:"created_at"`
-	UpdatedAt   time.Time    `json:"updated_at"`
-	Latitude    *float64     `json:"latitude"`
-	Longitude   *float64     `json:"longitude"`
-	Status      SellerStatus `json:"status"`
-	DistanceKm  int32        `json:"distance_km"`
+	ID              uuid.UUID    `json:"id"`
+	UserID          uuid.UUID    `json:"user_id"`
+	StoreName       string       `json:"store_name"`
+	StoreSlug       string       `json:"store_slug"`
+	LogoUrl         *string      `json:"logo_url"`
+	BannerUrl       *string      `json:"banner_url"`
+	Description     *string      `json:"description"`
+	Rating          float64      `json:"rating"`
+	TotalSales      int32        `json:"total_sales"`
+	IsVerified      bool         `json:"is_verified"`
+	CreatedAt       time.Time    `json:"created_at"`
+	UpdatedAt       time.Time    `json:"updated_at"`
+	Latitude        *float64     `json:"latitude"`
+	Longitude       *float64     `json:"longitude"`
+	Status          SellerStatus `json:"status"`
+	StoreLocation   *string      `json:"store_location"`
+	CommissionRate  float64      `json:"commission_rate"`
+	AdCreditBalance float64      `json:"ad_credit_balance"`
+	DistanceKm      int32        `json:"distance_km"`
 }
 
 // GetSellersWithinRadius
 //
-//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status,
+//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance,
 //	    (6371 * acos(cos(radians($1)) * cos(radians(latitude)) * cos(radians(longitude) - radians($2)) + sin(radians($1)) * sin(radians(latitude)))) AS distance_km
 //	FROM sellers
 //	WHERE latitude IS NOT NULL AND longitude IS NOT NULL
@@ -347,6 +383,9 @@ func (q *Queries) GetSellersWithinRadius(ctx context.Context, arg GetSellersWith
 			&i.Latitude,
 			&i.Longitude,
 			&i.Status,
+			&i.StoreLocation,
+			&i.CommissionRate,
+			&i.AdCreditBalance,
 			&i.DistanceKm,
 		); err != nil {
 			return nil, err
@@ -364,7 +403,7 @@ UPDATE sellers SET
     total_sales = total_sales + $2,
     updated_at  = NOW()
 WHERE id = $1
-RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, store_location, status
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
 `
 
 type IncrementSellerTotalSalesParams struct {
@@ -372,6 +411,13 @@ type IncrementSellerTotalSalesParams struct {
 	TotalSales int32     `json:"total_sales"`
 }
 
+// IncrementSellerTotalSales
+//
+//	UPDATE sellers SET
+//	    total_sales = total_sales + $2,
+//	    updated_at  = NOW()
+//	WHERE id = $1
+//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
 func (q *Queries) IncrementSellerTotalSales(ctx context.Context, arg IncrementSellerTotalSalesParams) (Seller, error) {
 	row := q.db.QueryRow(ctx, incrementSellerTotalSales, arg.ID, arg.TotalSales)
 	var i Seller
@@ -390,8 +436,10 @@ func (q *Queries) IncrementSellerTotalSales(ctx context.Context, arg IncrementSe
 		&i.UpdatedAt,
 		&i.Latitude,
 		&i.Longitude,
-		&i.StoreLocation,
 		&i.Status,
+		&i.StoreLocation,
+		&i.CommissionRate,
+		&i.AdCreditBalance,
 	)
 	return i, err
 }
@@ -408,7 +456,7 @@ UPDATE sellers SET
     store_location = COALESCE($8, store_location),
     updated_at     = NOW()
 WHERE user_id = $9
-RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, store_location, status
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
 `
 
 type UpdateSellerParams struct {
@@ -423,6 +471,20 @@ type UpdateSellerParams struct {
 	UserID        uuid.UUID `json:"user_id"`
 }
 
+// UpdateSeller
+//
+//	UPDATE sellers SET
+//	    store_name     = COALESCE(NULLIF($1::text, ''), store_name),
+//	    store_slug     = COALESCE(NULLIF($2::text, ''), store_slug),
+//	    logo_url       = COALESCE($3, logo_url),
+//	    banner_url     = COALESCE($4, banner_url),
+//	    description    = COALESCE($5, description),
+//	    latitude       = COALESCE($6, latitude),
+//	    longitude      = COALESCE($7, longitude),
+//	    store_location = COALESCE($8, store_location),
+//	    updated_at     = NOW()
+//	WHERE user_id = $9
+//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
 func (q *Queries) UpdateSeller(ctx context.Context, arg UpdateSellerParams) (Seller, error) {
 	row := q.db.QueryRow(ctx, updateSeller,
 		arg.StoreName,
@@ -451,8 +513,102 @@ func (q *Queries) UpdateSeller(ctx context.Context, arg UpdateSellerParams) (Sel
 		&i.UpdatedAt,
 		&i.Latitude,
 		&i.Longitude,
-		&i.StoreLocation,
 		&i.Status,
+		&i.StoreLocation,
+		&i.CommissionRate,
+		&i.AdCreditBalance,
+	)
+	return i, err
+}
+
+const updateSellerAdCredit = `-- name: UpdateSellerAdCredit :one
+UPDATE sellers SET
+    ad_credit_balance = ad_credit_balance + $2,
+    updated_at  = NOW()
+WHERE id = $1
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
+`
+
+type UpdateSellerAdCreditParams struct {
+	ID              uuid.UUID `json:"id"`
+	AdCreditBalance float64   `json:"ad_credit_balance"`
+}
+
+// UpdateSellerAdCredit
+//
+//	UPDATE sellers SET
+//	    ad_credit_balance = ad_credit_balance + $2,
+//	    updated_at  = NOW()
+//	WHERE id = $1
+//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
+func (q *Queries) UpdateSellerAdCredit(ctx context.Context, arg UpdateSellerAdCreditParams) (Seller, error) {
+	row := q.db.QueryRow(ctx, updateSellerAdCredit, arg.ID, arg.AdCreditBalance)
+	var i Seller
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.StoreName,
+		&i.StoreSlug,
+		&i.LogoUrl,
+		&i.BannerUrl,
+		&i.Description,
+		&i.Rating,
+		&i.TotalSales,
+		&i.IsVerified,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Latitude,
+		&i.Longitude,
+		&i.Status,
+		&i.StoreLocation,
+		&i.CommissionRate,
+		&i.AdCreditBalance,
+	)
+	return i, err
+}
+
+const updateSellerCommissionRate = `-- name: UpdateSellerCommissionRate :one
+UPDATE sellers SET
+    commission_rate = $2,
+    updated_at  = NOW()
+WHERE id = $1
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
+`
+
+type UpdateSellerCommissionRateParams struct {
+	ID             uuid.UUID `json:"id"`
+	CommissionRate float64   `json:"commission_rate"`
+}
+
+// UpdateSellerCommissionRate
+//
+//	UPDATE sellers SET
+//	    commission_rate = $2,
+//	    updated_at  = NOW()
+//	WHERE id = $1
+//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
+func (q *Queries) UpdateSellerCommissionRate(ctx context.Context, arg UpdateSellerCommissionRateParams) (Seller, error) {
+	row := q.db.QueryRow(ctx, updateSellerCommissionRate, arg.ID, arg.CommissionRate)
+	var i Seller
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.StoreName,
+		&i.StoreSlug,
+		&i.LogoUrl,
+		&i.BannerUrl,
+		&i.Description,
+		&i.Rating,
+		&i.TotalSales,
+		&i.IsVerified,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Latitude,
+		&i.Longitude,
+		&i.Status,
+		&i.StoreLocation,
+		&i.CommissionRate,
+		&i.AdCreditBalance,
 	)
 	return i, err
 }
@@ -462,7 +618,7 @@ UPDATE sellers SET
     status     = $2,
     updated_at = NOW()
 WHERE id = $1
-RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, store_location, status
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
 `
 
 type UpdateSellerStatusParams struct {
@@ -470,6 +626,13 @@ type UpdateSellerStatusParams struct {
 	Status SellerStatus `json:"status"`
 }
 
+// UpdateSellerStatus
+//
+//	UPDATE sellers SET
+//	    status     = $2,
+//	    updated_at = NOW()
+//	WHERE id = $1
+//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
 func (q *Queries) UpdateSellerStatus(ctx context.Context, arg UpdateSellerStatusParams) (Seller, error) {
 	row := q.db.QueryRow(ctx, updateSellerStatus, arg.ID, arg.Status)
 	var i Seller
@@ -488,8 +651,10 @@ func (q *Queries) UpdateSellerStatus(ctx context.Context, arg UpdateSellerStatus
 		&i.UpdatedAt,
 		&i.Latitude,
 		&i.Longitude,
-		&i.StoreLocation,
 		&i.Status,
+		&i.StoreLocation,
+		&i.CommissionRate,
+		&i.AdCreditBalance,
 	)
 	return i, err
 }
@@ -499,7 +664,7 @@ UPDATE sellers SET
     is_verified = $2,
     updated_at  = NOW()
 WHERE id = $1
-RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, store_location, status
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
 `
 
 type VerifySellerParams struct {
@@ -507,6 +672,13 @@ type VerifySellerParams struct {
 	IsVerified bool      `json:"is_verified"`
 }
 
+// VerifySeller
+//
+//	UPDATE sellers SET
+//	    is_verified = $2,
+//	    updated_at  = NOW()
+//	WHERE id = $1
+//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
 func (q *Queries) VerifySeller(ctx context.Context, arg VerifySellerParams) (Seller, error) {
 	row := q.db.QueryRow(ctx, verifySeller, arg.ID, arg.IsVerified)
 	var i Seller
@@ -525,8 +697,10 @@ func (q *Queries) VerifySeller(ctx context.Context, arg VerifySellerParams) (Sel
 		&i.UpdatedAt,
 		&i.Latitude,
 		&i.Longitude,
-		&i.StoreLocation,
 		&i.Status,
+		&i.StoreLocation,
+		&i.CommissionRate,
+		&i.AdCreditBalance,
 	)
 	return i, err
 }

@@ -45,6 +45,12 @@ func Unavailable(msg string) error {
 	return status.Error(codes.Unavailable, msg)
 }
 
+// FailedPrecondition wraps a message in a gRPC FailedPrecondition status error.
+func FailedPrecondition(msg string) error {
+	return status.Error(codes.FailedPrecondition, msg)
+}
+
+
 // IsNotFound reports whether the error is a gRPC NotFound error.
 func IsNotFound(err error) bool {
 	return status.Code(err) == codes.NotFound

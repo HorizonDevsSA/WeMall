@@ -86,7 +86,7 @@ func (q *Queries) IsFollowingStore(ctx context.Context, arg IsFollowingStorePara
 }
 
 const listFollowedStores = `-- name: ListFollowedStores :many
-SELECT s.id, s.user_id, s.store_name, s.store_slug, s.logo_url, s.banner_url, s.description, s.rating, s.total_sales, s.is_verified, s.created_at, s.updated_at, s.latitude, s.longitude, s.status
+SELECT s.id, s.user_id, s.store_name, s.store_slug, s.logo_url, s.banner_url, s.description, s.rating, s.total_sales, s.is_verified, s.created_at, s.updated_at, s.latitude, s.longitude, s.status, s.store_location, s.commission_rate, s.ad_credit_balance
 FROM sellers s
 INNER JOIN store_follows f ON f.seller_id = s.id
 WHERE f.user_id = $1
@@ -102,7 +102,7 @@ type ListFollowedStoresParams struct {
 
 // ListFollowedStores
 //
-//	SELECT s.id, s.user_id, s.store_name, s.store_slug, s.logo_url, s.banner_url, s.description, s.rating, s.total_sales, s.is_verified, s.created_at, s.updated_at, s.latitude, s.longitude, s.status
+//	SELECT s.id, s.user_id, s.store_name, s.store_slug, s.logo_url, s.banner_url, s.description, s.rating, s.total_sales, s.is_verified, s.created_at, s.updated_at, s.latitude, s.longitude, s.status, s.store_location, s.commission_rate, s.ad_credit_balance
 //	FROM sellers s
 //	INNER JOIN store_follows f ON f.seller_id = s.id
 //	WHERE f.user_id = $1
@@ -133,6 +133,9 @@ func (q *Queries) ListFollowedStores(ctx context.Context, arg ListFollowedStores
 			&i.Latitude,
 			&i.Longitude,
 			&i.Status,
+			&i.StoreLocation,
+			&i.CommissionRate,
+			&i.AdCreditBalance,
 		); err != nil {
 			return nil, err
 		}

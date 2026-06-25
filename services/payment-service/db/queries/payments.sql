@@ -1,6 +1,6 @@
 -- name: CreatePayment :one
-INSERT INTO payments (order_id, user_id, amount, currency, provider, status)
-VALUES ($1, $2, $3, $4, $5, 'pending')
+INSERT INTO payments (order_id, user_id, amount, currency, provider, status, platform_fee)
+VALUES ($1, $2, $3, $4, $5, 'pending', $6)
 RETURNING *;
 
 -- name: GetPayment :one

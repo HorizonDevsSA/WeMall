@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	werr "github.com/wemall/pkg/errors"
@@ -355,16 +356,174 @@ func (s *SellerService) CreatePayout(ctx context.Context, sellerID uuid.UUID, am
 		return nil, err
 	}
 
-	payout, err := s.q.CreatePayout(ctx, db.CreatePayoutParams{
-		SellerID: sellerID,
-		Amount:   amount,
-		Currency: currency,
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return nil, werr.Internal(err)
+	}
+	defer tx.Rollback(ctx)
+
+	qtx := s.q.WithTx(tx)
+
+	balances, err := qtx.GetSellerBalances(ctx, sellerID)
+	if err != nil {
+		return nil, werr.Internal(err)
+	}
+
+	if balances.WithdrawableBalance < amount {
+		return nil, werr.FailedPrecondition(fmt.Sprintf("insufficient withdrawable balance: have %.2f, requested %.2f", balances.WithdrawableBalance, amount))
+	}
+
+	// Fetch sum of earned items
+	earnedSum, err := qtx.GetEarnedSumBySeller(ctx, sellerID)
+	if err != nil {
+		return nil, werr.Internal(err)
+	}
+
+	// Create payout in DB
+	payout, err := qtx.CreatePayout(ctx, db.CreatePayoutParams{
+		SellerID:    sellerID,
+		Amount:      amount,
+		Currency:    currency,
+		GrossAmount: earnedSum.GrossSum,
+		PlatformFee: earnedSum.FeeSum,
+		NetAmount:   earnedSum.NetSum,
 	})
 	if err != nil {
 		return nil, werr.Internal(err)
 	}
+
+	// Link payout to earnings and change status to 'payout_released'
+	err = qtx.BulkLinkPayoutToEarnings(ctx, db.BulkLinkPayoutToEarningsParams{
+		SellerID: sellerID,
+		PayoutID: pgtype.UUID{Bytes: payout.ID, Valid: true},
+	})
+	if err != nil {
+		return nil, werr.Internal(err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, werr.Internal(err)
+	}
+
 	return &payout, nil
 }
+
+func (s *SellerService) GetSellerBalance(ctx context.Context, sellerID uuid.UUID) (db.GetSellerBalancesRow, float64, error) {
+	balances, err := s.q.GetSellerBalances(ctx, sellerID)
+	if err != nil {
+		return db.GetSellerBalancesRow{}, 0, werr.Internal(err)
+	}
+	seller, err := s.GetSeller(ctx, sellerID)
+	if err != nil {
+		return db.GetSellerBalancesRow{}, 0, err
+	}
+	return balances, float64(seller.TotalSales), nil
+}
+
+func (s *SellerService) ListEarningsLedger(ctx context.Context, sellerID uuid.UUID, pageSize int32, pageToken string, statusFilter string) ([]db.SellerEarning, int32, string, error) {
+	if pageSize <= 0 {
+		pageSize = 20
+	}
+	if pageSize > 100 {
+		pageSize = 100
+	}
+
+	offset := int32(0)
+	if pageToken != "" {
+		n, err := strconv.ParseInt(pageToken, 10, 32)
+		if err != nil || n < 0 {
+			return nil, 0, "", werr.InvalidArgument("invalid page_token")
+		}
+		offset = int32(n)
+	}
+
+	total, err := s.q.CountEarningsLedger(ctx, db.CountEarningsLedgerParams{
+		SellerID: sellerID,
+		Column2:  statusFilter,
+	})
+	if err != nil {
+		return nil, 0, "", werr.Internal(err)
+	}
+
+	rows, err := s.q.ListEarningsLedger(ctx, db.ListEarningsLedgerParams{
+		SellerID: sellerID,
+		Limit:    pageSize,
+		Offset:   offset,
+		Column4:  statusFilter,
+	})
+	if err != nil {
+		return nil, 0, "", werr.Internal(err)
+	}
+
+	nextToken := ""
+	if int(offset)+len(rows) < int(total) {
+		nextToken = strconv.FormatInt(int64(offset)+int64(pageSize), 10)
+	}
+
+	return rows, total, nextToken, nil
+}
+
+func (s *SellerService) AddAdCredit(ctx context.Context, sellerID uuid.UUID, amount float64, fundFromPayout bool) (float64, error) {
+	if amount <= 0 {
+		return 0, werr.InvalidArgument("amount must be positive")
+	}
+
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return 0, werr.Internal(err)
+	}
+	defer tx.Rollback(ctx)
+
+	qtx := s.q.WithTx(tx)
+
+	_, err = qtx.GetSellerByID(ctx, sellerID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, werr.NotFound("seller not found")
+		}
+		return 0, werr.Internal(err)
+	}
+
+	if fundFromPayout {
+		balances, err := qtx.GetSellerBalances(ctx, sellerID)
+		if err != nil {
+			return 0, werr.Internal(err)
+		}
+		if balances.WithdrawableBalance < amount {
+			return 0, werr.FailedPrecondition(fmt.Sprintf("insufficient withdrawable balance for ad credit: have %.2f, requested %.2f", balances.WithdrawableBalance, amount))
+		}
+
+		// Deduct from withdrawable balance by creating a negative ledger entry
+		_, err = qtx.CreateEarningEntry(ctx, db.CreateEarningEntryParams{
+			SellerID:      sellerID,
+			OrderID:       uuid.Nil,
+			OrderItemID:   uuid.New(),
+			GrossAmount:   -amount,
+			CommissionFee: 0,
+			NetAmount:     -amount,
+			Status:        "earned",
+		})
+		if err != nil {
+			return 0, werr.Internal(err)
+		}
+	}
+
+	// Update seller ad credit
+	updated, err := qtx.UpdateSellerAdCredit(ctx, db.UpdateSellerAdCreditParams{
+		ID:              sellerID,
+		AdCreditBalance: amount,
+	})
+	if err != nil {
+		return 0, werr.Internal(err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return 0, werr.Internal(err)
+	}
+
+	return updated.AdCreditBalance, nil
+}
+
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

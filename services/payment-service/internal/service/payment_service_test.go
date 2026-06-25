@@ -69,8 +69,8 @@ func TestCreatePayment_Success(t *testing.T) {
 
 	dbMock := mockDBTX{
 		queryRowFunc: func(ctx context.Context, query string, args ...any) pgx.Row {
-			if len(args) != 5 {
-				t.Errorf("expected 5 arguments, got %d", len(args))
+			if len(args) != 6 {
+				t.Errorf("expected 6 arguments, got %d", len(args))
 			}
 			if args[0] != orderID {
 				t.Errorf("expected orderID %v, got %v", orderID, args[0])
@@ -87,11 +87,15 @@ func TestCreatePayment_Success(t *testing.T) {
 			if args[4] != "google_pay" {
 				t.Errorf("expected provider google_pay, got %v", args[4])
 			}
+			expectedPlatformFee := amount * 0.02
+			if args[5] != expectedPlatformFee {
+				t.Errorf("expected platform fee %f, got %v", expectedPlatformFee, args[5])
+			}
 
 			return mockRow{
 				scanFunc: func(dest ...any) error {
-					if len(dest) != 10 {
-						t.Fatalf("expected 10 destination pointers, got %d", len(dest))
+					if len(dest) != 11 {
+						t.Fatalf("expected 11 destination pointers, got %d", len(dest))
 					}
 					*dest[0].(*uuid.UUID) = expectedPaymentID
 					*dest[1].(*uuid.UUID) = orderID
@@ -103,11 +107,13 @@ func TestCreatePayment_Success(t *testing.T) {
 					*dest[7].(**string) = nil
 					*dest[8].(*time.Time) = time.Now()
 					*dest[9].(*time.Time) = time.Now()
+					*dest[10].(*float64) = expectedPlatformFee
 					return nil
 				},
 			}
 		},
 	}
+
 
 	queries := db.New(dbMock)
 	svc := service.NewPaymentService(queries, nil, nil, "stripe_key", "gp_merchant")

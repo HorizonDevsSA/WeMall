@@ -395,12 +395,28 @@ func (s *OrderService) ListSellerOrders(ctx context.Context, sellerID uuid.UUID,
 }
 
 func (s *OrderService) UpdateSellerOrderItemStatus(ctx context.Context, orderID, sellerID uuid.UUID, newStatus string) error {
-	return s.q.UpdateOrderItemStatusBySeller(ctx, db.UpdateOrderItemStatusBySellerParams{
+	err := s.q.UpdateOrderItemStatusBySeller(ctx, db.UpdateOrderItemStatusBySellerParams{
 		OrderID:  orderID,
 		SellerID: sellerID,
 		Column3:  newStatus,
 	})
+	if err != nil {
+		return err
+	}
+
+	if s.nc != nil {
+		event := map[string]interface{}{
+			"order_id":  orderID.String(),
+			"seller_id": sellerID.String(),
+			"status":    newStatus,
+		}
+		eventBytes, _ := json.Marshal(event)
+		_ = s.nc.Publish("wemall.order.item.updated", eventBytes)
+	}
+
+	return nil
 }
+
 
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
