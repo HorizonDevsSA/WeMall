@@ -449,6 +449,13 @@ type Query {
   nearbyStations(latitude: Float!, longitude: Float!, radiusMeters: Float!): [Station!]!
   availableCourierTasks(latitude: Float!, longitude: Float!): [DeliveryOrder!]! @hasRole(role: BUYER)
   stationInventory(stationId: ID!, unclaimedOnly: Boolean!): [StationPackage!]! @hasRole(role: BUYER)
+
+  # Monetization & Payouts (seller)
+  mySellerBalance: SellerBalance! @hasRole(role: SELLER)
+  mySellerEarningsLedger(pageSize: Int, pageToken: String, statusFilter: String): SellerEarningsLedgerConnection! @hasRole(role: SELLER)
+  myPayouts(pageSize: Int, pageToken: String): PayoutList! @hasRole(role: SELLER)
+  payout(id: ID!): Payout! @hasRole(role: SELLER)
+  mySellerMonetizationConfig: SellerMonetizationConfig! @hasRole(role: SELLER)
 }
 
 type FollowedStoresList {
@@ -600,6 +607,10 @@ type Mutation {
     trackingNumber: String!
     verificationCode: String!
   ): Boolean! @hasRole(role: BUYER)
+
+  # Monetization & Payouts (seller)
+  requestPayout(amount: Float!, currency: String!): Payout! @hasRole(role: SELLER)
+  addAdCredit(amount: Float!, fundFromPayoutBalance: Boolean!): AddAdCreditResponse! @hasRole(role: SELLER)
 }
 
 enum ReviewFilterType {
@@ -1007,5 +1018,66 @@ type DeliveryInvoice {
   deliveryOrder: DeliveryOrder!
   paymentSecret: String!
   paymentUrl: String!
+}
+
+# ── Monetization & Payout Types ───────────────────────────────────────────────
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+}
+
+type Payout {
+  id: ID!
+  sellerId: ID!
+  amount: Float!
+  currency: String!
+  status: PayoutStatus!
+  providerRef: String
+  paidAt: Time
+  createdAt: Time!
+  grossAmount: Float!
+  platformFee: Float!
+  netAmount: Float!
+}
+
+type PayoutList {
+  payouts: [Payout!]!
+  nextPageToken: String
+  total: Int!
+}
+
+type SellerBalance {
+  escrowedBalance: Float!
+  withdrawableBalance: Float!
+  totalSales: Float!
+}
+
+type EarningsLedgerEntry {
+  id: ID!
+  orderId: ID!
+  orderItemId: ID!
+  grossAmount: Float!
+  commissionFee: Float!
+  netAmount: Float!
+  status: String!
+  createdAt: Time!
+  settledAt: Time
+}
+
+type SellerEarningsLedgerConnection {
+  entries: [EarningsLedgerEntry!]!
+  nextPageToken: String
+}
+
+type SellerMonetizationConfig {
+  commissionRate: Float!
+  adCreditBalance: Float!
+}
+
+type AddAdCreditResponse {
+  newAdCreditBalance: Float!
 }
 

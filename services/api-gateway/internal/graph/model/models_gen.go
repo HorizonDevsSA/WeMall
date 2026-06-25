@@ -9,6 +9,10 @@ import (
 	"time"
 )
 
+type AddAdCreditResponse struct {
+	NewAdCreditBalance float64 `json:"newAdCreditBalance"`
+}
+
 type AddFlashSaleItemInput struct {
 	FlashSaleID   string  `json:"flashSaleId"`
 	ProductID     string  `json:"productId"`
@@ -164,6 +168,18 @@ type DisputeMessageList struct {
 	Messages []*DisputeMessage `json:"messages"`
 }
 
+type EarningsLedgerEntry struct {
+	ID            string     `json:"id"`
+	OrderID       string     `json:"orderId"`
+	OrderItemID   string     `json:"orderItemId"`
+	GrossAmount   float64    `json:"grossAmount"`
+	CommissionFee float64    `json:"commissionFee"`
+	NetAmount     float64    `json:"netAmount"`
+	Status        string     `json:"status"`
+	CreatedAt     time.Time  `json:"createdAt"`
+	SettledAt     *time.Time `json:"settledAt,omitempty"`
+}
+
 type FlashSale struct {
 	ID        string           `json:"id"`
 	Name      string           `json:"name"`
@@ -228,6 +244,26 @@ type Payment struct {
 	TransactionID *string         `json:"transactionId,omitempty"`
 	CreatedAt     time.Time       `json:"createdAt"`
 	UpdatedAt     time.Time       `json:"updatedAt"`
+}
+
+type Payout struct {
+	ID          string       `json:"id"`
+	SellerID    string       `json:"sellerId"`
+	Amount      float64      `json:"amount"`
+	Currency    string       `json:"currency"`
+	Status      PayoutStatus `json:"status"`
+	ProviderRef *string      `json:"providerRef,omitempty"`
+	PaidAt      *time.Time   `json:"paidAt,omitempty"`
+	CreatedAt   time.Time    `json:"createdAt"`
+	GrossAmount float64      `json:"grossAmount"`
+	PlatformFee float64      `json:"platformFee"`
+	NetAmount   float64      `json:"netAmount"`
+}
+
+type PayoutList struct {
+	Payouts       []*Payout `json:"payouts"`
+	NextPageToken *string   `json:"nextPageToken,omitempty"`
+	Total         int       `json:"total"`
 }
 
 type PersonalDeliveryInput struct {
@@ -310,6 +346,12 @@ type ReviewMedia struct {
 	MediaType string `json:"mediaType"`
 }
 
+type SellerBalance struct {
+	EscrowedBalance     float64 `json:"escrowedBalance"`
+	WithdrawableBalance float64 `json:"withdrawableBalance"`
+	TotalSales          float64 `json:"totalSales"`
+}
+
 type SellerDsr struct {
 	AvgDescription  float64 `json:"avgDescription"`
 	AvgService      float64 `json:"avgService"`
@@ -325,6 +367,16 @@ type SellerDashboard struct {
 	TotalOrdersCount    int       `json:"totalOrdersCount"`
 	RecentOrders        []*Order  `json:"recentOrders"`
 	WeeklyRevenue       []float64 `json:"weeklyRevenue"`
+}
+
+type SellerEarningsLedgerConnection struct {
+	Entries       []*EarningsLedgerEntry `json:"entries"`
+	NextPageToken *string                `json:"nextPageToken,omitempty"`
+}
+
+type SellerMonetizationConfig struct {
+	CommissionRate  float64 `json:"commissionRate"`
+	AdCreditBalance float64 `json:"adCreditBalance"`
 }
 
 type SellerOrderList struct {
@@ -689,6 +741,51 @@ func (e *PaymentStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e PaymentStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type PayoutStatus string
+
+const (
+	PayoutStatusPending    PayoutStatus = "PENDING"
+	PayoutStatusProcessing PayoutStatus = "PROCESSING"
+	PayoutStatusPaid       PayoutStatus = "PAID"
+	PayoutStatusFailed     PayoutStatus = "FAILED"
+)
+
+var AllPayoutStatus = []PayoutStatus{
+	PayoutStatusPending,
+	PayoutStatusProcessing,
+	PayoutStatusPaid,
+	PayoutStatusFailed,
+}
+
+func (e PayoutStatus) IsValid() bool {
+	switch e {
+	case PayoutStatusPending, PayoutStatusProcessing, PayoutStatusPaid, PayoutStatusFailed:
+		return true
+	}
+	return false
+}
+
+func (e PayoutStatus) String() string {
+	return string(e)
+}
+
+func (e *PayoutStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PayoutStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid PayoutStatus", str)
+	}
+	return nil
+}
+
+func (e PayoutStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

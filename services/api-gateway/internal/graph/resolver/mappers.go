@@ -1125,4 +1125,93 @@ func mapCourier(c *deliveryv1.Courier) *model.Courier {
 	}
 }
 
+func mapPayoutStatus(s sellerv1.PayoutStatus) model.PayoutStatus {
+	switch s {
+	case sellerv1.PayoutStatus_PAYOUT_STATUS_PENDING:
+		return model.PayoutStatusPending
+	case sellerv1.PayoutStatus_PAYOUT_STATUS_PROCESSING:
+		return model.PayoutStatusProcessing
+	case sellerv1.PayoutStatus_PAYOUT_STATUS_PAID:
+		return model.PayoutStatusPaid
+	case sellerv1.PayoutStatus_PAYOUT_STATUS_FAILED:
+		return model.PayoutStatusFailed
+	default:
+		return model.PayoutStatusPending
+	}
+}
+
+func mapPayout(p *sellerv1.Payout) *model.Payout {
+	if p == nil {
+		return nil
+	}
+	var paidAt time.Time
+	if p.PaidAt != nil {
+		paidAt = p.PaidAt.AsTime()
+	}
+	var createdAt time.Time
+	if p.CreatedAt != nil {
+		createdAt = p.CreatedAt.AsTime()
+	}
+	return &model.Payout{
+		ID:          p.Id,
+		SellerID:    p.SellerId,
+		Amount:      p.Amount,
+		Currency:    p.Currency,
+		Status:      mapPayoutStatus(p.Status),
+		ProviderRef: strPtr(p.ProviderRef),
+		PaidAt:      &paidAt,
+		CreatedAt:   createdAt,
+		GrossAmount: p.GrossAmount,
+		PlatformFee: p.PlatformFee,
+		NetAmount:   p.NetAmount,
+	}
+}
+
+func mapSellerBalance(b *sellerv1.SellerBalanceResponse) *model.SellerBalance {
+	if b == nil {
+		return nil
+	}
+	return &model.SellerBalance{
+		EscrowedBalance:     b.EscrowedBalance,
+		WithdrawableBalance: b.WithdrawableBalance,
+		TotalSales:          b.TotalSales,
+	}
+}
+
+func mapEarningsLedgerEntry(e *sellerv1.EarningsLedgerEntry) *model.EarningsLedgerEntry {
+	if e == nil {
+		return nil
+	}
+	var createdAt time.Time
+	if e.CreatedAt != nil {
+		createdAt = e.CreatedAt.AsTime()
+	}
+	var settledAt time.Time
+	if e.SettledAt != nil {
+		settledAt = e.SettledAt.AsTime()
+	}
+	return &model.EarningsLedgerEntry{
+		ID:            e.Id,
+		OrderID:       e.OrderId,
+		OrderItemID:   e.OrderItemId,
+		GrossAmount:   e.GrossAmount,
+		CommissionFee: e.CommissionFee,
+		NetAmount:     e.NetAmount,
+		Status:        e.Status,
+		CreatedAt:     createdAt,
+		SettledAt:     &settledAt,
+	}
+}
+
+func mapSellerMonetizationConfig(c *sellerv1.SellerMonetizationConfig) *model.SellerMonetizationConfig {
+	if c == nil {
+		return nil
+	}
+	return &model.SellerMonetizationConfig{
+		CommissionRate:  c.CommissionRate,
+		AdCreditBalance: c.AdCreditBalance,
+	}
+}
+
+
 

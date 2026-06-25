@@ -853,3 +853,133 @@ func (r *queryResolver) DeliveryByOrderID(ctx context.Context, orderID string) (
 	return mapDeliveryOrder(trackResp.DeliveryOrder), nil
 }
 
+// ── Monetization & Payout Queries ─────────────────────────────────────────────
+
+func (r *queryResolver) MySellerBalance(ctx context.Context) (*model.SellerBalance, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+	sellerStore, err := r.Clients.Seller.GetSellerByUserID(ctx, &sellerv1.GetSellerByUserIDRequest{UserId: uid})
+	if err != nil {
+		return nil, err
+	}
+	resp, err := r.Clients.Seller.GetSellerBalance(ctx, &sellerv1.GetSellerBalanceRequest{SellerId: sellerStore.Id})
+	if err != nil {
+		return nil, err
+	}
+	return mapSellerBalance(resp), nil
+}
+
+func (r *queryResolver) MySellerEarningsLedger(ctx context.Context, pageSize *int, pageToken *string, statusFilter *string) (*model.SellerEarningsLedgerConnection, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+	sellerStore, err := r.Clients.Seller.GetSellerByUserID(ctx, &sellerv1.GetSellerByUserIDRequest{UserId: uid})
+	if err != nil {
+		return nil, err
+	}
+	ps := int32(20)
+	if pageSize != nil {
+		ps = int32(*pageSize)
+	}
+	pt := ""
+	if pageToken != nil {
+		pt = *pageToken
+	}
+	sf := ""
+	if statusFilter != nil {
+		sf = *statusFilter
+	}
+	resp, err := r.Clients.Seller.GetSellerEarningsLedger(ctx, &sellerv1.GetSellerEarningsLedgerRequest{
+		SellerId:     sellerStore.Id,
+		PageSize:     ps,
+		PageToken:    pt,
+		StatusFilter: sf,
+	})
+	if err != nil {
+		return nil, err
+	}
+	entries := make([]*model.EarningsLedgerEntry, len(resp.Entries))
+	for i, entry := range resp.Entries {
+		entries[i] = mapEarningsLedgerEntry(entry)
+	}
+	return &model.SellerEarningsLedgerConnection{
+		Entries:       entries,
+		NextPageToken: strPtr(resp.NextPageToken),
+	}, nil
+}
+
+func (r *queryResolver) MyPayouts(ctx context.Context, pageSize *int, pageToken *string) (*model.PayoutList, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+	sellerStore, err := r.Clients.Seller.GetSellerByUserID(ctx, &sellerv1.GetSellerByUserIDRequest{UserId: uid})
+	if err != nil {
+		return nil, err
+	}
+	ps := int32(20)
+	if pageSize != nil {
+		ps = int32(*pageSize)
+	}
+	pt := ""
+	if pageToken != nil {
+		pt = *pageToken
+	}
+	resp, err := r.Clients.Seller.ListPayouts(ctx, &sellerv1.ListPayoutsRequest{
+		SellerId:  sellerStore.Id,
+		PageSize:  ps,
+		PageToken: pt,
+	})
+	if err != nil {
+		return nil, err
+	}
+	payouts := make([]*model.Payout, len(resp.Payouts))
+	for i, payout := range resp.Payouts {
+		payouts[i] = mapPayout(payout)
+	}
+	return &model.PayoutList{
+		Payouts:       payouts,
+		NextPageToken: strPtr(resp.NextPageToken),
+		Total:         int(resp.Total),
+	}, nil
+}
+
+func (r *queryResolver) Payout(ctx context.Context, id string) (*model.Payout, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+	sellerStore, err := r.Clients.Seller.GetSellerByUserID(ctx, &sellerv1.GetSellerByUserIDRequest{UserId: uid})
+	if err != nil {
+		return nil, err
+	}
+	resp, err := r.Clients.Seller.GetPayout(ctx, &sellerv1.GetPayoutRequest{
+		Id:       id,
+		SellerId: sellerStore.Id,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return mapPayout(resp), nil
+}
+
+func (r *queryResolver) MySellerMonetizationConfig(ctx context.Context) (*model.SellerMonetizationConfig, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+	sellerStore, err := r.Clients.Seller.GetSellerByUserID(ctx, &sellerv1.GetSellerByUserIDRequest{UserId: uid})
+	if err != nil {
+		return nil, err
+	}
+	resp, err := r.Clients.Seller.GetSellerMonetizationConfig(ctx, &sellerv1.GetSellerMonetizationConfigRequest{SellerId: sellerStore.Id})
+	if err != nil {
+		return nil, err
+	}
+	return mapSellerMonetizationConfig(resp), nil
+}
+
+

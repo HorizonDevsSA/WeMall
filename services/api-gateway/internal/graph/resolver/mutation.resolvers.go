@@ -1033,3 +1033,48 @@ func (r *mutationResolver) UpdateSellerOrderItemStatus(ctx context.Context, orde
 
 	return true, nil
 }
+
+// ── Monetization & Payout Mutations ───────────────────────────────────────────
+
+func (r *mutationResolver) RequestPayout(ctx context.Context, amount float64, currency string) (*model.Payout, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+	sellerStore, err := r.Clients.Seller.GetSellerByUserID(ctx, &sellerv1.GetSellerByUserIDRequest{UserId: uid})
+	if err != nil {
+		return nil, err
+	}
+	resp, err := r.Clients.Seller.CreatePayout(ctx, &sellerv1.CreatePayoutRequest{
+		SellerId: sellerStore.Id,
+		Amount:    amount,
+		Currency:  currency,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return mapPayout(resp), nil
+}
+
+func (r *mutationResolver) AddAdCredit(ctx context.Context, amount float64, fundFromPayoutBalance bool) (*model.AddAdCreditResponse, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+	sellerStore, err := r.Clients.Seller.GetSellerByUserID(ctx, &sellerv1.GetSellerByUserIDRequest{UserId: uid})
+	if err != nil {
+		return nil, err
+	}
+	resp, err := r.Clients.Seller.AddAdCredit(ctx, &sellerv1.AddAdCreditRequest{
+		SellerId:              sellerStore.Id,
+		Amount:                 amount,
+		FundFromPayoutBalance: fundFromPayoutBalance,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &model.AddAdCreditResponse{
+		NewAdCreditBalance: resp.NewAdCreditBalance,
+	}, nil
+}
+
