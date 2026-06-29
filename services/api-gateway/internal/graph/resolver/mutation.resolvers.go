@@ -1078,3 +1078,32 @@ func (r *mutationResolver) AddAdCredit(ctx context.Context, amount float64, fund
 	}, nil
 }
 
+func (r *mutationResolver) DeleteNotification(ctx context.Context, id string) (bool, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return false, gqlerrors.Unauthenticated("authentication required")
+	}
+	_, err := r.Clients.Notification.DeleteNotification(ctx, &notificationv1.DeleteNotificationRequest{
+		UserId: uid,
+		Id:     id,
+	})
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (r *mutationResolver) ClearNotifications(ctx context.Context) (bool, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return false, gqlerrors.Unauthenticated("authentication required")
+	}
+	_, err := r.Clients.Notification.ClearNotifications(ctx, &notificationv1.ClearNotificationsRequest{
+		UserId: uid,
+	})
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+

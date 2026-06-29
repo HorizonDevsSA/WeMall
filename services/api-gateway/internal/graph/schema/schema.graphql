@@ -552,6 +552,8 @@ type Mutation {
     emailEnabled: Boolean!
     pushEnabled: Boolean!
   ): NotificationPreference! @hasRole(role: BUYER)
+  deleteNotification(id: ID!): Boolean! @hasRole(role: BUYER)
+  clearNotifications: Boolean! @hasRole(role: BUYER)
 
   # Reviews
   createReview(input: CreateReviewInput!): Review! @hasRole(role: BUYER)
