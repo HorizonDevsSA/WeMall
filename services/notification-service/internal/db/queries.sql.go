@@ -125,6 +125,40 @@ func (q *Queries) DeleteDeviceToken(ctx context.Context, arg DeleteDeviceTokenPa
 	return err
 }
 
+const deleteNotificationLog = `-- name: DeleteNotificationLog :exec
+DELETE FROM notification_logs
+WHERE id = $1 AND user_id = $2
+`
+
+type DeleteNotificationLogParams struct {
+	ID     uuid.UUID `json:"id"`
+	UserID uuid.UUID `json:"user_id"`
+}
+
+// DeleteNotificationLog
+//
+//	DELETE FROM notification_logs
+//	WHERE id = $1 AND user_id = $2
+func (q *Queries) DeleteNotificationLog(ctx context.Context, arg DeleteNotificationLogParams) error {
+	_, err := q.db.Exec(ctx, deleteNotificationLog, arg.ID, arg.UserID)
+	return err
+}
+
+const deleteAllNotificationLogs = `-- name: DeleteAllNotificationLogs :exec
+DELETE FROM notification_logs
+WHERE user_id = $1
+`
+
+// DeleteAllNotificationLogs
+//
+//	DELETE FROM notification_logs
+//	WHERE user_id = $1
+func (q *Queries) DeleteAllNotificationLogs(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteAllNotificationLogs, userID)
+	return err
+}
+
+
 const getDeviceTokensByUser = `-- name: GetDeviceTokensByUser :many
 SELECT id, user_id, token, platform, device_name, created_at, updated_at FROM user_device_tokens
 WHERE user_id = $1
@@ -268,6 +302,7 @@ func (q *Queries) GetNotificationPreferences(ctx context.Context, userID uuid.UU
 const listNotificationLogs = `-- name: ListNotificationLogs :many
 SELECT id, user_id, category, channel, recipient, title, content, status, retry_count, error_message, sent_at, created_at, updated_at FROM notification_logs
 WHERE user_id = $1
+  AND channel = 'push'
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
 `
@@ -282,6 +317,7 @@ type ListNotificationLogsParams struct {
 //
 //	SELECT id, user_id, category, channel, recipient, title, content, status, retry_count, error_message, sent_at, created_at, updated_at FROM notification_logs
 //	WHERE user_id = $1
+//	  AND channel = 'push'
 //	ORDER BY created_at DESC
 //	LIMIT $2 OFFSET $3
 func (q *Queries) ListNotificationLogs(ctx context.Context, arg ListNotificationLogsParams) ([]NotificationLog, error) {

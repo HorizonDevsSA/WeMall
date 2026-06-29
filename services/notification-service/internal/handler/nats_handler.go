@@ -289,13 +289,7 @@ func (h *NATSHandler) handleOrderCreated(msg *nats.Msg) {
 		return
 	}
 
-	// 1. Send push to buyer
-	h.queuePush(context.Background(), buyerID, "transactional", "Order Received", "We have received order "+event.OrderNumber+". Complete your payment.", map[string]string{
-		"order_id": event.OrderID,
-		"status":   "pending",
-	})
-
-	// 2. Fetch order items to alert sellers
+	// Fetch order details asynchronously to notify both buyer and sellers with image URL
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -305,16 +299,38 @@ func (h *NATSHandler) handleOrderCreated(msg *nats.Msg) {
 			UserId: event.UserID,
 		})
 		if err != nil {
-			h.logger.Error().Err(err).Str("order_id", event.OrderID).Msg("Failed to fetch order details for sellers notification")
+			h.logger.Error().Err(err).Str("order_id", event.OrderID).Msg("Failed to fetch order details for notifications")
 			return
 		}
 
+		var firstItemImage string
+		if len(order.Items) > 0 {
+			firstItemImage = order.Items[0].VariationThumbnail
+		}
+
+		// 1. Send push to buyer
+		h.queuePush(ctx, buyerID, "transactional", "Order Received", "We have received order "+event.OrderNumber+". Complete your payment.", map[string]string{
+			"order_id":  event.OrderID,
+			"status":    "pending",
+			"image_url": firstItemImage,
+		})
+
+		// 2. Fetch order items to alert sellers
 		uniqueSellers := make(map[string]bool)
 		for _, item := range order.Items {
 			uniqueSellers[item.SellerId] = true
 		}
 
 		for sellerIDStr := range uniqueSellers {
+			// Find one item for this seller to get its image
+			var sellerItemImage string
+			for _, item := range order.Items {
+				if item.SellerId == sellerIDStr {
+					sellerItemImage = item.VariationThumbnail
+					break
+				}
+			}
+
 			seller, err := h.sellerClient.GetSeller(ctx, &sellerv1.GetSellerRequest{Id: sellerIDStr})
 			if err != nil {
 				continue
@@ -325,6 +341,7 @@ func (h *NATSHandler) handleOrderCreated(msg *nats.Msg) {
 				h.queuePush(ctx, sellerUID, "transactional", "New Order Received", "You received a new order: "+event.OrderNumber, map[string]string{
 					"order_id":     event.OrderID,
 					"order_number": event.OrderNumber,
+					"image_url":    sellerItemImage,
 				})
 			}
 		}
@@ -372,11 +389,15 @@ func (h *NATSHandler) handlePaymentCompleted(msg *nats.Msg) {
 		return
 	}
 
+	// Fetch order thumbnail
+	thumbnail := h.getOrderThumbnail(ctx, event.OrderID, event.UserID)
+
 	// Email receipt + Push
 	h.queueEmail(ctx, buyerUID, "transactional", uResp.Email, uResp.FullName, "Order Receipt: "+event.OrderNumber, body)
 	h.queuePush(ctx, buyerUID, "transactional", "Payment Successful", "Thank you! Payment for "+event.OrderNumber+" was processed successfully.", map[string]string{
-		"order_id": event.OrderID,
-		"status":   "confirmed",
+		"order_id":  event.OrderID,
+		"status":    "confirmed",
+		"image_url": thumbnail,
 	})
 }
 
@@ -395,9 +416,13 @@ func (h *NATSHandler) handlePaymentFailed(msg *nats.Msg) {
 		return
 	}
 
-	h.queuePush(context.Background(), buyerUID, "transactional", "Payment Failed", "Payment for order "+event.OrderNumber+" failed. Tap to retry.", map[string]string{
-		"order_id": event.OrderID,
-		"retry":    "true",
+	ctx := context.Background()
+	thumbnail := h.getOrderThumbnail(ctx, event.OrderID, event.UserID)
+
+	h.queuePush(ctx, buyerUID, "transactional", "Payment Failed", "Payment for order "+event.OrderNumber+" failed. Tap to retry.", map[string]string{
+		"order_id":  event.OrderID,
+		"retry":     "true",
+		"image_url": thumbnail,
 	})
 }
 
@@ -440,10 +465,13 @@ func (h *NATSHandler) handleOrderShipped(msg *nats.Msg) {
 		return
 	}
 
+	thumbnail := h.getOrderThumbnail(ctx, event.OrderID, event.UserID)
+
 	h.queueEmail(ctx, buyerUID, "transactional", uResp.Email, uResp.FullName, "Your order has been shipped! 🚚", body)
 	h.queuePush(ctx, buyerUID, "transactional", "Order Shipped", "Your order "+event.OrderNumber+" is on the way via "+event.Carrier+".", map[string]string{
 		"order_id":        event.OrderID,
 		"tracking_number": event.TrackingNumber,
+		"image_url":       thumbnail,
 	})
 }
 
@@ -462,8 +490,12 @@ func (h *NATSHandler) handleOrderDelivered(msg *nats.Msg) {
 		return
 	}
 
-	h.queuePush(context.Background(), buyerUID, "transactional", "Order Delivered", "Your order "+event.OrderNumber+" was delivered. Leave a review!", map[string]string{
-		"order_id": event.OrderID,
+	ctx := context.Background()
+	thumbnail := h.getOrderThumbnail(ctx, event.OrderID, event.UserID)
+
+	h.queuePush(ctx, buyerUID, "transactional", "Order Delivered", "Your order "+event.OrderNumber+" was delivered. Leave a review!", map[string]string{
+		"order_id":  event.OrderID,
+		"image_url": thumbnail,
 	})
 }
 
@@ -562,6 +594,7 @@ func (h *NATSHandler) handleInventoryLowStock(msg *nats.Msg) {
 		SellerID       string `json:"seller_id"`
 		VariantSKU     string `json:"variant_sku"`
 		RemainingStock int64  `json:"remaining_stock"`
+		ImageURL       string `json:"image_url"`
 	}
 	if err := json.Unmarshal(msg.Data, &event); err != nil {
 		return
@@ -590,7 +623,7 @@ func (h *NATSHandler) handleInventoryLowStock(msg *nats.Msg) {
 		"WeMall",
 		"https://wemall.co.zw",
 		map[string]interface{}{
-			"VariantSKU: ":    event.VariantSKU,
+			"VariantSKU":     event.VariantSKU,
 			"RemainingStock": event.RemainingStock,
 		},
 	)
@@ -600,7 +633,8 @@ func (h *NATSHandler) handleInventoryLowStock(msg *nats.Msg) {
 
 	h.queueEmail(ctx, sellerUserUID, "low_stock", uResp.Email, uResp.FullName, "Low Stock Warning ⚠️", body)
 	h.queuePush(ctx, sellerUserUID, "low_stock", "Inventory Warning", "Low stock for SKU: "+event.VariantSKU, map[string]string{
-		"sku": event.VariantSKU,
+		"sku":       event.VariantSKU,
+		"image_url": event.ImageURL,
 	})
 }
 
@@ -610,6 +644,7 @@ func (h *NATSHandler) handleStorePostUpdate(msg *nats.Msg) {
 		StoreName    string  `json:"store_name"`
 		ProductTitle string  `json:"product_title"`
 		Price        float64 `json:"price"`
+		ImageURL     string  `json:"image_url"`
 	}
 	if err := json.Unmarshal(msg.Data, &event); err != nil {
 		return
@@ -628,6 +663,18 @@ func (h *NATSHandler) handleStorePostUpdate(msg *nats.Msg) {
 
 	if len(resp.UserIds) == 0 {
 		return
+	}
+
+	seller, err := h.sellerClient.GetSeller(ctx, &sellerv1.GetSellerRequest{Id: event.SellerID})
+	if err != nil {
+		h.logger.Error().Err(err).Str("seller_id", event.SellerID).Msg("Failed to fetch seller details for post update")
+		return
+	}
+
+	// Fallback to store logo if product image is empty
+	img := event.ImageURL
+	if img == "" {
+		img = seller.LogoUrl
 	}
 
 	// 2. Loop over followers
@@ -663,6 +710,7 @@ func (h *NATSHandler) handleStorePostUpdate(msg *nats.Msg) {
 		// Push Follower update
 		h.queuePush(ctx, followerUID, "follows", "New item from "+event.StoreName, event.ProductTitle+" is now available!", map[string]string{
 			"seller_id": event.SellerID,
+			"image_url": img,
 		})
 	}
 }
@@ -673,6 +721,7 @@ func (h *NATSHandler) handleProductPriceDropped(msg *nats.Msg) {
 		OldPrice     float64  `json:"old_price"`
 		NewPrice     float64  `json:"new_price"`
 		UserIDs      []string `json:"user_ids"`
+		ImageURL     string   `json:"image_url"`
 	}
 	if err := json.Unmarshal(msg.Data, &event); err != nil {
 		return
@@ -687,7 +736,8 @@ func (h *NATSHandler) handleProductPriceDropped(msg *nats.Msg) {
 		}
 
 		h.queuePush(ctx, uid, "marketing", "Price Drop Alert! 📉", event.ProductTitle+" dropped from $"+formatFloat(event.OldPrice)+" to $"+formatFloat(event.NewPrice), map[string]string{
-			"product": event.ProductTitle,
+			"product":   event.ProductTitle,
+			"image_url": event.ImageURL,
 		})
 	}
 }
@@ -697,6 +747,7 @@ func (h *NATSHandler) handleInventoryRestocked(msg *nats.Msg) {
 		ProductTitle string   `json:"product_title"`
 		URL          string   `json:"url"`
 		UserIDs      []string `json:"user_ids"`
+		ImageURL     string   `json:"image_url"`
 	}
 	if err := json.Unmarshal(msg.Data, &event); err != nil {
 		return
@@ -732,12 +783,24 @@ func (h *NATSHandler) handleInventoryRestocked(msg *nats.Msg) {
 		}
 
 		h.queuePush(ctx, uid, "marketing", "Back in Stock! 🎉", event.ProductTitle+" is now back in stock. Buy it now!", map[string]string{
-			"url": event.URL,
+			"url":       event.URL,
+			"image_url": event.ImageURL,
 		})
 	}
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+func (h *NATSHandler) getOrderThumbnail(ctx context.Context, orderID, userID string) string {
+	order, err := h.orderClient.GetOrder(ctx, &orderv1.GetOrderRequest{
+		Id:     orderID,
+		UserId: userID,
+	})
+	if err != nil || order == nil || len(order.Items) == 0 {
+		return ""
+	}
+	return order.Items[0].VariationThumbnail
+}
 
 func formatFloat(f float64) string {
 	return "" // Simplified

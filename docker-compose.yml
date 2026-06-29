@@ -291,11 +291,15 @@ services:
     environment:
       DB_URL: postgres://wemall:wemall_secret@postgres-sellers:5432/wemall_sellers?sslmode=disable
       GRPC_PORT: '9002'
+      NATS_URL: nats://nats:4222
       ENVIRONMENT: development
     depends_on:
       postgres-sellers:
         condition: service_healthy
+      nats:
+        condition: service_started
     restart: unless-stopped
+
 
   api-gateway:
     build:

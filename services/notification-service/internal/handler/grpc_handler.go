@@ -176,6 +176,43 @@ func (h *GRPCHandler) ListNotifications(ctx context.Context, req *notificationv1
 	}, nil
 }
 
+func (h *GRPCHandler) DeleteNotification(ctx context.Context, req *notificationv1.DeleteNotificationRequest) (*emptypb.Empty, error) {
+	uid, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid user_id: %v", err)
+	}
+
+	id, err := uuid.Parse(req.Id)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid id: %v", err)
+	}
+
+	err = h.q.DeleteNotificationLog(ctx, db.DeleteNotificationLogParams{
+		ID:     id,
+		UserID: uid,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to delete notification: %v", err)
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+func (h *GRPCHandler) ClearNotifications(ctx context.Context, req *notificationv1.ClearNotificationsRequest) (*emptypb.Empty, error) {
+	uid, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid user_id: %v", err)
+	}
+
+	err = h.q.DeleteAllNotificationLogs(ctx, uid)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to clear notifications: %v", err)
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+
 // ── Mappers ───────────────────────────────────────────────────────────────────
 
 func mapCategoryToProto(c db.NotificationCategory) notificationv1.NotificationCategory {

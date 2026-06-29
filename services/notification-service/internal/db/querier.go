@@ -9,7 +9,9 @@ import (
 type Querier interface {
 	CreateNotificationLog(ctx context.Context, arg CreateNotificationLogParams) (NotificationLog, error)
 	CreatePushNotification(ctx context.Context, arg CreatePushNotificationParams) (PushNotification, error)
+	DeleteAllNotificationLogs(ctx context.Context, userID uuid.UUID) error
 	DeleteDeviceToken(ctx context.Context, arg DeleteDeviceTokenParams) error
+	DeleteNotificationLog(ctx context.Context, arg DeleteNotificationLogParams) error
 	GetDeviceTokensByUser(ctx context.Context, userID uuid.UUID) ([]UserDeviceToken, error)
 	GetDeviceTokensByUsers(ctx context.Context, userIDs []uuid.UUID) ([]UserDeviceToken, error)
 	GetNotificationPreference(ctx context.Context, arg GetNotificationPreferenceParams) (UserNotificationPreference, error)

@@ -54,6 +54,7 @@ WHERE id = $1;
 -- name: ListNotificationLogs :many
 SELECT * FROM notification_logs
 WHERE user_id = $1
+  AND channel = 'push'
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3;
 
@@ -73,3 +74,11 @@ UPDATE push_notifications
 SET is_read = TRUE,
     read_at = NOW()
 WHERE id = $1 AND user_id = $2;
+
+-- name: DeleteNotificationLog :exec
+DELETE FROM notification_logs
+WHERE id = $1 AND user_id = $2;
+
+-- name: DeleteAllNotificationLogs :exec
+DELETE FROM notification_logs
+WHERE user_id = $1;

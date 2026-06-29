@@ -7,6 +7,8 @@
 package notificationv1
 
 import (
+	"fmt"
+
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -612,6 +614,57 @@ func (x *ListNotificationsResponse) GetNotifications() []*NotificationLog {
 	}
 	return nil
 }
+
+// DeleteNotificationRequest is the request message for DeleteNotification RPC.
+type DeleteNotificationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteNotificationRequest) Reset()         { *x = DeleteNotificationRequest{} }
+func (x *DeleteNotificationRequest) String() string {
+	return fmt.Sprintf("DeleteNotificationRequest{UserId:%q, Id:%q}", x.GetUserId(), x.GetId())
+}
+func (*DeleteNotificationRequest) ProtoMessage() {}
+
+func (x *DeleteNotificationRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *DeleteNotificationRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+// ClearNotificationsRequest is the request message for ClearNotifications RPC.
+type ClearNotificationsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClearNotificationsRequest) Reset()         { *x = ClearNotificationsRequest{} }
+func (x *ClearNotificationsRequest) String() string {
+	return fmt.Sprintf("ClearNotificationsRequest{UserId:%q}", x.GetUserId())
+}
+func (*ClearNotificationsRequest) ProtoMessage() {}
+
+func (x *ClearNotificationsRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
 
 var File_notification_v1_notification_proto protoreflect.FileDescriptor
 

@@ -63,11 +63,21 @@ func (p *FCMProvider) SendPush(ctx context.Context, msg *PushMessage) (string, e
 		return "mock-message-id", nil
 	}
 
+	// Retrieve image_url if present in Data map
+	var imageUrl string
+	if msg.Data != nil {
+		imageUrl = msg.Data["image_url"]
+		if imageUrl == "" {
+			imageUrl = msg.Data["imageUrl"]
+		}
+	}
+
 	fcmMsg := &messaging.Message{
 		Token: msg.Token,
 		Notification: &messaging.Notification{
-			Title: msg.Title,
-			Body:  msg.Body,
+			Title:    msg.Title,
+			Body:     msg.Body,
+			ImageURL: imageUrl,
 		},
 		Data: msg.Data,
 		Android: &messaging.AndroidConfig{

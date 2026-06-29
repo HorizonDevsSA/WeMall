@@ -67,10 +67,21 @@ message ListNotificationsResponse {
   repeated NotificationLog notifications = 1;
 }
 
+message DeleteNotificationRequest {
+  string user_id = 1;
+  string id = 2;
+}
+
+message ClearNotificationsRequest {
+  string user_id = 1;
+}
+
 service NotificationService {
   rpc RegisterDeviceToken(RegisterDeviceTokenRequest) returns (google.protobuf.Empty);
   rpc DeregisterDeviceToken(DeregisterDeviceTokenRequest) returns (google.protobuf.Empty);
   rpc GetNotificationPreferences(GetNotificationPreferencesRequest) returns (GetNotificationPreferencesResponse);
   rpc UpdateNotificationPreferences(UpdateNotificationPreferencesRequest) returns (NotificationPreference);
   rpc ListNotifications(ListNotificationsRequest) returns (ListNotificationsResponse);
+  rpc DeleteNotification(DeleteNotificationRequest) returns (google.protobuf.Empty);
+  rpc ClearNotifications(ClearNotificationsRequest) returns (google.protobuf.Empty);
 }

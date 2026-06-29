@@ -31,7 +31,7 @@ func main() {
 	fmt.Printf("  User: %s\n", cfg.SMTPUser)
 	fmt.Printf("  AppName: WeMall\n")
 	fmt.Printf("  AppURL: https://wemall.co.zw\n")
-	fmt.Printf("Sending welcome email to: %s\n", *to)
+	fmt.Printf("Sending all seller notification emails to: %s\n", *to)
 
 	if cfg.SMTPUser == "" || cfg.SMTPPass == "" {
 		fmt.Println("Error: SMTP_USER or SMTP_PASS is empty in configuration. Please make sure to export them or source them from root .env")
@@ -48,10 +48,18 @@ func main() {
 		logger,
 	)
 
-	// Render welcome template
-	body, err := templates.RenderTemplate(
+	// List of templates to send
+	type emailJob struct {
+		subject string
+		body    string
+	}
+
+	jobs := []emailJob{}
+
+	// 1. Welcome / Verification Email
+	welcomeBody, err := templates.RenderTemplate(
 		templates.WelcomeTemplate,
-		"WeMall Customer",
+		"Test Seller",
 		"WeMall",
 		"https://wemall.co.zw",
 		map[string]interface{}{
@@ -59,15 +67,91 @@ func main() {
 		},
 	)
 	if err != nil {
-		fmt.Printf("Error rendering template: %v\n", err)
+		fmt.Printf("Error rendering WelcomeTemplate: %v\n", err)
 		os.Exit(1)
 	}
+	jobs = append(jobs, emailJob{subject: "Welcome to WeMall! 🚀", body: welcomeBody})
 
-	err = provider.SendEmail(*to, "Welcome to WeMall! 🚀", body)
+	// 2. Password Reset
+	resetBody, err := templates.RenderTemplate(
+		templates.PasswordResetTemplate,
+		"Test Seller",
+		"WeMall",
+		"https://wemall.co.zw",
+		map[string]interface{}{
+			"ResetURL": "https://wemall.co.zw/reset-password?token=test-reset-token",
+			"Expiry":   "2 hours",
+		},
+	)
 	if err != nil {
-		fmt.Printf("Failed to send email: %v\n", err)
+		fmt.Printf("Error rendering PasswordResetTemplate: %v\n", err)
 		os.Exit(1)
 	}
+	jobs = append(jobs, emailJob{subject: "Reset Your WeMall Password", body: resetBody})
 
-	fmt.Println("Welcome email sent successfully!")
+	// 3. Password Changed
+	changedBody, err := templates.RenderTemplate(
+		templates.PasswordChangedTemplate,
+		"Test Seller",
+		"WeMall",
+		"https://wemall.co.zw",
+		map[string]interface{}{
+			"Device":    "MacBook Pro (macOS)",
+			"IPAddress": "192.168.1.1",
+			"Time":      "2026-06-28 15:22:54",
+		},
+	)
+	if err != nil {
+		fmt.Printf("Error rendering PasswordChangedTemplate: %v\n", err)
+		os.Exit(1)
+	}
+	jobs = append(jobs, emailJob{subject: "Security Alert: Your WeMall Password Was Changed", body: changedBody})
+
+	// 4. Low Stock Alert
+	lowStockBody, err := templates.RenderTemplate(
+		templates.LowStockTemplate,
+		"Test Seller",
+		"WeMall",
+		"https://wemall.co.zw",
+		map[string]interface{}{
+			"VariantSKU":     "TSHIRT-BLUE-L",
+			"RemainingStock": int64(3),
+		},
+	)
+	if err != nil {
+		fmt.Printf("Error rendering LowStockTemplate: %v\n", err)
+		os.Exit(1)
+	}
+	jobs = append(jobs, emailJob{subject: "Low Stock Warning ⚠️", body: lowStockBody})
+
+	// 5. Store Status Update
+	statusBody, err := templates.RenderTemplate(
+		templates.StoreStatusChangedTemplate,
+		"Test Seller",
+		"WeMall",
+		"https://wemall.co.zw",
+		map[string]interface{}{
+			"StoreName": "Super Wear Zimbabwe",
+			"Status":    "verified",
+			"Reason":    "All business credentials approved by the admin team.",
+		},
+	)
+	if err != nil {
+		fmt.Printf("Error rendering StoreStatusChangedTemplate: %v\n", err)
+		os.Exit(1)
+	}
+	jobs = append(jobs, emailJob{subject: "WeMall store status update", body: statusBody})
+
+	// Send them all
+	for i, job := range jobs {
+		fmt.Printf("[%d/%d] Sending: %s... ", i+1, len(jobs), job.subject)
+		err = provider.SendEmail(*to, job.subject, job.body)
+		if err != nil {
+			fmt.Printf("FAILED: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Println("SUCCESS")
+	}
+
+	fmt.Println("All seller email notifications sent successfully!")
 }
