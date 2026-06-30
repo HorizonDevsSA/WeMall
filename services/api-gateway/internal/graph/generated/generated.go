@@ -599,23 +599,39 @@ type ComplexityRoot struct {
 	}
 
 	Seller struct {
-		BannerURL     func(childComplexity int) int
-		CreatedAt     func(childComplexity int) int
-		Description   func(childComplexity int) int
-		Dsr           func(childComplexity int) int
-		ID            func(childComplexity int) int
-		IsVerified    func(childComplexity int) int
-		Latitude      func(childComplexity int) int
-		LogoURL       func(childComplexity int) int
-		Longitude     func(childComplexity int) int
-		Rating        func(childComplexity int) int
-		Status        func(childComplexity int) int
-		StoreLocation func(childComplexity int) int
-		StoreName     func(childComplexity int) int
-		StoreSlug     func(childComplexity int) int
-		TotalSales    func(childComplexity int) int
-		UpdatedAt     func(childComplexity int) int
-		UserID        func(childComplexity int) int
+		AutoAcceptOrders         func(childComplexity int) int
+		BankAccountNumber        func(childComplexity int) int
+		BankName                 func(childComplexity int) int
+		BannerURL                func(childComplexity int) int
+		CreatedAt                func(childComplexity int) int
+		DataSharingEnabled       func(childComplexity int) int
+		DeactivationReason       func(childComplexity int) int
+		Description              func(childComplexity int) int
+		Dsr                      func(childComplexity int) int
+		EcocashNumber            func(childComplexity int) int
+		EmailAlertsEnabled       func(childComplexity int) int
+		ID                       func(childComplexity int) int
+		InventoryAlertsEnabled   func(childComplexity int) int
+		IsVerified               func(childComplexity int) int
+		Latitude                 func(childComplexity int) int
+		LogoURL                  func(childComplexity int) int
+		Longitude                func(childComplexity int) int
+		ProfileVisibility        func(childComplexity int) int
+		PushNotificationsEnabled func(childComplexity int) int
+		Rating                   func(childComplexity int) int
+		ReturnPolicyText         func(childComplexity int) int
+		ReturnWindowDays         func(childComplexity int) int
+		SearchIndexingEnabled    func(childComplexity int) int
+		ShippingZones            func(childComplexity int) int
+		SmsAlertsEnabled         func(childComplexity int) int
+		Status                   func(childComplexity int) int
+		StoreLocation            func(childComplexity int) int
+		StoreName                func(childComplexity int) int
+		StoreSlug                func(childComplexity int) int
+		TotalSales               func(childComplexity int) int
+		TwoFactorEnabled         func(childComplexity int) int
+		UpdatedAt                func(childComplexity int) int
+		UserID                   func(childComplexity int) int
 	}
 
 	SellerBalance struct {
@@ -4124,6 +4140,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ReviewMedia.MediaURL(childComplexity), true
 
+	case "Seller.autoAcceptOrders":
+		if e.complexity.Seller.AutoAcceptOrders == nil {
+			break
+		}
+
+		return e.complexity.Seller.AutoAcceptOrders(childComplexity), true
+
+	case "Seller.bankAccountNumber":
+		if e.complexity.Seller.BankAccountNumber == nil {
+			break
+		}
+
+		return e.complexity.Seller.BankAccountNumber(childComplexity), true
+
+	case "Seller.bankName":
+		if e.complexity.Seller.BankName == nil {
+			break
+		}
+
+		return e.complexity.Seller.BankName(childComplexity), true
+
 	case "Seller.bannerUrl":
 		if e.complexity.Seller.BannerURL == nil {
 			break
@@ -4137,6 +4174,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Seller.CreatedAt(childComplexity), true
+
+	case "Seller.dataSharingEnabled":
+		if e.complexity.Seller.DataSharingEnabled == nil {
+			break
+		}
+
+		return e.complexity.Seller.DataSharingEnabled(childComplexity), true
+
+	case "Seller.deactivationReason":
+		if e.complexity.Seller.DeactivationReason == nil {
+			break
+		}
+
+		return e.complexity.Seller.DeactivationReason(childComplexity), true
 
 	case "Seller.description":
 		if e.complexity.Seller.Description == nil {
@@ -4152,12 +4203,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Seller.Dsr(childComplexity), true
 
+	case "Seller.ecocashNumber":
+		if e.complexity.Seller.EcocashNumber == nil {
+			break
+		}
+
+		return e.complexity.Seller.EcocashNumber(childComplexity), true
+
+	case "Seller.emailAlertsEnabled":
+		if e.complexity.Seller.EmailAlertsEnabled == nil {
+			break
+		}
+
+		return e.complexity.Seller.EmailAlertsEnabled(childComplexity), true
+
 	case "Seller.id":
 		if e.complexity.Seller.ID == nil {
 			break
 		}
 
 		return e.complexity.Seller.ID(childComplexity), true
+
+	case "Seller.inventoryAlertsEnabled":
+		if e.complexity.Seller.InventoryAlertsEnabled == nil {
+			break
+		}
+
+		return e.complexity.Seller.InventoryAlertsEnabled(childComplexity), true
 
 	case "Seller.isVerified":
 		if e.complexity.Seller.IsVerified == nil {
@@ -4187,12 +4259,61 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Seller.Longitude(childComplexity), true
 
+	case "Seller.profileVisibility":
+		if e.complexity.Seller.ProfileVisibility == nil {
+			break
+		}
+
+		return e.complexity.Seller.ProfileVisibility(childComplexity), true
+
+	case "Seller.pushNotificationsEnabled":
+		if e.complexity.Seller.PushNotificationsEnabled == nil {
+			break
+		}
+
+		return e.complexity.Seller.PushNotificationsEnabled(childComplexity), true
+
 	case "Seller.rating":
 		if e.complexity.Seller.Rating == nil {
 			break
 		}
 
 		return e.complexity.Seller.Rating(childComplexity), true
+
+	case "Seller.returnPolicyText":
+		if e.complexity.Seller.ReturnPolicyText == nil {
+			break
+		}
+
+		return e.complexity.Seller.ReturnPolicyText(childComplexity), true
+
+	case "Seller.returnWindowDays":
+		if e.complexity.Seller.ReturnWindowDays == nil {
+			break
+		}
+
+		return e.complexity.Seller.ReturnWindowDays(childComplexity), true
+
+	case "Seller.searchIndexingEnabled":
+		if e.complexity.Seller.SearchIndexingEnabled == nil {
+			break
+		}
+
+		return e.complexity.Seller.SearchIndexingEnabled(childComplexity), true
+
+	case "Seller.shippingZones":
+		if e.complexity.Seller.ShippingZones == nil {
+			break
+		}
+
+		return e.complexity.Seller.ShippingZones(childComplexity), true
+
+	case "Seller.smsAlertsEnabled":
+		if e.complexity.Seller.SmsAlertsEnabled == nil {
+			break
+		}
+
+		return e.complexity.Seller.SmsAlertsEnabled(childComplexity), true
 
 	case "Seller.status":
 		if e.complexity.Seller.Status == nil {
@@ -4228,6 +4349,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Seller.TotalSales(childComplexity), true
+
+	case "Seller.twoFactorEnabled":
+		if e.complexity.Seller.TwoFactorEnabled == nil {
+			break
+		}
+
+		return e.complexity.Seller.TwoFactorEnabled(childComplexity), true
 
 	case "Seller.updatedAt":
 		if e.complexity.Seller.UpdatedAt == nil {
@@ -5005,23 +5133,39 @@ type OrderList {
 # ── Seller Types ─────────────────────────────────────────────────────────────
 
 type Seller {
-  id:            ID!
-  userId:        ID!
-  storeName:     String!
-  storeSlug:     String!
-  logoUrl:       String
-  bannerUrl:     String
-  description:   String
-  rating:        Float!
-  totalSales:    Int!
-  isVerified:    Boolean!
-  status:        SellerStatus!
-  latitude:      Float
-  longitude:     Float
-  storeLocation: String
-  createdAt:     Time!
-  updatedAt:     Time!
-  dsr:           SellerDSR!
+  id:                       ID!
+  userId:                   ID!
+  storeName:                String!
+  storeSlug:                String!
+  logoUrl:                  String
+  bannerUrl:                String
+  description:              String
+  rating:                   Float!
+  totalSales:               Int!
+  isVerified:               Boolean!
+  status:                   SellerStatus!
+  latitude:                 Float
+  longitude:                Float
+  storeLocation:            String
+  createdAt:                Time!
+  updatedAt:                Time!
+  dsr:                      SellerDSR!
+  shippingZones:            String!
+  bankName:                 String!
+  bankAccountNumber:        String!
+  ecocashNumber:            String!
+  returnWindowDays:         Int!
+  returnPolicyText:         String!
+  pushNotificationsEnabled: Boolean!
+  emailAlertsEnabled:       Boolean!
+  smsAlertsEnabled:         Boolean!
+  autoAcceptOrders:         Boolean!
+  inventoryAlertsEnabled:   Boolean!
+  profileVisibility:        Boolean!
+  searchIndexingEnabled:    Boolean!
+  dataSharingEnabled:       Boolean!
+  twoFactorEnabled:         Boolean!
+  deactivationReason:       String!
 }
 
 # ── Input Types ───────────────────────────────────────────────────────────────
@@ -5117,13 +5261,29 @@ input CreateStoreInput {
 }
 
 input UpdateStoreInput {
-  storeName:     String
-  description:   String
-  logoUrl:       String
-  bannerUrl:     String
-  latitude:      Float
-  longitude:     Float
-  storeLocation: String
+  storeName:                String
+  description:              String
+  logoUrl:                  String
+  bannerUrl:                String
+  latitude:                 Float
+  longitude:                Float
+  storeLocation:            String
+  shippingZones:            String
+  bankName:                 String
+  bankAccountNumber:        String
+  ecocashNumber:            String
+  returnWindowDays:         Int
+  returnPolicyText:         String
+  pushNotificationsEnabled: Boolean
+  emailAlertsEnabled:       Boolean
+  smsAlertsEnabled:         Boolean
+  autoAcceptOrders:         Boolean
+  inventoryAlertsEnabled:   Boolean
+  profileVisibility:        Boolean
+  searchIndexingEnabled:    Boolean
+  dataSharingEnabled:       Boolean
+  twoFactorEnabled:         Boolean
+  deactivationReason:       String
 }
 
 # ── Queries ───────────────────────────────────────────────────────────────────
@@ -14309,6 +14469,38 @@ func (ec *executionContext) fieldContext_FollowedStoresList_sellers(ctx context.
 				return ec.fieldContext_Seller_updatedAt(ctx, field)
 			case "dsr":
 				return ec.fieldContext_Seller_dsr(ctx, field)
+			case "shippingZones":
+				return ec.fieldContext_Seller_shippingZones(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Seller_bankName(ctx, field)
+			case "bankAccountNumber":
+				return ec.fieldContext_Seller_bankAccountNumber(ctx, field)
+			case "ecocashNumber":
+				return ec.fieldContext_Seller_ecocashNumber(ctx, field)
+			case "returnWindowDays":
+				return ec.fieldContext_Seller_returnWindowDays(ctx, field)
+			case "returnPolicyText":
+				return ec.fieldContext_Seller_returnPolicyText(ctx, field)
+			case "pushNotificationsEnabled":
+				return ec.fieldContext_Seller_pushNotificationsEnabled(ctx, field)
+			case "emailAlertsEnabled":
+				return ec.fieldContext_Seller_emailAlertsEnabled(ctx, field)
+			case "smsAlertsEnabled":
+				return ec.fieldContext_Seller_smsAlertsEnabled(ctx, field)
+			case "autoAcceptOrders":
+				return ec.fieldContext_Seller_autoAcceptOrders(ctx, field)
+			case "inventoryAlertsEnabled":
+				return ec.fieldContext_Seller_inventoryAlertsEnabled(ctx, field)
+			case "profileVisibility":
+				return ec.fieldContext_Seller_profileVisibility(ctx, field)
+			case "searchIndexingEnabled":
+				return ec.fieldContext_Seller_searchIndexingEnabled(ctx, field)
+			case "dataSharingEnabled":
+				return ec.fieldContext_Seller_dataSharingEnabled(ctx, field)
+			case "twoFactorEnabled":
+				return ec.fieldContext_Seller_twoFactorEnabled(ctx, field)
+			case "deactivationReason":
+				return ec.fieldContext_Seller_deactivationReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -15935,6 +16127,38 @@ func (ec *executionContext) fieldContext_Mutation_createStore(ctx context.Contex
 				return ec.fieldContext_Seller_updatedAt(ctx, field)
 			case "dsr":
 				return ec.fieldContext_Seller_dsr(ctx, field)
+			case "shippingZones":
+				return ec.fieldContext_Seller_shippingZones(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Seller_bankName(ctx, field)
+			case "bankAccountNumber":
+				return ec.fieldContext_Seller_bankAccountNumber(ctx, field)
+			case "ecocashNumber":
+				return ec.fieldContext_Seller_ecocashNumber(ctx, field)
+			case "returnWindowDays":
+				return ec.fieldContext_Seller_returnWindowDays(ctx, field)
+			case "returnPolicyText":
+				return ec.fieldContext_Seller_returnPolicyText(ctx, field)
+			case "pushNotificationsEnabled":
+				return ec.fieldContext_Seller_pushNotificationsEnabled(ctx, field)
+			case "emailAlertsEnabled":
+				return ec.fieldContext_Seller_emailAlertsEnabled(ctx, field)
+			case "smsAlertsEnabled":
+				return ec.fieldContext_Seller_smsAlertsEnabled(ctx, field)
+			case "autoAcceptOrders":
+				return ec.fieldContext_Seller_autoAcceptOrders(ctx, field)
+			case "inventoryAlertsEnabled":
+				return ec.fieldContext_Seller_inventoryAlertsEnabled(ctx, field)
+			case "profileVisibility":
+				return ec.fieldContext_Seller_profileVisibility(ctx, field)
+			case "searchIndexingEnabled":
+				return ec.fieldContext_Seller_searchIndexingEnabled(ctx, field)
+			case "dataSharingEnabled":
+				return ec.fieldContext_Seller_dataSharingEnabled(ctx, field)
+			case "twoFactorEnabled":
+				return ec.fieldContext_Seller_twoFactorEnabled(ctx, field)
+			case "deactivationReason":
+				return ec.fieldContext_Seller_deactivationReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -16050,6 +16274,38 @@ func (ec *executionContext) fieldContext_Mutation_updateStore(ctx context.Contex
 				return ec.fieldContext_Seller_updatedAt(ctx, field)
 			case "dsr":
 				return ec.fieldContext_Seller_dsr(ctx, field)
+			case "shippingZones":
+				return ec.fieldContext_Seller_shippingZones(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Seller_bankName(ctx, field)
+			case "bankAccountNumber":
+				return ec.fieldContext_Seller_bankAccountNumber(ctx, field)
+			case "ecocashNumber":
+				return ec.fieldContext_Seller_ecocashNumber(ctx, field)
+			case "returnWindowDays":
+				return ec.fieldContext_Seller_returnWindowDays(ctx, field)
+			case "returnPolicyText":
+				return ec.fieldContext_Seller_returnPolicyText(ctx, field)
+			case "pushNotificationsEnabled":
+				return ec.fieldContext_Seller_pushNotificationsEnabled(ctx, field)
+			case "emailAlertsEnabled":
+				return ec.fieldContext_Seller_emailAlertsEnabled(ctx, field)
+			case "smsAlertsEnabled":
+				return ec.fieldContext_Seller_smsAlertsEnabled(ctx, field)
+			case "autoAcceptOrders":
+				return ec.fieldContext_Seller_autoAcceptOrders(ctx, field)
+			case "inventoryAlertsEnabled":
+				return ec.fieldContext_Seller_inventoryAlertsEnabled(ctx, field)
+			case "profileVisibility":
+				return ec.fieldContext_Seller_profileVisibility(ctx, field)
+			case "searchIndexingEnabled":
+				return ec.fieldContext_Seller_searchIndexingEnabled(ctx, field)
+			case "dataSharingEnabled":
+				return ec.fieldContext_Seller_dataSharingEnabled(ctx, field)
+			case "twoFactorEnabled":
+				return ec.fieldContext_Seller_twoFactorEnabled(ctx, field)
+			case "deactivationReason":
+				return ec.fieldContext_Seller_deactivationReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -16165,6 +16421,38 @@ func (ec *executionContext) fieldContext_Mutation_updateSellerStatus(ctx context
 				return ec.fieldContext_Seller_updatedAt(ctx, field)
 			case "dsr":
 				return ec.fieldContext_Seller_dsr(ctx, field)
+			case "shippingZones":
+				return ec.fieldContext_Seller_shippingZones(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Seller_bankName(ctx, field)
+			case "bankAccountNumber":
+				return ec.fieldContext_Seller_bankAccountNumber(ctx, field)
+			case "ecocashNumber":
+				return ec.fieldContext_Seller_ecocashNumber(ctx, field)
+			case "returnWindowDays":
+				return ec.fieldContext_Seller_returnWindowDays(ctx, field)
+			case "returnPolicyText":
+				return ec.fieldContext_Seller_returnPolicyText(ctx, field)
+			case "pushNotificationsEnabled":
+				return ec.fieldContext_Seller_pushNotificationsEnabled(ctx, field)
+			case "emailAlertsEnabled":
+				return ec.fieldContext_Seller_emailAlertsEnabled(ctx, field)
+			case "smsAlertsEnabled":
+				return ec.fieldContext_Seller_smsAlertsEnabled(ctx, field)
+			case "autoAcceptOrders":
+				return ec.fieldContext_Seller_autoAcceptOrders(ctx, field)
+			case "inventoryAlertsEnabled":
+				return ec.fieldContext_Seller_inventoryAlertsEnabled(ctx, field)
+			case "profileVisibility":
+				return ec.fieldContext_Seller_profileVisibility(ctx, field)
+			case "searchIndexingEnabled":
+				return ec.fieldContext_Seller_searchIndexingEnabled(ctx, field)
+			case "dataSharingEnabled":
+				return ec.fieldContext_Seller_dataSharingEnabled(ctx, field)
+			case "twoFactorEnabled":
+				return ec.fieldContext_Seller_twoFactorEnabled(ctx, field)
+			case "deactivationReason":
+				return ec.fieldContext_Seller_deactivationReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -24535,6 +24823,38 @@ func (ec *executionContext) fieldContext_Product_seller(ctx context.Context, fie
 				return ec.fieldContext_Seller_updatedAt(ctx, field)
 			case "dsr":
 				return ec.fieldContext_Seller_dsr(ctx, field)
+			case "shippingZones":
+				return ec.fieldContext_Seller_shippingZones(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Seller_bankName(ctx, field)
+			case "bankAccountNumber":
+				return ec.fieldContext_Seller_bankAccountNumber(ctx, field)
+			case "ecocashNumber":
+				return ec.fieldContext_Seller_ecocashNumber(ctx, field)
+			case "returnWindowDays":
+				return ec.fieldContext_Seller_returnWindowDays(ctx, field)
+			case "returnPolicyText":
+				return ec.fieldContext_Seller_returnPolicyText(ctx, field)
+			case "pushNotificationsEnabled":
+				return ec.fieldContext_Seller_pushNotificationsEnabled(ctx, field)
+			case "emailAlertsEnabled":
+				return ec.fieldContext_Seller_emailAlertsEnabled(ctx, field)
+			case "smsAlertsEnabled":
+				return ec.fieldContext_Seller_smsAlertsEnabled(ctx, field)
+			case "autoAcceptOrders":
+				return ec.fieldContext_Seller_autoAcceptOrders(ctx, field)
+			case "inventoryAlertsEnabled":
+				return ec.fieldContext_Seller_inventoryAlertsEnabled(ctx, field)
+			case "profileVisibility":
+				return ec.fieldContext_Seller_profileVisibility(ctx, field)
+			case "searchIndexingEnabled":
+				return ec.fieldContext_Seller_searchIndexingEnabled(ctx, field)
+			case "dataSharingEnabled":
+				return ec.fieldContext_Seller_dataSharingEnabled(ctx, field)
+			case "twoFactorEnabled":
+				return ec.fieldContext_Seller_twoFactorEnabled(ctx, field)
+			case "deactivationReason":
+				return ec.fieldContext_Seller_deactivationReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -26942,6 +27262,38 @@ func (ec *executionContext) fieldContext_Query_myStore(ctx context.Context, fiel
 				return ec.fieldContext_Seller_updatedAt(ctx, field)
 			case "dsr":
 				return ec.fieldContext_Seller_dsr(ctx, field)
+			case "shippingZones":
+				return ec.fieldContext_Seller_shippingZones(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Seller_bankName(ctx, field)
+			case "bankAccountNumber":
+				return ec.fieldContext_Seller_bankAccountNumber(ctx, field)
+			case "ecocashNumber":
+				return ec.fieldContext_Seller_ecocashNumber(ctx, field)
+			case "returnWindowDays":
+				return ec.fieldContext_Seller_returnWindowDays(ctx, field)
+			case "returnPolicyText":
+				return ec.fieldContext_Seller_returnPolicyText(ctx, field)
+			case "pushNotificationsEnabled":
+				return ec.fieldContext_Seller_pushNotificationsEnabled(ctx, field)
+			case "emailAlertsEnabled":
+				return ec.fieldContext_Seller_emailAlertsEnabled(ctx, field)
+			case "smsAlertsEnabled":
+				return ec.fieldContext_Seller_smsAlertsEnabled(ctx, field)
+			case "autoAcceptOrders":
+				return ec.fieldContext_Seller_autoAcceptOrders(ctx, field)
+			case "inventoryAlertsEnabled":
+				return ec.fieldContext_Seller_inventoryAlertsEnabled(ctx, field)
+			case "profileVisibility":
+				return ec.fieldContext_Seller_profileVisibility(ctx, field)
+			case "searchIndexingEnabled":
+				return ec.fieldContext_Seller_searchIndexingEnabled(ctx, field)
+			case "dataSharingEnabled":
+				return ec.fieldContext_Seller_dataSharingEnabled(ctx, field)
+			case "twoFactorEnabled":
+				return ec.fieldContext_Seller_twoFactorEnabled(ctx, field)
+			case "deactivationReason":
+				return ec.fieldContext_Seller_deactivationReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -27193,6 +27545,38 @@ func (ec *executionContext) fieldContext_Query_seller(ctx context.Context, field
 				return ec.fieldContext_Seller_updatedAt(ctx, field)
 			case "dsr":
 				return ec.fieldContext_Seller_dsr(ctx, field)
+			case "shippingZones":
+				return ec.fieldContext_Seller_shippingZones(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Seller_bankName(ctx, field)
+			case "bankAccountNumber":
+				return ec.fieldContext_Seller_bankAccountNumber(ctx, field)
+			case "ecocashNumber":
+				return ec.fieldContext_Seller_ecocashNumber(ctx, field)
+			case "returnWindowDays":
+				return ec.fieldContext_Seller_returnWindowDays(ctx, field)
+			case "returnPolicyText":
+				return ec.fieldContext_Seller_returnPolicyText(ctx, field)
+			case "pushNotificationsEnabled":
+				return ec.fieldContext_Seller_pushNotificationsEnabled(ctx, field)
+			case "emailAlertsEnabled":
+				return ec.fieldContext_Seller_emailAlertsEnabled(ctx, field)
+			case "smsAlertsEnabled":
+				return ec.fieldContext_Seller_smsAlertsEnabled(ctx, field)
+			case "autoAcceptOrders":
+				return ec.fieldContext_Seller_autoAcceptOrders(ctx, field)
+			case "inventoryAlertsEnabled":
+				return ec.fieldContext_Seller_inventoryAlertsEnabled(ctx, field)
+			case "profileVisibility":
+				return ec.fieldContext_Seller_profileVisibility(ctx, field)
+			case "searchIndexingEnabled":
+				return ec.fieldContext_Seller_searchIndexingEnabled(ctx, field)
+			case "dataSharingEnabled":
+				return ec.fieldContext_Seller_dataSharingEnabled(ctx, field)
+			case "twoFactorEnabled":
+				return ec.fieldContext_Seller_twoFactorEnabled(ctx, field)
+			case "deactivationReason":
+				return ec.fieldContext_Seller_deactivationReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -31505,6 +31889,710 @@ func (ec *executionContext) fieldContext_Seller_dsr(ctx context.Context, field g
 	return fc, nil
 }
 
+func (ec *executionContext) _Seller_shippingZones(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_shippingZones(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ShippingZones, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_shippingZones(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Seller_bankName(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_bankName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BankName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_bankName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Seller_bankAccountNumber(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_bankAccountNumber(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BankAccountNumber, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_bankAccountNumber(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Seller_ecocashNumber(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_ecocashNumber(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EcocashNumber, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_ecocashNumber(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Seller_returnWindowDays(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_returnWindowDays(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ReturnWindowDays, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_returnWindowDays(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Seller_returnPolicyText(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_returnPolicyText(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ReturnPolicyText, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_returnPolicyText(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Seller_pushNotificationsEnabled(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_pushNotificationsEnabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PushNotificationsEnabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_pushNotificationsEnabled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Seller_emailAlertsEnabled(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_emailAlertsEnabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EmailAlertsEnabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_emailAlertsEnabled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Seller_smsAlertsEnabled(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_smsAlertsEnabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SmsAlertsEnabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_smsAlertsEnabled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Seller_autoAcceptOrders(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_autoAcceptOrders(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AutoAcceptOrders, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_autoAcceptOrders(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Seller_inventoryAlertsEnabled(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_inventoryAlertsEnabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InventoryAlertsEnabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_inventoryAlertsEnabled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Seller_profileVisibility(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_profileVisibility(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProfileVisibility, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_profileVisibility(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Seller_searchIndexingEnabled(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_searchIndexingEnabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SearchIndexingEnabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_searchIndexingEnabled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Seller_dataSharingEnabled(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_dataSharingEnabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DataSharingEnabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_dataSharingEnabled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Seller_twoFactorEnabled(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_twoFactorEnabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TwoFactorEnabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_twoFactorEnabled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Seller_deactivationReason(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_deactivationReason(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeactivationReason, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_deactivationReason(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SellerBalance_escrowedBalance(ctx context.Context, field graphql.CollectedField, obj *model.SellerBalance) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SellerBalance_escrowedBalance(ctx, field)
 	if err != nil {
@@ -31886,6 +32974,38 @@ func (ec *executionContext) fieldContext_SellerDashboard_store(ctx context.Conte
 				return ec.fieldContext_Seller_updatedAt(ctx, field)
 			case "dsr":
 				return ec.fieldContext_Seller_dsr(ctx, field)
+			case "shippingZones":
+				return ec.fieldContext_Seller_shippingZones(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Seller_bankName(ctx, field)
+			case "bankAccountNumber":
+				return ec.fieldContext_Seller_bankAccountNumber(ctx, field)
+			case "ecocashNumber":
+				return ec.fieldContext_Seller_ecocashNumber(ctx, field)
+			case "returnWindowDays":
+				return ec.fieldContext_Seller_returnWindowDays(ctx, field)
+			case "returnPolicyText":
+				return ec.fieldContext_Seller_returnPolicyText(ctx, field)
+			case "pushNotificationsEnabled":
+				return ec.fieldContext_Seller_pushNotificationsEnabled(ctx, field)
+			case "emailAlertsEnabled":
+				return ec.fieldContext_Seller_emailAlertsEnabled(ctx, field)
+			case "smsAlertsEnabled":
+				return ec.fieldContext_Seller_smsAlertsEnabled(ctx, field)
+			case "autoAcceptOrders":
+				return ec.fieldContext_Seller_autoAcceptOrders(ctx, field)
+			case "inventoryAlertsEnabled":
+				return ec.fieldContext_Seller_inventoryAlertsEnabled(ctx, field)
+			case "profileVisibility":
+				return ec.fieldContext_Seller_profileVisibility(ctx, field)
+			case "searchIndexingEnabled":
+				return ec.fieldContext_Seller_searchIndexingEnabled(ctx, field)
+			case "dataSharingEnabled":
+				return ec.fieldContext_Seller_dataSharingEnabled(ctx, field)
+			case "twoFactorEnabled":
+				return ec.fieldContext_Seller_twoFactorEnabled(ctx, field)
+			case "deactivationReason":
+				return ec.fieldContext_Seller_deactivationReason(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -36906,7 +38026,7 @@ func (ec *executionContext) unmarshalInputUpdateStoreInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"storeName", "description", "logoUrl", "bannerUrl", "latitude", "longitude", "storeLocation"}
+	fieldsInOrder := [...]string{"storeName", "description", "logoUrl", "bannerUrl", "latitude", "longitude", "storeLocation", "shippingZones", "bankName", "bankAccountNumber", "ecocashNumber", "returnWindowDays", "returnPolicyText", "pushNotificationsEnabled", "emailAlertsEnabled", "smsAlertsEnabled", "autoAcceptOrders", "inventoryAlertsEnabled", "profileVisibility", "searchIndexingEnabled", "dataSharingEnabled", "twoFactorEnabled", "deactivationReason"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -36962,6 +38082,118 @@ func (ec *executionContext) unmarshalInputUpdateStoreInput(ctx context.Context, 
 				return it, err
 			}
 			it.StoreLocation = data
+		case "shippingZones":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shippingZones"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ShippingZones = data
+		case "bankName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bankName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BankName = data
+		case "bankAccountNumber":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bankAccountNumber"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BankAccountNumber = data
+		case "ecocashNumber":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ecocashNumber"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EcocashNumber = data
+		case "returnWindowDays":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("returnWindowDays"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ReturnWindowDays = data
+		case "returnPolicyText":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("returnPolicyText"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ReturnPolicyText = data
+		case "pushNotificationsEnabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pushNotificationsEnabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PushNotificationsEnabled = data
+		case "emailAlertsEnabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emailAlertsEnabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EmailAlertsEnabled = data
+		case "smsAlertsEnabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("smsAlertsEnabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SmsAlertsEnabled = data
+		case "autoAcceptOrders":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("autoAcceptOrders"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AutoAcceptOrders = data
+		case "inventoryAlertsEnabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inventoryAlertsEnabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.InventoryAlertsEnabled = data
+		case "profileVisibility":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("profileVisibility"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProfileVisibility = data
+		case "searchIndexingEnabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("searchIndexingEnabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SearchIndexingEnabled = data
+		case "dataSharingEnabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dataSharingEnabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DataSharingEnabled = data
+		case "twoFactorEnabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("twoFactorEnabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TwoFactorEnabled = data
+		case "deactivationReason":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deactivationReason"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DeactivationReason = data
 		}
 	}
 
@@ -41591,6 +42823,86 @@ func (ec *executionContext) _Seller(ctx context.Context, sel ast.SelectionSet, o
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "shippingZones":
+			out.Values[i] = ec._Seller_shippingZones(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "bankName":
+			out.Values[i] = ec._Seller_bankName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "bankAccountNumber":
+			out.Values[i] = ec._Seller_bankAccountNumber(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "ecocashNumber":
+			out.Values[i] = ec._Seller_ecocashNumber(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "returnWindowDays":
+			out.Values[i] = ec._Seller_returnWindowDays(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "returnPolicyText":
+			out.Values[i] = ec._Seller_returnPolicyText(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "pushNotificationsEnabled":
+			out.Values[i] = ec._Seller_pushNotificationsEnabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "emailAlertsEnabled":
+			out.Values[i] = ec._Seller_emailAlertsEnabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "smsAlertsEnabled":
+			out.Values[i] = ec._Seller_smsAlertsEnabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "autoAcceptOrders":
+			out.Values[i] = ec._Seller_autoAcceptOrders(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "inventoryAlertsEnabled":
+			out.Values[i] = ec._Seller_inventoryAlertsEnabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "profileVisibility":
+			out.Values[i] = ec._Seller_profileVisibility(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "searchIndexingEnabled":
+			out.Values[i] = ec._Seller_searchIndexingEnabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "dataSharingEnabled":
+			out.Values[i] = ec._Seller_dataSharingEnabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "twoFactorEnabled":
+			out.Values[i] = ec._Seller_twoFactorEnabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "deactivationReason":
+			out.Values[i] = ec._Seller_deactivationReason(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -168,22 +168,38 @@ type ProductImage struct {
 }
 
 type Seller struct {
-	ID            string       `json:"id"`
-	UserID        string       `json:"userId"`
-	StoreName     string       `json:"storeName"`
-	StoreSlug     string       `json:"storeSlug"`
-	LogoURL       *string      `json:"logoUrl"`
-	BannerURL     *string      `json:"bannerUrl"`
-	Description   *string      `json:"description"`
-	Rating        float64      `json:"rating"`
-	TotalSales    int          `json:"totalSales"`
-	IsVerified    bool         `json:"isVerified"`
-	Status        SellerStatus `json:"status"`
-	Latitude      *float64     `json:"latitude"`
-	Longitude     *float64     `json:"longitude"`
-	StoreLocation *string      `json:"storeLocation"`
-	CreatedAt     time.Time    `json:"createdAt"`
-	UpdatedAt     time.Time    `json:"updatedAt"`
+	ID                       string       `json:"id"`
+	UserID                   string       `json:"userId"`
+	StoreName                string       `json:"storeName"`
+	StoreSlug                string       `json:"storeSlug"`
+	LogoURL                  *string      `json:"logoUrl"`
+	BannerURL                *string      `json:"bannerUrl"`
+	Description              *string      `json:"description"`
+	Rating                   float64      `json:"rating"`
+	TotalSales               int          `json:"totalSales"`
+	IsVerified               bool         `json:"isVerified"`
+	Status                   SellerStatus `json:"status"`
+	Latitude                 *float64     `json:"latitude"`
+	Longitude                *float64     `json:"longitude"`
+	StoreLocation            *string      `json:"storeLocation"`
+	CreatedAt                time.Time    `json:"createdAt"`
+	UpdatedAt                time.Time    `json:"updatedAt"`
+	ShippingZones            string       `json:"shippingZones"`
+	BankName                 string       `json:"bankName"`
+	BankAccountNumber        string       `json:"bankAccountNumber"`
+	EcocashNumber            string       `json:"ecocashNumber"`
+	ReturnWindowDays         int          `json:"returnWindowDays"`
+	ReturnPolicyText         string       `json:"returnPolicyText"`
+	PushNotificationsEnabled bool         `json:"pushNotificationsEnabled"`
+	EmailAlertsEnabled       bool         `json:"emailAlertsEnabled"`
+	SmsAlertsEnabled         bool         `json:"smsAlertsEnabled"`
+	AutoAcceptOrders         bool         `json:"autoAcceptOrders"`
+	InventoryAlertsEnabled   bool         `json:"inventoryAlertsEnabled"`
+	ProfileVisibility        bool         `json:"profileVisibility"`
+	SearchIndexingEnabled    bool         `json:"searchIndexingEnabled"`
+	DataSharingEnabled       bool         `json:"dataSharingEnabled"`
+	TwoFactorEnabled         bool         `json:"twoFactorEnabled"`
+	DeactivationReason       string       `json:"deactivationReason"`
 }
 
 type FollowedStoresList struct {
@@ -389,11 +405,27 @@ type CreateStoreInput struct {
 }
 
 type UpdateStoreInput struct {
-	StoreName     *string  `json:"storeName"`
-	Description   *string  `json:"description"`
-	LogoURL       *string  `json:"logoUrl"`
-	BannerURL     *string  `json:"bannerUrl"`
-	Latitude      *float64 `json:"latitude"`
-	Longitude     *float64 `json:"longitude"`
-	StoreLocation *string  `json:"storeLocation"`
+	StoreName                *string  `json:"storeName"`
+	Description              *string  `json:"description"`
+	LogoURL                  *string  `json:"logoUrl"`
+	BannerURL                *string  `json:"bannerUrl"`
+	Latitude                 *float64 `json:"latitude"`
+	Longitude                *float64 `json:"longitude"`
+	StoreLocation            *string  `json:"storeLocation"`
+	ShippingZones            *string  `json:"shippingZones"`
+	BankName                 *string  `json:"bankName"`
+	BankAccountNumber        *string  `json:"bankAccountNumber"`
+	EcocashNumber            *string  `json:"ecocashNumber"`
+	ReturnWindowDays         *int     `json:"returnWindowDays"`
+	ReturnPolicyText         *string  `json:"returnPolicyText"`
+	PushNotificationsEnabled *bool    `json:"pushNotificationsEnabled"`
+	EmailAlertsEnabled       *bool    `json:"emailAlertsEnabled"`
+	SmsAlertsEnabled         *bool    `json:"smsAlertsEnabled"`
+	AutoAcceptOrders         *bool    `json:"autoAcceptOrders"`
+	InventoryAlertsEnabled   *bool    `json:"inventoryAlertsEnabled"`
+	ProfileVisibility        *bool    `json:"profileVisibility"`
+	SearchIndexingEnabled    *bool    `json:"searchIndexingEnabled"`
+	DataSharingEnabled       *bool    `json:"dataSharingEnabled"`
+	TwoFactorEnabled         *bool    `json:"twoFactorEnabled"`
+	DeactivationReason       *string  `json:"deactivationReason"`
 }

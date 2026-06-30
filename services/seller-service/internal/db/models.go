@@ -77,9 +77,25 @@ type Seller struct {
 	// Review status: pending → processing → verified | suspended
 	Status SellerStatus `json:"status"`
 	// Human-readable address string for the store location, derived from latitude/longitude coordinates
-	StoreLocation   *string `json:"store_location"`
-	CommissionRate  float64 `json:"commission_rate"`
-	AdCreditBalance float64 `json:"ad_credit_balance"`
+	StoreLocation            *string `json:"store_location"`
+	CommissionRate           float64 `json:"commission_rate"`
+	AdCreditBalance          float64 `json:"ad_credit_balance"`
+	ShippingZones            string  `json:"shipping_zones"`
+	BankName                 string  `json:"bank_name"`
+	BankAccountNumber        string  `json:"bank_account_number"`
+	EcocashNumber            string  `json:"ecocash_number"`
+	ReturnWindowDays         int32   `json:"return_window_days"`
+	ReturnPolicyText         string  `json:"return_policy_text"`
+	PushNotificationsEnabled bool    `json:"push_notifications_enabled"`
+	EmailAlertsEnabled       bool    `json:"email_alerts_enabled"`
+	SmsAlertsEnabled         bool    `json:"sms_alerts_enabled"`
+	AutoAcceptOrders         bool    `json:"auto_accept_orders"`
+	InventoryAlertsEnabled   bool    `json:"inventory_alerts_enabled"`
+	ProfileVisibility        bool    `json:"profile_visibility"`
+	SearchIndexingEnabled    bool    `json:"search_indexing_enabled"`
+	DataSharingEnabled       bool    `json:"data_sharing_enabled"`
+	TwoFactorEnabled         bool    `json:"two_factor_enabled"`
+	DeactivationReason       string  `json:"deactivation_reason"`
 }
 
 type SellerEarning struct {

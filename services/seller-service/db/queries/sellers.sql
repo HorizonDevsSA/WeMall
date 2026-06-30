@@ -17,15 +17,31 @@ SELECT * FROM sellers WHERE id = ANY($1::uuid[]);
 
 -- name: UpdateSeller :one
 UPDATE sellers SET
-    store_name     = COALESCE(NULLIF(@store_name::text, ''), store_name),
-    store_slug     = COALESCE(NULLIF(@store_slug::text, ''), store_slug),
-    logo_url       = COALESCE(sqlc.narg('logo_url'), logo_url),
-    banner_url     = COALESCE(sqlc.narg('banner_url'), banner_url),
-    description    = COALESCE(sqlc.narg('description'), description),
-    latitude       = COALESCE(sqlc.narg('latitude'), latitude),
-    longitude      = COALESCE(sqlc.narg('longitude'), longitude),
-    store_location = COALESCE(sqlc.narg('store_location'), store_location),
-    updated_at     = NOW()
+    store_name                  = COALESCE(NULLIF(@store_name::text, ''), store_name),
+    store_slug                  = COALESCE(NULLIF(@store_slug::text, ''), store_slug),
+    logo_url                    = COALESCE(sqlc.narg('logo_url'), logo_url),
+    banner_url                  = COALESCE(sqlc.narg('banner_url'), banner_url),
+    description                 = COALESCE(sqlc.narg('description'), description),
+    latitude                    = COALESCE(sqlc.narg('latitude'), latitude),
+    longitude                   = COALESCE(sqlc.narg('longitude'), longitude),
+    store_location              = COALESCE(sqlc.narg('store_location'), store_location),
+    shipping_zones              = COALESCE(sqlc.narg('shipping_zones'), shipping_zones),
+    bank_name                   = COALESCE(sqlc.narg('bank_name'), bank_name),
+    bank_account_number         = COALESCE(sqlc.narg('bank_account_number'), bank_account_number),
+    ecocash_number              = COALESCE(sqlc.narg('ecocash_number'), ecocash_number),
+    return_window_days          = COALESCE(sqlc.narg('return_window_days'), return_window_days),
+    return_policy_text          = COALESCE(sqlc.narg('return_policy_text'), return_policy_text),
+    push_notifications_enabled   = COALESCE(sqlc.narg('push_notifications_enabled'), push_notifications_enabled),
+    email_alerts_enabled        = COALESCE(sqlc.narg('email_alerts_enabled'), email_alerts_enabled),
+    sms_alerts_enabled          = COALESCE(sqlc.narg('sms_alerts_enabled'), sms_alerts_enabled),
+    auto_accept_orders          = COALESCE(sqlc.narg('auto_accept_orders'), auto_accept_orders),
+    inventory_alerts_enabled    = COALESCE(sqlc.narg('inventory_alerts_enabled'), inventory_alerts_enabled),
+    profile_visibility          = COALESCE(sqlc.narg('profile_visibility'), profile_visibility),
+    search_indexing_enabled     = COALESCE(sqlc.narg('search_indexing_enabled'), search_indexing_enabled),
+    data_sharing_enabled        = COALESCE(sqlc.narg('data_sharing_enabled'), data_sharing_enabled),
+    two_factor_enabled          = COALESCE(sqlc.narg('two_factor_enabled'), two_factor_enabled),
+    deactivation_reason         = COALESCE(sqlc.narg('deactivation_reason'), deactivation_reason),
+    updated_at                  = NOW()
 WHERE user_id = @user_id
 RETURNING *;
 

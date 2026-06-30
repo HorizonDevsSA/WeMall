@@ -1,0 +1,17 @@
+ALTER TABLE sellers
+DROP COLUMN shipping_zones,
+DROP COLUMN bank_name,
+DROP COLUMN bank_account_number,
+DROP COLUMN ecocash_number,
+DROP COLUMN return_window_days,
+DROP COLUMN return_policy_text,
+DROP COLUMN push_notifications_enabled,
+DROP COLUMN email_alerts_enabled,
+DROP COLUMN sms_alerts_enabled,
+DROP COLUMN auto_accept_orders,
+DROP COLUMN inventory_alerts_enabled,
+DROP COLUMN profile_visibility,
+DROP COLUMN search_indexing_enabled,
+DROP COLUMN data_sharing_enabled,
+DROP COLUMN two_factor_enabled,
+DROP COLUMN deactivation_reason;

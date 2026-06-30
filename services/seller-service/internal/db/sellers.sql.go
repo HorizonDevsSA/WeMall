@@ -15,7 +15,7 @@ import (
 const createSeller = `-- name: CreateSeller :one
 INSERT INTO sellers (user_id, store_name, store_slug, logo_url, banner_url, description, latitude, longitude, store_location)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason
 `
 
 type CreateSellerParams struct {
@@ -34,7 +34,7 @@ type CreateSellerParams struct {
 //
 //	INSERT INTO sellers (user_id, store_name, store_slug, logo_url, banner_url, description, latitude, longitude, store_location)
 //	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
+//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason
 func (q *Queries) CreateSeller(ctx context.Context, arg CreateSellerParams) (Seller, error) {
 	row := q.db.QueryRow(ctx, createSeller,
 		arg.UserID,
@@ -67,17 +67,33 @@ func (q *Queries) CreateSeller(ctx context.Context, arg CreateSellerParams) (Sel
 		&i.StoreLocation,
 		&i.CommissionRate,
 		&i.AdCreditBalance,
+		&i.ShippingZones,
+		&i.BankName,
+		&i.BankAccountNumber,
+		&i.EcocashNumber,
+		&i.ReturnWindowDays,
+		&i.ReturnPolicyText,
+		&i.PushNotificationsEnabled,
+		&i.EmailAlertsEnabled,
+		&i.SmsAlertsEnabled,
+		&i.AutoAcceptOrders,
+		&i.InventoryAlertsEnabled,
+		&i.ProfileVisibility,
+		&i.SearchIndexingEnabled,
+		&i.DataSharingEnabled,
+		&i.TwoFactorEnabled,
+		&i.DeactivationReason,
 	)
 	return i, err
 }
 
 const getSellerByID = `-- name: GetSellerByID :one
-SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance FROM sellers WHERE id = $1
+SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason FROM sellers WHERE id = $1
 `
 
 // GetSellerByID
 //
-//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance FROM sellers WHERE id = $1
+//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason FROM sellers WHERE id = $1
 func (q *Queries) GetSellerByID(ctx context.Context, id uuid.UUID) (Seller, error) {
 	row := q.db.QueryRow(ctx, getSellerByID, id)
 	var i Seller
@@ -100,17 +116,33 @@ func (q *Queries) GetSellerByID(ctx context.Context, id uuid.UUID) (Seller, erro
 		&i.StoreLocation,
 		&i.CommissionRate,
 		&i.AdCreditBalance,
+		&i.ShippingZones,
+		&i.BankName,
+		&i.BankAccountNumber,
+		&i.EcocashNumber,
+		&i.ReturnWindowDays,
+		&i.ReturnPolicyText,
+		&i.PushNotificationsEnabled,
+		&i.EmailAlertsEnabled,
+		&i.SmsAlertsEnabled,
+		&i.AutoAcceptOrders,
+		&i.InventoryAlertsEnabled,
+		&i.ProfileVisibility,
+		&i.SearchIndexingEnabled,
+		&i.DataSharingEnabled,
+		&i.TwoFactorEnabled,
+		&i.DeactivationReason,
 	)
 	return i, err
 }
 
 const getSellerByStoreSlug = `-- name: GetSellerByStoreSlug :one
-SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance FROM sellers WHERE store_slug = $1
+SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason FROM sellers WHERE store_slug = $1
 `
 
 // GetSellerByStoreSlug
 //
-//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance FROM sellers WHERE store_slug = $1
+//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason FROM sellers WHERE store_slug = $1
 func (q *Queries) GetSellerByStoreSlug(ctx context.Context, storeSlug string) (Seller, error) {
 	row := q.db.QueryRow(ctx, getSellerByStoreSlug, storeSlug)
 	var i Seller
@@ -133,17 +165,33 @@ func (q *Queries) GetSellerByStoreSlug(ctx context.Context, storeSlug string) (S
 		&i.StoreLocation,
 		&i.CommissionRate,
 		&i.AdCreditBalance,
+		&i.ShippingZones,
+		&i.BankName,
+		&i.BankAccountNumber,
+		&i.EcocashNumber,
+		&i.ReturnWindowDays,
+		&i.ReturnPolicyText,
+		&i.PushNotificationsEnabled,
+		&i.EmailAlertsEnabled,
+		&i.SmsAlertsEnabled,
+		&i.AutoAcceptOrders,
+		&i.InventoryAlertsEnabled,
+		&i.ProfileVisibility,
+		&i.SearchIndexingEnabled,
+		&i.DataSharingEnabled,
+		&i.TwoFactorEnabled,
+		&i.DeactivationReason,
 	)
 	return i, err
 }
 
 const getSellerByUserID = `-- name: GetSellerByUserID :one
-SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance FROM sellers WHERE user_id = $1
+SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason FROM sellers WHERE user_id = $1
 `
 
 // GetSellerByUserID
 //
-//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance FROM sellers WHERE user_id = $1
+//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason FROM sellers WHERE user_id = $1
 func (q *Queries) GetSellerByUserID(ctx context.Context, userID uuid.UUID) (Seller, error) {
 	row := q.db.QueryRow(ctx, getSellerByUserID, userID)
 	var i Seller
@@ -166,17 +214,33 @@ func (q *Queries) GetSellerByUserID(ctx context.Context, userID uuid.UUID) (Sell
 		&i.StoreLocation,
 		&i.CommissionRate,
 		&i.AdCreditBalance,
+		&i.ShippingZones,
+		&i.BankName,
+		&i.BankAccountNumber,
+		&i.EcocashNumber,
+		&i.ReturnWindowDays,
+		&i.ReturnPolicyText,
+		&i.PushNotificationsEnabled,
+		&i.EmailAlertsEnabled,
+		&i.SmsAlertsEnabled,
+		&i.AutoAcceptOrders,
+		&i.InventoryAlertsEnabled,
+		&i.ProfileVisibility,
+		&i.SearchIndexingEnabled,
+		&i.DataSharingEnabled,
+		&i.TwoFactorEnabled,
+		&i.DeactivationReason,
 	)
 	return i, err
 }
 
 const getSellersByIDs = `-- name: GetSellersByIDs :many
-SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance FROM sellers WHERE id = ANY($1::uuid[])
+SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason FROM sellers WHERE id = ANY($1::uuid[])
 `
 
 // GetSellersByIDs
 //
-//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance FROM sellers WHERE id = ANY($1::uuid[])
+//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason FROM sellers WHERE id = ANY($1::uuid[])
 func (q *Queries) GetSellersByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]Seller, error) {
 	rows, err := q.db.Query(ctx, getSellersByIDs, dollar_1)
 	if err != nil {
@@ -205,6 +269,22 @@ func (q *Queries) GetSellersByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]
 			&i.StoreLocation,
 			&i.CommissionRate,
 			&i.AdCreditBalance,
+			&i.ShippingZones,
+			&i.BankName,
+			&i.BankAccountNumber,
+			&i.EcocashNumber,
+			&i.ReturnWindowDays,
+			&i.ReturnPolicyText,
+			&i.PushNotificationsEnabled,
+			&i.EmailAlertsEnabled,
+			&i.SmsAlertsEnabled,
+			&i.AutoAcceptOrders,
+			&i.InventoryAlertsEnabled,
+			&i.ProfileVisibility,
+			&i.SearchIndexingEnabled,
+			&i.DataSharingEnabled,
+			&i.TwoFactorEnabled,
+			&i.DeactivationReason,
 		); err != nil {
 			return nil, err
 		}
@@ -217,7 +297,7 @@ func (q *Queries) GetSellersByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]
 }
 
 const getSellersNearLocation = `-- name: GetSellersNearLocation :many
-SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, 
+SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason, 
     (6371 * acos(cos(radians($2)) * cos(radians(latitude)) * cos(radians(longitude) - radians($3)) + sin(radians($2)) * sin(radians(latitude)))) AS distance_km
 FROM sellers 
 WHERE latitude IS NOT NULL AND longitude IS NOT NULL
@@ -236,30 +316,46 @@ type GetSellersNearLocationParams struct {
 }
 
 type GetSellersNearLocationRow struct {
-	ID              uuid.UUID    `json:"id"`
-	UserID          uuid.UUID    `json:"user_id"`
-	StoreName       string       `json:"store_name"`
-	StoreSlug       string       `json:"store_slug"`
-	LogoUrl         *string      `json:"logo_url"`
-	BannerUrl       *string      `json:"banner_url"`
-	Description     *string      `json:"description"`
-	Rating          float64      `json:"rating"`
-	TotalSales      int32        `json:"total_sales"`
-	IsVerified      bool         `json:"is_verified"`
-	CreatedAt       time.Time    `json:"created_at"`
-	UpdatedAt       time.Time    `json:"updated_at"`
-	Latitude        *float64     `json:"latitude"`
-	Longitude       *float64     `json:"longitude"`
-	Status          SellerStatus `json:"status"`
-	StoreLocation   *string      `json:"store_location"`
-	CommissionRate  float64      `json:"commission_rate"`
-	AdCreditBalance float64      `json:"ad_credit_balance"`
-	DistanceKm      int32        `json:"distance_km"`
+	ID                       uuid.UUID    `json:"id"`
+	UserID                   uuid.UUID    `json:"user_id"`
+	StoreName                string       `json:"store_name"`
+	StoreSlug                string       `json:"store_slug"`
+	LogoUrl                  *string      `json:"logo_url"`
+	BannerUrl                *string      `json:"banner_url"`
+	Description              *string      `json:"description"`
+	Rating                   float64      `json:"rating"`
+	TotalSales               int32        `json:"total_sales"`
+	IsVerified               bool         `json:"is_verified"`
+	CreatedAt                time.Time    `json:"created_at"`
+	UpdatedAt                time.Time    `json:"updated_at"`
+	Latitude                 *float64     `json:"latitude"`
+	Longitude                *float64     `json:"longitude"`
+	Status                   SellerStatus `json:"status"`
+	StoreLocation            *string      `json:"store_location"`
+	CommissionRate           float64      `json:"commission_rate"`
+	AdCreditBalance          float64      `json:"ad_credit_balance"`
+	ShippingZones            string       `json:"shipping_zones"`
+	BankName                 string       `json:"bank_name"`
+	BankAccountNumber        string       `json:"bank_account_number"`
+	EcocashNumber            string       `json:"ecocash_number"`
+	ReturnWindowDays         int32        `json:"return_window_days"`
+	ReturnPolicyText         string       `json:"return_policy_text"`
+	PushNotificationsEnabled bool         `json:"push_notifications_enabled"`
+	EmailAlertsEnabled       bool         `json:"email_alerts_enabled"`
+	SmsAlertsEnabled         bool         `json:"sms_alerts_enabled"`
+	AutoAcceptOrders         bool         `json:"auto_accept_orders"`
+	InventoryAlertsEnabled   bool         `json:"inventory_alerts_enabled"`
+	ProfileVisibility        bool         `json:"profile_visibility"`
+	SearchIndexingEnabled    bool         `json:"search_indexing_enabled"`
+	DataSharingEnabled       bool         `json:"data_sharing_enabled"`
+	TwoFactorEnabled         bool         `json:"two_factor_enabled"`
+	DeactivationReason       string       `json:"deactivation_reason"`
+	DistanceKm               int32        `json:"distance_km"`
 }
 
 // GetSellersNearLocation
 //
-//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance,
+//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason,
 //	    (6371 * acos(cos(radians($2)) * cos(radians(latitude)) * cos(radians(longitude) - radians($3)) + sin(radians($2)) * sin(radians(latitude)))) AS distance_km
 //	FROM sellers
 //	WHERE latitude IS NOT NULL AND longitude IS NOT NULL
@@ -301,6 +397,22 @@ func (q *Queries) GetSellersNearLocation(ctx context.Context, arg GetSellersNear
 			&i.StoreLocation,
 			&i.CommissionRate,
 			&i.AdCreditBalance,
+			&i.ShippingZones,
+			&i.BankName,
+			&i.BankAccountNumber,
+			&i.EcocashNumber,
+			&i.ReturnWindowDays,
+			&i.ReturnPolicyText,
+			&i.PushNotificationsEnabled,
+			&i.EmailAlertsEnabled,
+			&i.SmsAlertsEnabled,
+			&i.AutoAcceptOrders,
+			&i.InventoryAlertsEnabled,
+			&i.ProfileVisibility,
+			&i.SearchIndexingEnabled,
+			&i.DataSharingEnabled,
+			&i.TwoFactorEnabled,
+			&i.DeactivationReason,
 			&i.DistanceKm,
 		); err != nil {
 			return nil, err
@@ -314,7 +426,7 @@ func (q *Queries) GetSellersNearLocation(ctx context.Context, arg GetSellersNear
 }
 
 const getSellersWithinRadius = `-- name: GetSellersWithinRadius :many
-SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance,
+SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason,
     (6371 * acos(cos(radians($1)) * cos(radians(latitude)) * cos(radians(longitude) - radians($2)) + sin(radians($1)) * sin(radians(latitude)))) AS distance_km
 FROM sellers 
 WHERE latitude IS NOT NULL AND longitude IS NOT NULL
@@ -329,30 +441,46 @@ type GetSellersWithinRadiusParams struct {
 }
 
 type GetSellersWithinRadiusRow struct {
-	ID              uuid.UUID    `json:"id"`
-	UserID          uuid.UUID    `json:"user_id"`
-	StoreName       string       `json:"store_name"`
-	StoreSlug       string       `json:"store_slug"`
-	LogoUrl         *string      `json:"logo_url"`
-	BannerUrl       *string      `json:"banner_url"`
-	Description     *string      `json:"description"`
-	Rating          float64      `json:"rating"`
-	TotalSales      int32        `json:"total_sales"`
-	IsVerified      bool         `json:"is_verified"`
-	CreatedAt       time.Time    `json:"created_at"`
-	UpdatedAt       time.Time    `json:"updated_at"`
-	Latitude        *float64     `json:"latitude"`
-	Longitude       *float64     `json:"longitude"`
-	Status          SellerStatus `json:"status"`
-	StoreLocation   *string      `json:"store_location"`
-	CommissionRate  float64      `json:"commission_rate"`
-	AdCreditBalance float64      `json:"ad_credit_balance"`
-	DistanceKm      int32        `json:"distance_km"`
+	ID                       uuid.UUID    `json:"id"`
+	UserID                   uuid.UUID    `json:"user_id"`
+	StoreName                string       `json:"store_name"`
+	StoreSlug                string       `json:"store_slug"`
+	LogoUrl                  *string      `json:"logo_url"`
+	BannerUrl                *string      `json:"banner_url"`
+	Description              *string      `json:"description"`
+	Rating                   float64      `json:"rating"`
+	TotalSales               int32        `json:"total_sales"`
+	IsVerified               bool         `json:"is_verified"`
+	CreatedAt                time.Time    `json:"created_at"`
+	UpdatedAt                time.Time    `json:"updated_at"`
+	Latitude                 *float64     `json:"latitude"`
+	Longitude                *float64     `json:"longitude"`
+	Status                   SellerStatus `json:"status"`
+	StoreLocation            *string      `json:"store_location"`
+	CommissionRate           float64      `json:"commission_rate"`
+	AdCreditBalance          float64      `json:"ad_credit_balance"`
+	ShippingZones            string       `json:"shipping_zones"`
+	BankName                 string       `json:"bank_name"`
+	BankAccountNumber        string       `json:"bank_account_number"`
+	EcocashNumber            string       `json:"ecocash_number"`
+	ReturnWindowDays         int32        `json:"return_window_days"`
+	ReturnPolicyText         string       `json:"return_policy_text"`
+	PushNotificationsEnabled bool         `json:"push_notifications_enabled"`
+	EmailAlertsEnabled       bool         `json:"email_alerts_enabled"`
+	SmsAlertsEnabled         bool         `json:"sms_alerts_enabled"`
+	AutoAcceptOrders         bool         `json:"auto_accept_orders"`
+	InventoryAlertsEnabled   bool         `json:"inventory_alerts_enabled"`
+	ProfileVisibility        bool         `json:"profile_visibility"`
+	SearchIndexingEnabled    bool         `json:"search_indexing_enabled"`
+	DataSharingEnabled       bool         `json:"data_sharing_enabled"`
+	TwoFactorEnabled         bool         `json:"two_factor_enabled"`
+	DeactivationReason       string       `json:"deactivation_reason"`
+	DistanceKm               int32        `json:"distance_km"`
 }
 
 // GetSellersWithinRadius
 //
-//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance,
+//	SELECT id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason,
 //	    (6371 * acos(cos(radians($1)) * cos(radians(latitude)) * cos(radians(longitude) - radians($2)) + sin(radians($1)) * sin(radians(latitude)))) AS distance_km
 //	FROM sellers
 //	WHERE latitude IS NOT NULL AND longitude IS NOT NULL
@@ -386,6 +514,22 @@ func (q *Queries) GetSellersWithinRadius(ctx context.Context, arg GetSellersWith
 			&i.StoreLocation,
 			&i.CommissionRate,
 			&i.AdCreditBalance,
+			&i.ShippingZones,
+			&i.BankName,
+			&i.BankAccountNumber,
+			&i.EcocashNumber,
+			&i.ReturnWindowDays,
+			&i.ReturnPolicyText,
+			&i.PushNotificationsEnabled,
+			&i.EmailAlertsEnabled,
+			&i.SmsAlertsEnabled,
+			&i.AutoAcceptOrders,
+			&i.InventoryAlertsEnabled,
+			&i.ProfileVisibility,
+			&i.SearchIndexingEnabled,
+			&i.DataSharingEnabled,
+			&i.TwoFactorEnabled,
+			&i.DeactivationReason,
 			&i.DistanceKm,
 		); err != nil {
 			return nil, err
@@ -403,7 +547,7 @@ UPDATE sellers SET
     total_sales = total_sales + $2,
     updated_at  = NOW()
 WHERE id = $1
-RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason
 `
 
 type IncrementSellerTotalSalesParams struct {
@@ -417,7 +561,7 @@ type IncrementSellerTotalSalesParams struct {
 //	    total_sales = total_sales + $2,
 //	    updated_at  = NOW()
 //	WHERE id = $1
-//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
+//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason
 func (q *Queries) IncrementSellerTotalSales(ctx context.Context, arg IncrementSellerTotalSalesParams) (Seller, error) {
 	row := q.db.QueryRow(ctx, incrementSellerTotalSales, arg.ID, arg.TotalSales)
 	var i Seller
@@ -440,51 +584,115 @@ func (q *Queries) IncrementSellerTotalSales(ctx context.Context, arg IncrementSe
 		&i.StoreLocation,
 		&i.CommissionRate,
 		&i.AdCreditBalance,
+		&i.ShippingZones,
+		&i.BankName,
+		&i.BankAccountNumber,
+		&i.EcocashNumber,
+		&i.ReturnWindowDays,
+		&i.ReturnPolicyText,
+		&i.PushNotificationsEnabled,
+		&i.EmailAlertsEnabled,
+		&i.SmsAlertsEnabled,
+		&i.AutoAcceptOrders,
+		&i.InventoryAlertsEnabled,
+		&i.ProfileVisibility,
+		&i.SearchIndexingEnabled,
+		&i.DataSharingEnabled,
+		&i.TwoFactorEnabled,
+		&i.DeactivationReason,
 	)
 	return i, err
 }
 
 const updateSeller = `-- name: UpdateSeller :one
 UPDATE sellers SET
-    store_name     = COALESCE(NULLIF($1::text, ''), store_name),
-    store_slug     = COALESCE(NULLIF($2::text, ''), store_slug),
-    logo_url       = COALESCE($3, logo_url),
-    banner_url     = COALESCE($4, banner_url),
-    description    = COALESCE($5, description),
-    latitude       = COALESCE($6, latitude),
-    longitude      = COALESCE($7, longitude),
-    store_location = COALESCE($8, store_location),
-    updated_at     = NOW()
-WHERE user_id = $9
-RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
+    store_name                  = COALESCE(NULLIF($1::text, ''), store_name),
+    store_slug                  = COALESCE(NULLIF($2::text, ''), store_slug),
+    logo_url                    = COALESCE($3, logo_url),
+    banner_url                  = COALESCE($4, banner_url),
+    description                 = COALESCE($5, description),
+    latitude                    = COALESCE($6, latitude),
+    longitude                   = COALESCE($7, longitude),
+    store_location              = COALESCE($8, store_location),
+    shipping_zones              = COALESCE($9, shipping_zones),
+    bank_name                   = COALESCE($10, bank_name),
+    bank_account_number         = COALESCE($11, bank_account_number),
+    ecocash_number              = COALESCE($12, ecocash_number),
+    return_window_days          = COALESCE($13, return_window_days),
+    return_policy_text          = COALESCE($14, return_policy_text),
+    push_notifications_enabled   = COALESCE($15, push_notifications_enabled),
+    email_alerts_enabled        = COALESCE($16, email_alerts_enabled),
+    sms_alerts_enabled          = COALESCE($17, sms_alerts_enabled),
+    auto_accept_orders          = COALESCE($18, auto_accept_orders),
+    inventory_alerts_enabled    = COALESCE($19, inventory_alerts_enabled),
+    profile_visibility          = COALESCE($20, profile_visibility),
+    search_indexing_enabled     = COALESCE($21, search_indexing_enabled),
+    data_sharing_enabled        = COALESCE($22, data_sharing_enabled),
+    two_factor_enabled          = COALESCE($23, two_factor_enabled),
+    deactivation_reason         = COALESCE($24, deactivation_reason),
+    updated_at                  = NOW()
+WHERE user_id = $25
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason
 `
 
 type UpdateSellerParams struct {
-	StoreName     string    `json:"store_name"`
-	StoreSlug     string    `json:"store_slug"`
-	LogoUrl       *string   `json:"logo_url"`
-	BannerUrl     *string   `json:"banner_url"`
-	Description   *string   `json:"description"`
-	Latitude      *float64  `json:"latitude"`
-	Longitude     *float64  `json:"longitude"`
-	StoreLocation *string   `json:"store_location"`
-	UserID        uuid.UUID `json:"user_id"`
+	StoreName                string    `json:"store_name"`
+	StoreSlug                string    `json:"store_slug"`
+	LogoUrl                  *string   `json:"logo_url"`
+	BannerUrl                *string   `json:"banner_url"`
+	Description              *string   `json:"description"`
+	Latitude                 *float64  `json:"latitude"`
+	Longitude                *float64  `json:"longitude"`
+	StoreLocation            *string   `json:"store_location"`
+	ShippingZones            *string   `json:"shipping_zones"`
+	BankName                 *string   `json:"bank_name"`
+	BankAccountNumber        *string   `json:"bank_account_number"`
+	EcocashNumber            *string   `json:"ecocash_number"`
+	ReturnWindowDays         *int32    `json:"return_window_days"`
+	ReturnPolicyText         *string   `json:"return_policy_text"`
+	PushNotificationsEnabled *bool     `json:"push_notifications_enabled"`
+	EmailAlertsEnabled       *bool     `json:"email_alerts_enabled"`
+	SmsAlertsEnabled         *bool     `json:"sms_alerts_enabled"`
+	AutoAcceptOrders         *bool     `json:"auto_accept_orders"`
+	InventoryAlertsEnabled   *bool     `json:"inventory_alerts_enabled"`
+	ProfileVisibility        *bool     `json:"profile_visibility"`
+	SearchIndexingEnabled    *bool     `json:"search_indexing_enabled"`
+	DataSharingEnabled       *bool     `json:"data_sharing_enabled"`
+	TwoFactorEnabled         *bool     `json:"two_factor_enabled"`
+	DeactivationReason       *string   `json:"deactivation_reason"`
+	UserID                   uuid.UUID `json:"user_id"`
 }
 
 // UpdateSeller
 //
 //	UPDATE sellers SET
-//	    store_name     = COALESCE(NULLIF($1::text, ''), store_name),
-//	    store_slug     = COALESCE(NULLIF($2::text, ''), store_slug),
-//	    logo_url       = COALESCE($3, logo_url),
-//	    banner_url     = COALESCE($4, banner_url),
-//	    description    = COALESCE($5, description),
-//	    latitude       = COALESCE($6, latitude),
-//	    longitude      = COALESCE($7, longitude),
-//	    store_location = COALESCE($8, store_location),
-//	    updated_at     = NOW()
-//	WHERE user_id = $9
-//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
+//	    store_name                  = COALESCE(NULLIF($1::text, ''), store_name),
+//	    store_slug                  = COALESCE(NULLIF($2::text, ''), store_slug),
+//	    logo_url                    = COALESCE($3, logo_url),
+//	    banner_url                  = COALESCE($4, banner_url),
+//	    description                 = COALESCE($5, description),
+//	    latitude                    = COALESCE($6, latitude),
+//	    longitude                   = COALESCE($7, longitude),
+//	    store_location              = COALESCE($8, store_location),
+//	    shipping_zones              = COALESCE($9, shipping_zones),
+//	    bank_name                   = COALESCE($10, bank_name),
+//	    bank_account_number         = COALESCE($11, bank_account_number),
+//	    ecocash_number              = COALESCE($12, ecocash_number),
+//	    return_window_days          = COALESCE($13, return_window_days),
+//	    return_policy_text          = COALESCE($14, return_policy_text),
+//	    push_notifications_enabled   = COALESCE($15, push_notifications_enabled),
+//	    email_alerts_enabled        = COALESCE($16, email_alerts_enabled),
+//	    sms_alerts_enabled          = COALESCE($17, sms_alerts_enabled),
+//	    auto_accept_orders          = COALESCE($18, auto_accept_orders),
+//	    inventory_alerts_enabled    = COALESCE($19, inventory_alerts_enabled),
+//	    profile_visibility          = COALESCE($20, profile_visibility),
+//	    search_indexing_enabled     = COALESCE($21, search_indexing_enabled),
+//	    data_sharing_enabled        = COALESCE($22, data_sharing_enabled),
+//	    two_factor_enabled          = COALESCE($23, two_factor_enabled),
+//	    deactivation_reason         = COALESCE($24, deactivation_reason),
+//	    updated_at                  = NOW()
+//	WHERE user_id = $25
+//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason
 func (q *Queries) UpdateSeller(ctx context.Context, arg UpdateSellerParams) (Seller, error) {
 	row := q.db.QueryRow(ctx, updateSeller,
 		arg.StoreName,
@@ -495,6 +703,22 @@ func (q *Queries) UpdateSeller(ctx context.Context, arg UpdateSellerParams) (Sel
 		arg.Latitude,
 		arg.Longitude,
 		arg.StoreLocation,
+		arg.ShippingZones,
+		arg.BankName,
+		arg.BankAccountNumber,
+		arg.EcocashNumber,
+		arg.ReturnWindowDays,
+		arg.ReturnPolicyText,
+		arg.PushNotificationsEnabled,
+		arg.EmailAlertsEnabled,
+		arg.SmsAlertsEnabled,
+		arg.AutoAcceptOrders,
+		arg.InventoryAlertsEnabled,
+		arg.ProfileVisibility,
+		arg.SearchIndexingEnabled,
+		arg.DataSharingEnabled,
+		arg.TwoFactorEnabled,
+		arg.DeactivationReason,
 		arg.UserID,
 	)
 	var i Seller
@@ -517,6 +741,22 @@ func (q *Queries) UpdateSeller(ctx context.Context, arg UpdateSellerParams) (Sel
 		&i.StoreLocation,
 		&i.CommissionRate,
 		&i.AdCreditBalance,
+		&i.ShippingZones,
+		&i.BankName,
+		&i.BankAccountNumber,
+		&i.EcocashNumber,
+		&i.ReturnWindowDays,
+		&i.ReturnPolicyText,
+		&i.PushNotificationsEnabled,
+		&i.EmailAlertsEnabled,
+		&i.SmsAlertsEnabled,
+		&i.AutoAcceptOrders,
+		&i.InventoryAlertsEnabled,
+		&i.ProfileVisibility,
+		&i.SearchIndexingEnabled,
+		&i.DataSharingEnabled,
+		&i.TwoFactorEnabled,
+		&i.DeactivationReason,
 	)
 	return i, err
 }
@@ -526,7 +766,7 @@ UPDATE sellers SET
     ad_credit_balance = ad_credit_balance + $2,
     updated_at  = NOW()
 WHERE id = $1
-RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason
 `
 
 type UpdateSellerAdCreditParams struct {
@@ -540,7 +780,7 @@ type UpdateSellerAdCreditParams struct {
 //	    ad_credit_balance = ad_credit_balance + $2,
 //	    updated_at  = NOW()
 //	WHERE id = $1
-//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
+//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason
 func (q *Queries) UpdateSellerAdCredit(ctx context.Context, arg UpdateSellerAdCreditParams) (Seller, error) {
 	row := q.db.QueryRow(ctx, updateSellerAdCredit, arg.ID, arg.AdCreditBalance)
 	var i Seller
@@ -563,6 +803,22 @@ func (q *Queries) UpdateSellerAdCredit(ctx context.Context, arg UpdateSellerAdCr
 		&i.StoreLocation,
 		&i.CommissionRate,
 		&i.AdCreditBalance,
+		&i.ShippingZones,
+		&i.BankName,
+		&i.BankAccountNumber,
+		&i.EcocashNumber,
+		&i.ReturnWindowDays,
+		&i.ReturnPolicyText,
+		&i.PushNotificationsEnabled,
+		&i.EmailAlertsEnabled,
+		&i.SmsAlertsEnabled,
+		&i.AutoAcceptOrders,
+		&i.InventoryAlertsEnabled,
+		&i.ProfileVisibility,
+		&i.SearchIndexingEnabled,
+		&i.DataSharingEnabled,
+		&i.TwoFactorEnabled,
+		&i.DeactivationReason,
 	)
 	return i, err
 }
@@ -572,7 +828,7 @@ UPDATE sellers SET
     commission_rate = $2,
     updated_at  = NOW()
 WHERE id = $1
-RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason
 `
 
 type UpdateSellerCommissionRateParams struct {
@@ -586,7 +842,7 @@ type UpdateSellerCommissionRateParams struct {
 //	    commission_rate = $2,
 //	    updated_at  = NOW()
 //	WHERE id = $1
-//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
+//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason
 func (q *Queries) UpdateSellerCommissionRate(ctx context.Context, arg UpdateSellerCommissionRateParams) (Seller, error) {
 	row := q.db.QueryRow(ctx, updateSellerCommissionRate, arg.ID, arg.CommissionRate)
 	var i Seller
@@ -609,6 +865,22 @@ func (q *Queries) UpdateSellerCommissionRate(ctx context.Context, arg UpdateSell
 		&i.StoreLocation,
 		&i.CommissionRate,
 		&i.AdCreditBalance,
+		&i.ShippingZones,
+		&i.BankName,
+		&i.BankAccountNumber,
+		&i.EcocashNumber,
+		&i.ReturnWindowDays,
+		&i.ReturnPolicyText,
+		&i.PushNotificationsEnabled,
+		&i.EmailAlertsEnabled,
+		&i.SmsAlertsEnabled,
+		&i.AutoAcceptOrders,
+		&i.InventoryAlertsEnabled,
+		&i.ProfileVisibility,
+		&i.SearchIndexingEnabled,
+		&i.DataSharingEnabled,
+		&i.TwoFactorEnabled,
+		&i.DeactivationReason,
 	)
 	return i, err
 }
@@ -618,7 +890,7 @@ UPDATE sellers SET
     status     = $2,
     updated_at = NOW()
 WHERE id = $1
-RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason
 `
 
 type UpdateSellerStatusParams struct {
@@ -632,7 +904,7 @@ type UpdateSellerStatusParams struct {
 //	    status     = $2,
 //	    updated_at = NOW()
 //	WHERE id = $1
-//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
+//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason
 func (q *Queries) UpdateSellerStatus(ctx context.Context, arg UpdateSellerStatusParams) (Seller, error) {
 	row := q.db.QueryRow(ctx, updateSellerStatus, arg.ID, arg.Status)
 	var i Seller
@@ -655,6 +927,22 @@ func (q *Queries) UpdateSellerStatus(ctx context.Context, arg UpdateSellerStatus
 		&i.StoreLocation,
 		&i.CommissionRate,
 		&i.AdCreditBalance,
+		&i.ShippingZones,
+		&i.BankName,
+		&i.BankAccountNumber,
+		&i.EcocashNumber,
+		&i.ReturnWindowDays,
+		&i.ReturnPolicyText,
+		&i.PushNotificationsEnabled,
+		&i.EmailAlertsEnabled,
+		&i.SmsAlertsEnabled,
+		&i.AutoAcceptOrders,
+		&i.InventoryAlertsEnabled,
+		&i.ProfileVisibility,
+		&i.SearchIndexingEnabled,
+		&i.DataSharingEnabled,
+		&i.TwoFactorEnabled,
+		&i.DeactivationReason,
 	)
 	return i, err
 }
@@ -664,7 +952,7 @@ UPDATE sellers SET
     is_verified = $2,
     updated_at  = NOW()
 WHERE id = $1
-RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
+RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason
 `
 
 type VerifySellerParams struct {
@@ -678,7 +966,7 @@ type VerifySellerParams struct {
 //	    is_verified = $2,
 //	    updated_at  = NOW()
 //	WHERE id = $1
-//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance
+//	RETURNING id, user_id, store_name, store_slug, logo_url, banner_url, description, rating, total_sales, is_verified, created_at, updated_at, latitude, longitude, status, store_location, commission_rate, ad_credit_balance, shipping_zones, bank_name, bank_account_number, ecocash_number, return_window_days, return_policy_text, push_notifications_enabled, email_alerts_enabled, sms_alerts_enabled, auto_accept_orders, inventory_alerts_enabled, profile_visibility, search_indexing_enabled, data_sharing_enabled, two_factor_enabled, deactivation_reason
 func (q *Queries) VerifySeller(ctx context.Context, arg VerifySellerParams) (Seller, error) {
 	row := q.db.QueryRow(ctx, verifySeller, arg.ID, arg.IsVerified)
 	var i Seller
@@ -701,6 +989,22 @@ func (q *Queries) VerifySeller(ctx context.Context, arg VerifySellerParams) (Sel
 		&i.StoreLocation,
 		&i.CommissionRate,
 		&i.AdCreditBalance,
+		&i.ShippingZones,
+		&i.BankName,
+		&i.BankAccountNumber,
+		&i.EcocashNumber,
+		&i.ReturnWindowDays,
+		&i.ReturnPolicyText,
+		&i.PushNotificationsEnabled,
+		&i.EmailAlertsEnabled,
+		&i.SmsAlertsEnabled,
+		&i.AutoAcceptOrders,
+		&i.InventoryAlertsEnabled,
+		&i.ProfileVisibility,
+		&i.SearchIndexingEnabled,
+		&i.DataSharingEnabled,
+		&i.TwoFactorEnabled,
+		&i.DeactivationReason,
 	)
 	return i, err
 }

@@ -272,15 +272,37 @@ func (r *mutationResolver) UpdateStore(ctx context.Context, input model.UpdateSt
 		return nil, gqlerrors.Unauthenticated("authentication required")
 	}
 
+	var returnWindowDays *int32
+	if input.ReturnWindowDays != nil {
+		val := int32(*input.ReturnWindowDays)
+		returnWindowDays = &val
+	}
+
 	resp, err := r.Clients.Seller.UpdateStore(ctx, &sellerv1.UpdateStoreRequest{
-		UserId:        uid,
-		StoreName:     derefStr(input.StoreName),
-		Description:   derefStr(input.Description),
-		LogoUrl:       derefStr(input.LogoURL),
-		BannerUrl:     derefStr(input.BannerURL),
-		Latitude:      derefFloat(input.Latitude),
-		Longitude:     derefFloat(input.Longitude),
-		StoreLocation: derefStr(input.StoreLocation),
+		UserId:                   uid,
+		StoreName:                derefStr(input.StoreName),
+		Description:              derefStr(input.Description),
+		LogoUrl:                  derefStr(input.LogoURL),
+		BannerUrl:                derefStr(input.BannerURL),
+		Latitude:                 derefFloat(input.Latitude),
+		Longitude:                derefFloat(input.Longitude),
+		StoreLocation:            derefStr(input.StoreLocation),
+		ShippingZones:            input.ShippingZones,
+		BankName:                 input.BankName,
+		BankAccountNumber:        input.BankAccountNumber,
+		EcocashNumber:            input.EcocashNumber,
+		ReturnWindowDays:         returnWindowDays,
+		ReturnPolicyText:         input.ReturnPolicyText,
+		PushNotificationsEnabled: input.PushNotificationsEnabled,
+		EmailAlertsEnabled:       input.EmailAlertsEnabled,
+		SmsAlertsEnabled:         input.SmsAlertsEnabled,
+		AutoAcceptOrders:         input.AutoAcceptOrders,
+		InventoryAlertsEnabled:   input.InventoryAlertsEnabled,
+		ProfileVisibility:        input.ProfileVisibility,
+		SearchIndexingEnabled:    input.SearchIndexingEnabled,
+		DataSharingEnabled:       input.DataSharingEnabled,
+		TwoFactorEnabled:         input.TwoFactorEnabled,
+		DeactivationReason:       input.DeactivationReason,
 	})
 	if err != nil {
 		return nil, err

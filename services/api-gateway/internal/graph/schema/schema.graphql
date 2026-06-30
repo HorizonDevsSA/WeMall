@@ -266,23 +266,39 @@ type OrderList {
 # ── Seller Types ─────────────────────────────────────────────────────────────
 
 type Seller {
-  id:            ID!
-  userId:        ID!
-  storeName:     String!
-  storeSlug:     String!
-  logoUrl:       String
-  bannerUrl:     String
-  description:   String
-  rating:        Float!
-  totalSales:    Int!
-  isVerified:    Boolean!
-  status:        SellerStatus!
-  latitude:      Float
-  longitude:     Float
-  storeLocation: String
-  createdAt:     Time!
-  updatedAt:     Time!
-  dsr:           SellerDSR!
+  id:                       ID!
+  userId:                   ID!
+  storeName:                String!
+  storeSlug:                String!
+  logoUrl:                  String
+  bannerUrl:                String
+  description:              String
+  rating:                   Float!
+  totalSales:               Int!
+  isVerified:               Boolean!
+  status:                   SellerStatus!
+  latitude:                 Float
+  longitude:                Float
+  storeLocation:            String
+  createdAt:                Time!
+  updatedAt:                Time!
+  dsr:                      SellerDSR!
+  shippingZones:            String!
+  bankName:                 String!
+  bankAccountNumber:        String!
+  ecocashNumber:            String!
+  returnWindowDays:         Int!
+  returnPolicyText:         String!
+  pushNotificationsEnabled: Boolean!
+  emailAlertsEnabled:       Boolean!
+  smsAlertsEnabled:         Boolean!
+  autoAcceptOrders:         Boolean!
+  inventoryAlertsEnabled:   Boolean!
+  profileVisibility:        Boolean!
+  searchIndexingEnabled:    Boolean!
+  dataSharingEnabled:       Boolean!
+  twoFactorEnabled:         Boolean!
+  deactivationReason:       String!
 }
 
 # ── Input Types ───────────────────────────────────────────────────────────────
@@ -378,13 +394,29 @@ input CreateStoreInput {
 }
 
 input UpdateStoreInput {
-  storeName:     String
-  description:   String
-  logoUrl:       String
-  bannerUrl:     String
-  latitude:      Float
-  longitude:     Float
-  storeLocation: String
+  storeName:                String
+  description:              String
+  logoUrl:                  String
+  bannerUrl:                String
+  latitude:                 Float
+  longitude:                Float
+  storeLocation:            String
+  shippingZones:            String
+  bankName:                 String
+  bankAccountNumber:        String
+  ecocashNumber:            String
+  returnWindowDays:         Int
+  returnPolicyText:         String
+  pushNotificationsEnabled: Boolean
+  emailAlertsEnabled:       Boolean
+  smsAlertsEnabled:         Boolean
+  autoAcceptOrders:         Boolean
+  inventoryAlertsEnabled:   Boolean
+  profileVisibility:        Boolean
+  searchIndexingEnabled:    Boolean
+  dataSharingEnabled:       Boolean
+  twoFactorEnabled:         Boolean
+  deactivationReason:       String
 }
 
 # ── Queries ───────────────────────────────────────────────────────────────────

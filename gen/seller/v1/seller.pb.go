@@ -134,25 +134,41 @@ func (PayoutStatus) EnumDescriptor() ([]byte, []int) {
 }
 
 type Seller struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	StoreName     string                 `protobuf:"bytes,3,opt,name=store_name,json=storeName,proto3" json:"store_name,omitempty"`
-	StoreSlug     string                 `protobuf:"bytes,4,opt,name=store_slug,json=storeSlug,proto3" json:"store_slug,omitempty"`
-	LogoUrl       string                 `protobuf:"bytes,5,opt,name=logo_url,json=logoUrl,proto3" json:"logo_url,omitempty"`
-	BannerUrl     string                 `protobuf:"bytes,6,opt,name=banner_url,json=bannerUrl,proto3" json:"banner_url,omitempty"`
-	Description   string                 `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
-	Rating        float64                `protobuf:"fixed64,8,opt,name=rating,proto3" json:"rating,omitempty"`
-	TotalSales    int32                  `protobuf:"varint,9,opt,name=total_sales,json=totalSales,proto3" json:"total_sales,omitempty"`
-	IsVerified    bool                   `protobuf:"varint,10,opt,name=is_verified,json=isVerified,proto3" json:"is_verified,omitempty"`
-	Latitude      float64                `protobuf:"fixed64,11,opt,name=latitude,proto3" json:"latitude,omitempty"`
-	Longitude     float64                `protobuf:"fixed64,12,opt,name=longitude,proto3" json:"longitude,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	Status        SellerStatus           `protobuf:"varint,15,opt,name=status,proto3,enum=seller.v1.SellerStatus" json:"status,omitempty"`
-	StoreLocation string                 `protobuf:"bytes,16,opt,name=store_location,json=storeLocation,proto3" json:"store_location,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	Id                       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId                   string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	StoreName                string                 `protobuf:"bytes,3,opt,name=store_name,json=storeName,proto3" json:"store_name,omitempty"`
+	StoreSlug                string                 `protobuf:"bytes,4,opt,name=store_slug,json=storeSlug,proto3" json:"store_slug,omitempty"`
+	LogoUrl                  string                 `protobuf:"bytes,5,opt,name=logo_url,json=logoUrl,proto3" json:"logo_url,omitempty"`
+	BannerUrl                string                 `protobuf:"bytes,6,opt,name=banner_url,json=bannerUrl,proto3" json:"banner_url,omitempty"`
+	Description              string                 `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
+	Rating                   float64                `protobuf:"fixed64,8,opt,name=rating,proto3" json:"rating,omitempty"`
+	TotalSales               int32                  `protobuf:"varint,9,opt,name=total_sales,json=totalSales,proto3" json:"total_sales,omitempty"`
+	IsVerified               bool                   `protobuf:"varint,10,opt,name=is_verified,json=isVerified,proto3" json:"is_verified,omitempty"`
+	Latitude                 float64                `protobuf:"fixed64,11,opt,name=latitude,proto3" json:"latitude,omitempty"`
+	Longitude                float64                `protobuf:"fixed64,12,opt,name=longitude,proto3" json:"longitude,omitempty"`
+	CreatedAt                *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt                *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Status                   SellerStatus           `protobuf:"varint,15,opt,name=status,proto3,enum=seller.v1.SellerStatus" json:"status,omitempty"`
+	StoreLocation            string                 `protobuf:"bytes,16,opt,name=store_location,json=storeLocation,proto3" json:"store_location,omitempty"`
+	ShippingZones            string                 `protobuf:"bytes,17,opt,name=shipping_zones,json=shippingZones,proto3" json:"shipping_zones,omitempty"`
+	BankName                 string                 `protobuf:"bytes,18,opt,name=bank_name,json=bankName,proto3" json:"bank_name,omitempty"`
+	BankAccountNumber        string                 `protobuf:"bytes,19,opt,name=bank_account_number,json=bankAccountNumber,proto3" json:"bank_account_number,omitempty"`
+	EcocashNumber            string                 `protobuf:"bytes,20,opt,name=ecocash_number,json=ecocashNumber,proto3" json:"ecocash_number,omitempty"`
+	ReturnWindowDays         int32                  `protobuf:"varint,21,opt,name=return_window_days,json=returnWindowDays,proto3" json:"return_window_days,omitempty"`
+	ReturnPolicyText         string                 `protobuf:"bytes,22,opt,name=return_policy_text,json=returnPolicyText,proto3" json:"return_policy_text,omitempty"`
+	PushNotificationsEnabled bool                   `protobuf:"varint,23,opt,name=push_notifications_enabled,json=pushNotificationsEnabled,proto3" json:"push_notifications_enabled,omitempty"`
+	EmailAlertsEnabled       bool                   `protobuf:"varint,24,opt,name=email_alerts_enabled,json=emailAlertsEnabled,proto3" json:"email_alerts_enabled,omitempty"`
+	SmsAlertsEnabled         bool                   `protobuf:"varint,25,opt,name=sms_alerts_enabled,json=smsAlertsEnabled,proto3" json:"sms_alerts_enabled,omitempty"`
+	AutoAcceptOrders         bool                   `protobuf:"varint,26,opt,name=auto_accept_orders,json=autoAcceptOrders,proto3" json:"auto_accept_orders,omitempty"`
+	InventoryAlertsEnabled   bool                   `protobuf:"varint,27,opt,name=inventory_alerts_enabled,json=inventoryAlertsEnabled,proto3" json:"inventory_alerts_enabled,omitempty"`
+	ProfileVisibility        bool                   `protobuf:"varint,28,opt,name=profile_visibility,json=profileVisibility,proto3" json:"profile_visibility,omitempty"`
+	SearchIndexingEnabled    bool                   `protobuf:"varint,29,opt,name=search_indexing_enabled,json=searchIndexingEnabled,proto3" json:"search_indexing_enabled,omitempty"`
+	DataSharingEnabled       bool                   `protobuf:"varint,30,opt,name=data_sharing_enabled,json=dataSharingEnabled,proto3" json:"data_sharing_enabled,omitempty"`
+	TwoFactorEnabled         bool                   `protobuf:"varint,31,opt,name=two_factor_enabled,json=twoFactorEnabled,proto3" json:"two_factor_enabled,omitempty"`
+	DeactivationReason       string                 `protobuf:"bytes,32,opt,name=deactivation_reason,json=deactivationReason,proto3" json:"deactivation_reason,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *Seller) Reset() {
@@ -293,6 +309,118 @@ func (x *Seller) GetStatus() SellerStatus {
 func (x *Seller) GetStoreLocation() string {
 	if x != nil {
 		return x.StoreLocation
+	}
+	return ""
+}
+
+func (x *Seller) GetShippingZones() string {
+	if x != nil {
+		return x.ShippingZones
+	}
+	return ""
+}
+
+func (x *Seller) GetBankName() string {
+	if x != nil {
+		return x.BankName
+	}
+	return ""
+}
+
+func (x *Seller) GetBankAccountNumber() string {
+	if x != nil {
+		return x.BankAccountNumber
+	}
+	return ""
+}
+
+func (x *Seller) GetEcocashNumber() string {
+	if x != nil {
+		return x.EcocashNumber
+	}
+	return ""
+}
+
+func (x *Seller) GetReturnWindowDays() int32 {
+	if x != nil {
+		return x.ReturnWindowDays
+	}
+	return 0
+}
+
+func (x *Seller) GetReturnPolicyText() string {
+	if x != nil {
+		return x.ReturnPolicyText
+	}
+	return ""
+}
+
+func (x *Seller) GetPushNotificationsEnabled() bool {
+	if x != nil {
+		return x.PushNotificationsEnabled
+	}
+	return false
+}
+
+func (x *Seller) GetEmailAlertsEnabled() bool {
+	if x != nil {
+		return x.EmailAlertsEnabled
+	}
+	return false
+}
+
+func (x *Seller) GetSmsAlertsEnabled() bool {
+	if x != nil {
+		return x.SmsAlertsEnabled
+	}
+	return false
+}
+
+func (x *Seller) GetAutoAcceptOrders() bool {
+	if x != nil {
+		return x.AutoAcceptOrders
+	}
+	return false
+}
+
+func (x *Seller) GetInventoryAlertsEnabled() bool {
+	if x != nil {
+		return x.InventoryAlertsEnabled
+	}
+	return false
+}
+
+func (x *Seller) GetProfileVisibility() bool {
+	if x != nil {
+		return x.ProfileVisibility
+	}
+	return false
+}
+
+func (x *Seller) GetSearchIndexingEnabled() bool {
+	if x != nil {
+		return x.SearchIndexingEnabled
+	}
+	return false
+}
+
+func (x *Seller) GetDataSharingEnabled() bool {
+	if x != nil {
+		return x.DataSharingEnabled
+	}
+	return false
+}
+
+func (x *Seller) GetTwoFactorEnabled() bool {
+	if x != nil {
+		return x.TwoFactorEnabled
+	}
+	return false
+}
+
+func (x *Seller) GetDeactivationReason() string {
+	if x != nil {
+		return x.DeactivationReason
 	}
 	return ""
 }
@@ -698,17 +826,33 @@ func (x *CreateStoreRequest) GetStoreLocation() string {
 }
 
 type UpdateStoreRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	StoreName     string                 `protobuf:"bytes,2,opt,name=store_name,json=storeName,proto3" json:"store_name,omitempty"`
-	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	LogoUrl       string                 `protobuf:"bytes,4,opt,name=logo_url,json=logoUrl,proto3" json:"logo_url,omitempty"`
-	BannerUrl     string                 `protobuf:"bytes,5,opt,name=banner_url,json=bannerUrl,proto3" json:"banner_url,omitempty"`
-	Latitude      float64                `protobuf:"fixed64,6,opt,name=latitude,proto3" json:"latitude,omitempty"`
-	Longitude     float64                `protobuf:"fixed64,7,opt,name=longitude,proto3" json:"longitude,omitempty"`
-	StoreLocation string                 `protobuf:"bytes,8,opt,name=store_location,json=storeLocation,proto3" json:"store_location,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	UserId                   string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	StoreName                string                 `protobuf:"bytes,2,opt,name=store_name,json=storeName,proto3" json:"store_name,omitempty"`
+	Description              string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	LogoUrl                  string                 `protobuf:"bytes,4,opt,name=logo_url,json=logoUrl,proto3" json:"logo_url,omitempty"`
+	BannerUrl                string                 `protobuf:"bytes,5,opt,name=banner_url,json=bannerUrl,proto3" json:"banner_url,omitempty"`
+	Latitude                 float64                `protobuf:"fixed64,6,opt,name=latitude,proto3" json:"latitude,omitempty"`
+	Longitude                float64                `protobuf:"fixed64,7,opt,name=longitude,proto3" json:"longitude,omitempty"`
+	StoreLocation            string                 `protobuf:"bytes,8,opt,name=store_location,json=storeLocation,proto3" json:"store_location,omitempty"`
+	ShippingZones            *string                `protobuf:"bytes,9,opt,name=shipping_zones,json=shippingZones,proto3,oneof" json:"shipping_zones,omitempty"`
+	BankName                 *string                `protobuf:"bytes,10,opt,name=bank_name,json=bankName,proto3,oneof" json:"bank_name,omitempty"`
+	BankAccountNumber        *string                `protobuf:"bytes,11,opt,name=bank_account_number,json=bankAccountNumber,proto3,oneof" json:"bank_account_number,omitempty"`
+	EcocashNumber            *string                `protobuf:"bytes,12,opt,name=ecocash_number,json=ecocashNumber,proto3,oneof" json:"ecocash_number,omitempty"`
+	ReturnWindowDays         *int32                 `protobuf:"varint,13,opt,name=return_window_days,json=returnWindowDays,proto3,oneof" json:"return_window_days,omitempty"`
+	ReturnPolicyText         *string                `protobuf:"bytes,14,opt,name=return_policy_text,json=returnPolicyText,proto3,oneof" json:"return_policy_text,omitempty"`
+	PushNotificationsEnabled *bool                  `protobuf:"varint,15,opt,name=push_notifications_enabled,json=pushNotificationsEnabled,proto3,oneof" json:"push_notifications_enabled,omitempty"`
+	EmailAlertsEnabled       *bool                  `protobuf:"varint,16,opt,name=email_alerts_enabled,json=emailAlertsEnabled,proto3,oneof" json:"email_alerts_enabled,omitempty"`
+	SmsAlertsEnabled         *bool                  `protobuf:"varint,17,opt,name=sms_alerts_enabled,json=smsAlertsEnabled,proto3,oneof" json:"sms_alerts_enabled,omitempty"`
+	AutoAcceptOrders         *bool                  `protobuf:"varint,18,opt,name=auto_accept_orders,json=autoAcceptOrders,proto3,oneof" json:"auto_accept_orders,omitempty"`
+	InventoryAlertsEnabled   *bool                  `protobuf:"varint,19,opt,name=inventory_alerts_enabled,json=inventoryAlertsEnabled,proto3,oneof" json:"inventory_alerts_enabled,omitempty"`
+	ProfileVisibility        *bool                  `protobuf:"varint,20,opt,name=profile_visibility,json=profileVisibility,proto3,oneof" json:"profile_visibility,omitempty"`
+	SearchIndexingEnabled    *bool                  `protobuf:"varint,21,opt,name=search_indexing_enabled,json=searchIndexingEnabled,proto3,oneof" json:"search_indexing_enabled,omitempty"`
+	DataSharingEnabled       *bool                  `protobuf:"varint,22,opt,name=data_sharing_enabled,json=dataSharingEnabled,proto3,oneof" json:"data_sharing_enabled,omitempty"`
+	TwoFactorEnabled         *bool                  `protobuf:"varint,23,opt,name=two_factor_enabled,json=twoFactorEnabled,proto3,oneof" json:"two_factor_enabled,omitempty"`
+	DeactivationReason       *string                `protobuf:"bytes,24,opt,name=deactivation_reason,json=deactivationReason,proto3,oneof" json:"deactivation_reason,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *UpdateStoreRequest) Reset() {
@@ -793,6 +937,118 @@ func (x *UpdateStoreRequest) GetLongitude() float64 {
 func (x *UpdateStoreRequest) GetStoreLocation() string {
 	if x != nil {
 		return x.StoreLocation
+	}
+	return ""
+}
+
+func (x *UpdateStoreRequest) GetShippingZones() string {
+	if x != nil && x.ShippingZones != nil {
+		return *x.ShippingZones
+	}
+	return ""
+}
+
+func (x *UpdateStoreRequest) GetBankName() string {
+	if x != nil && x.BankName != nil {
+		return *x.BankName
+	}
+	return ""
+}
+
+func (x *UpdateStoreRequest) GetBankAccountNumber() string {
+	if x != nil && x.BankAccountNumber != nil {
+		return *x.BankAccountNumber
+	}
+	return ""
+}
+
+func (x *UpdateStoreRequest) GetEcocashNumber() string {
+	if x != nil && x.EcocashNumber != nil {
+		return *x.EcocashNumber
+	}
+	return ""
+}
+
+func (x *UpdateStoreRequest) GetReturnWindowDays() int32 {
+	if x != nil && x.ReturnWindowDays != nil {
+		return *x.ReturnWindowDays
+	}
+	return 0
+}
+
+func (x *UpdateStoreRequest) GetReturnPolicyText() string {
+	if x != nil && x.ReturnPolicyText != nil {
+		return *x.ReturnPolicyText
+	}
+	return ""
+}
+
+func (x *UpdateStoreRequest) GetPushNotificationsEnabled() bool {
+	if x != nil && x.PushNotificationsEnabled != nil {
+		return *x.PushNotificationsEnabled
+	}
+	return false
+}
+
+func (x *UpdateStoreRequest) GetEmailAlertsEnabled() bool {
+	if x != nil && x.EmailAlertsEnabled != nil {
+		return *x.EmailAlertsEnabled
+	}
+	return false
+}
+
+func (x *UpdateStoreRequest) GetSmsAlertsEnabled() bool {
+	if x != nil && x.SmsAlertsEnabled != nil {
+		return *x.SmsAlertsEnabled
+	}
+	return false
+}
+
+func (x *UpdateStoreRequest) GetAutoAcceptOrders() bool {
+	if x != nil && x.AutoAcceptOrders != nil {
+		return *x.AutoAcceptOrders
+	}
+	return false
+}
+
+func (x *UpdateStoreRequest) GetInventoryAlertsEnabled() bool {
+	if x != nil && x.InventoryAlertsEnabled != nil {
+		return *x.InventoryAlertsEnabled
+	}
+	return false
+}
+
+func (x *UpdateStoreRequest) GetProfileVisibility() bool {
+	if x != nil && x.ProfileVisibility != nil {
+		return *x.ProfileVisibility
+	}
+	return false
+}
+
+func (x *UpdateStoreRequest) GetSearchIndexingEnabled() bool {
+	if x != nil && x.SearchIndexingEnabled != nil {
+		return *x.SearchIndexingEnabled
+	}
+	return false
+}
+
+func (x *UpdateStoreRequest) GetDataSharingEnabled() bool {
+	if x != nil && x.DataSharingEnabled != nil {
+		return *x.DataSharingEnabled
+	}
+	return false
+}
+
+func (x *UpdateStoreRequest) GetTwoFactorEnabled() bool {
+	if x != nil && x.TwoFactorEnabled != nil {
+		return *x.TwoFactorEnabled
+	}
+	return false
+}
+
+func (x *UpdateStoreRequest) GetDeactivationReason() string {
+	if x != nil && x.DeactivationReason != nil {
+		return *x.DeactivationReason
 	}
 	return ""
 }
@@ -2077,7 +2333,8 @@ var File_seller_v1_seller_proto protoreflect.FileDescriptor
 
 const file_seller_v1_seller_proto_rawDesc = "" +
 	"\n" +
-	"\x16seller/v1/seller.proto\x12\tseller.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xad\x04\n" +
+	"\x16seller/v1/seller.proto\x12\tseller.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xa2\n" +
+	"\n" +
 	"\x06Seller\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x1d\n" +
@@ -2102,7 +2359,23 @@ const file_seller_v1_seller_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12/\n" +
 	"\x06status\x18\x0f \x01(\x0e2\x17.seller.v1.SellerStatusR\x06status\x12%\n" +
-	"\x0estore_location\x18\x10 \x01(\tR\rstoreLocation\"\x92\x03\n" +
+	"\x0estore_location\x18\x10 \x01(\tR\rstoreLocation\x12%\n" +
+	"\x0eshipping_zones\x18\x11 \x01(\tR\rshippingZones\x12\x1b\n" +
+	"\tbank_name\x18\x12 \x01(\tR\bbankName\x12.\n" +
+	"\x13bank_account_number\x18\x13 \x01(\tR\x11bankAccountNumber\x12%\n" +
+	"\x0eecocash_number\x18\x14 \x01(\tR\recocashNumber\x12,\n" +
+	"\x12return_window_days\x18\x15 \x01(\x05R\x10returnWindowDays\x12,\n" +
+	"\x12return_policy_text\x18\x16 \x01(\tR\x10returnPolicyText\x12<\n" +
+	"\x1apush_notifications_enabled\x18\x17 \x01(\bR\x18pushNotificationsEnabled\x120\n" +
+	"\x14email_alerts_enabled\x18\x18 \x01(\bR\x12emailAlertsEnabled\x12,\n" +
+	"\x12sms_alerts_enabled\x18\x19 \x01(\bR\x10smsAlertsEnabled\x12,\n" +
+	"\x12auto_accept_orders\x18\x1a \x01(\bR\x10autoAcceptOrders\x128\n" +
+	"\x18inventory_alerts_enabled\x18\x1b \x01(\bR\x16inventoryAlertsEnabled\x12-\n" +
+	"\x12profile_visibility\x18\x1c \x01(\bR\x11profileVisibility\x126\n" +
+	"\x17search_indexing_enabled\x18\x1d \x01(\bR\x15searchIndexingEnabled\x120\n" +
+	"\x14data_sharing_enabled\x18\x1e \x01(\bR\x12dataSharingEnabled\x12,\n" +
+	"\x12two_factor_enabled\x18\x1f \x01(\bR\x10twoFactorEnabled\x12/\n" +
+	"\x13deactivation_reason\x18  \x01(\tR\x12deactivationReason\"\x92\x03\n" +
 	"\x06Payout\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tseller_id\x18\x02 \x01(\tR\bsellerId\x12\x16\n" +
@@ -2139,7 +2412,7 @@ const file_seller_v1_seller_proto_rawDesc = "" +
 	"banner_url\x18\x05 \x01(\tR\tbannerUrl\x12\x1a\n" +
 	"\blatitude\x18\x06 \x01(\x01R\blatitude\x12\x1c\n" +
 	"\tlongitude\x18\a \x01(\x01R\tlongitude\x12%\n" +
-	"\x0estore_location\x18\b \x01(\tR\rstoreLocation\"\x89\x02\n" +
+	"\x0estore_location\x18\b \x01(\tR\rstoreLocation\"\xc6\v\n" +
 	"\x12UpdateStoreRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1d\n" +
 	"\n" +
@@ -2150,7 +2423,42 @@ const file_seller_v1_seller_proto_rawDesc = "" +
 	"banner_url\x18\x05 \x01(\tR\tbannerUrl\x12\x1a\n" +
 	"\blatitude\x18\x06 \x01(\x01R\blatitude\x12\x1c\n" +
 	"\tlongitude\x18\a \x01(\x01R\tlongitude\x12%\n" +
-	"\x0estore_location\x18\b \x01(\tR\rstoreLocation\"N\n" +
+	"\x0estore_location\x18\b \x01(\tR\rstoreLocation\x12*\n" +
+	"\x0eshipping_zones\x18\t \x01(\tH\x00R\rshippingZones\x88\x01\x01\x12 \n" +
+	"\tbank_name\x18\n" +
+	" \x01(\tH\x01R\bbankName\x88\x01\x01\x123\n" +
+	"\x13bank_account_number\x18\v \x01(\tH\x02R\x11bankAccountNumber\x88\x01\x01\x12*\n" +
+	"\x0eecocash_number\x18\f \x01(\tH\x03R\recocashNumber\x88\x01\x01\x121\n" +
+	"\x12return_window_days\x18\r \x01(\x05H\x04R\x10returnWindowDays\x88\x01\x01\x121\n" +
+	"\x12return_policy_text\x18\x0e \x01(\tH\x05R\x10returnPolicyText\x88\x01\x01\x12A\n" +
+	"\x1apush_notifications_enabled\x18\x0f \x01(\bH\x06R\x18pushNotificationsEnabled\x88\x01\x01\x125\n" +
+	"\x14email_alerts_enabled\x18\x10 \x01(\bH\aR\x12emailAlertsEnabled\x88\x01\x01\x121\n" +
+	"\x12sms_alerts_enabled\x18\x11 \x01(\bH\bR\x10smsAlertsEnabled\x88\x01\x01\x121\n" +
+	"\x12auto_accept_orders\x18\x12 \x01(\bH\tR\x10autoAcceptOrders\x88\x01\x01\x12=\n" +
+	"\x18inventory_alerts_enabled\x18\x13 \x01(\bH\n" +
+	"R\x16inventoryAlertsEnabled\x88\x01\x01\x122\n" +
+	"\x12profile_visibility\x18\x14 \x01(\bH\vR\x11profileVisibility\x88\x01\x01\x12;\n" +
+	"\x17search_indexing_enabled\x18\x15 \x01(\bH\fR\x15searchIndexingEnabled\x88\x01\x01\x125\n" +
+	"\x14data_sharing_enabled\x18\x16 \x01(\bH\rR\x12dataSharingEnabled\x88\x01\x01\x121\n" +
+	"\x12two_factor_enabled\x18\x17 \x01(\bH\x0eR\x10twoFactorEnabled\x88\x01\x01\x124\n" +
+	"\x13deactivation_reason\x18\x18 \x01(\tH\x0fR\x12deactivationReason\x88\x01\x01B\x11\n" +
+	"\x0f_shipping_zonesB\f\n" +
+	"\n" +
+	"_bank_nameB\x16\n" +
+	"\x14_bank_account_numberB\x11\n" +
+	"\x0f_ecocash_numberB\x15\n" +
+	"\x13_return_window_daysB\x15\n" +
+	"\x13_return_policy_textB\x1d\n" +
+	"\x1b_push_notifications_enabledB\x17\n" +
+	"\x15_email_alerts_enabledB\x15\n" +
+	"\x13_sms_alerts_enabledB\x15\n" +
+	"\x13_auto_accept_ordersB\x1b\n" +
+	"\x19_inventory_alerts_enabledB\x15\n" +
+	"\x13_profile_visibilityB\x1a\n" +
+	"\x18_search_indexing_enabledB\x17\n" +
+	"\x15_data_sharing_enabledB\x15\n" +
+	"\x13_two_factor_enabledB\x16\n" +
+	"\x14_deactivation_reason\"N\n" +
 	"\x13VerifySellerRequest\x12\x1b\n" +
 	"\tseller_id\x18\x01 \x01(\tR\bsellerId\x12\x1a\n" +
 	"\bverified\x18\x02 \x01(\bR\bverified\"i\n" +
@@ -2387,6 +2695,7 @@ func file_seller_v1_seller_proto_init() {
 	if File_seller_v1_seller_proto != nil {
 		return
 	}
+	file_seller_v1_seller_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

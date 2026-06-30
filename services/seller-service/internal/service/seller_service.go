@@ -111,14 +111,30 @@ func (s *SellerService) CreateStore(ctx context.Context, in CreateStoreInput) (*
 }
 
 type UpdateStoreInput struct {
-	UserID        uuid.UUID
-	StoreName     *string
-	Description   *string
-	LogoURL       *string
-	BannerURL     *string
-	Latitude      *float64
-	Longitude     *float64
-	StoreLocation *string
+	UserID                   uuid.UUID
+	StoreName                *string
+	Description              *string
+	LogoURL                  *string
+	BannerURL                *string
+	Latitude                 *float64
+	Longitude                *float64
+	StoreLocation            *string
+	ShippingZones            *string
+	BankName                 *string
+	BankAccountNumber        *string
+	EcocashNumber            *string
+	ReturnWindowDays         *int32
+	ReturnPolicyText         *string
+	PushNotificationsEnabled *bool
+	EmailAlertsEnabled       *bool
+	SmsAlertsEnabled         *bool
+	AutoAcceptOrders         *bool
+	InventoryAlertsEnabled   *bool
+	ProfileVisibility        *bool
+	SearchIndexingEnabled    *bool
+	DataSharingEnabled       *bool
+	TwoFactorEnabled         *bool
+	DeactivationReason       *string
 }
 
 func (s *SellerService) UpdateStore(ctx context.Context, in UpdateStoreInput) (*db.Seller, error) {
@@ -143,15 +159,31 @@ func (s *SellerService) UpdateStore(ctx context.Context, in UpdateStoreInput) (*
 	}
 
 	seller, err := s.q.UpdateSeller(ctx, db.UpdateSellerParams{
-		UserID:        in.UserID,
-		StoreName:     ptrToString(storeName),
-		StoreSlug:     ptrToString(storeSlug),
-		LogoUrl:       in.LogoURL,
-		BannerUrl:     in.BannerURL,
-		Description:   in.Description,
-		Latitude:      in.Latitude,
-		Longitude:     in.Longitude,
-		StoreLocation: in.StoreLocation,
+		UserID:                   in.UserID,
+		StoreName:                ptrToString(storeName),
+		StoreSlug:                ptrToString(storeSlug),
+		LogoUrl:                  in.LogoURL,
+		BannerUrl:                in.BannerURL,
+		Description:              in.Description,
+		Latitude:                 in.Latitude,
+		Longitude:                in.Longitude,
+		StoreLocation:            in.StoreLocation,
+		ShippingZones:            in.ShippingZones,
+		BankName:                 in.BankName,
+		BankAccountNumber:        in.BankAccountNumber,
+		EcocashNumber:            in.EcocashNumber,
+		ReturnWindowDays:         in.ReturnWindowDays,
+		ReturnPolicyText:         in.ReturnPolicyText,
+		PushNotificationsEnabled: in.PushNotificationsEnabled,
+		EmailAlertsEnabled:       in.EmailAlertsEnabled,
+		SmsAlertsEnabled:         in.SmsAlertsEnabled,
+		AutoAcceptOrders:         in.AutoAcceptOrders,
+		InventoryAlertsEnabled:   in.InventoryAlertsEnabled,
+		ProfileVisibility:        in.ProfileVisibility,
+		SearchIndexingEnabled:    in.SearchIndexingEnabled,
+		DataSharingEnabled:       in.DataSharingEnabled,
+		TwoFactorEnabled:         in.TwoFactorEnabled,
+		DeactivationReason:       in.DeactivationReason,
 	})
 	if err != nil {
 		if isUniqueViolation(err) {

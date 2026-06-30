@@ -24,22 +24,38 @@ enum PayoutStatus {
 // ── Core Types ────────────────────────────────────────────────────────────────
 
 message Seller {
-  string                    id             = 1;
-  string                    user_id        = 2;
-  string                    store_name     = 3;
-  string                    store_slug     = 4;
-  string                    logo_url       = 5;
-  string                    banner_url     = 6;
-  string                    description    = 7;
-  double                    rating         = 8;
-  int32                     total_sales    = 9;
-  bool                      is_verified    = 10;
-  double                    latitude       = 11;
-  double                    longitude      = 12;
-  google.protobuf.Timestamp created_at     = 13;
-  google.protobuf.Timestamp updated_at     = 14;
-  SellerStatus              status         = 15;
-  string                    store_location = 16;
+  string                    id                             = 1;
+  string                    user_id                        = 2;
+  string                    store_name                     = 3;
+  string                    store_slug                     = 4;
+  string                    logo_url                       = 5;
+  string                    banner_url                     = 6;
+  string                    description                    = 7;
+  double                    rating                         = 8;
+  int32                     total_sales                    = 9;
+  bool                      is_verified                    = 10;
+  double                    latitude                       = 11;
+  double                    longitude                      = 12;
+  google.protobuf.Timestamp created_at                     = 13;
+  google.protobuf.Timestamp updated_at                     = 14;
+  SellerStatus              status                         = 15;
+  string                    store_location                 = 16;
+  string                    shipping_zones                 = 17;
+  string                    bank_name                      = 18;
+  string                    bank_account_number            = 19;
+  string                    ecocash_number                 = 20;
+  int32                     return_window_days             = 21;
+  string                    return_policy_text             = 22;
+  bool                      push_notifications_enabled      = 23;
+  bool                      email_alerts_enabled           = 24;
+  bool                      sms_alerts_enabled             = 25;
+  bool                      auto_accept_orders             = 26;
+  bool                      inventory_alerts_enabled       = 27;
+  bool                      profile_visibility             = 28;
+  bool                      search_indexing_enabled        = 29;
+  bool                      data_sharing_enabled           = 30;
+  bool                      two_factor_enabled             = 31;
+  string                    deactivation_reason            = 32;
 }
 
 message Payout {
@@ -86,14 +102,30 @@ message CreateStoreRequest {
 }
 
 message UpdateStoreRequest {
-  string user_id        = 1;
-  string store_name     = 2;
-  string description    = 3;
-  string logo_url       = 4;
-  string banner_url     = 5;
-  double latitude       = 6;
-  double longitude      = 7;
-  string store_location = 8;
+  string          user_id                    = 1;
+  string          store_name                 = 2;
+  string          description                = 3;
+  string          logo_url                   = 4;
+  string          banner_url                 = 5;
+  double          latitude                   = 6;
+  double          longitude                  = 7;
+  string          store_location             = 8;
+  optional string shipping_zones             = 9;
+  optional string bank_name                  = 10;
+  optional string bank_account_number        = 11;
+  optional string ecocash_number             = 12;
+  optional int32  return_window_days         = 13;
+  optional string return_policy_text         = 14;
+  optional bool   push_notifications_enabled  = 15;
+  optional bool   email_alerts_enabled       = 16;
+  optional bool   sms_alerts_enabled         = 17;
+  optional bool   auto_accept_orders         = 18;
+  optional bool   inventory_alerts_enabled   = 19;
+  optional bool   profile_visibility         = 20;
+  optional bool   search_indexing_enabled    = 21;
+  optional bool   data_sharing_enabled       = 22;
+  optional bool   two_factor_enabled         = 23;
+  optional string deactivation_reason        = 24;
 }
 
 message VerifySellerRequest {

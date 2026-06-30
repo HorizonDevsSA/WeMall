@@ -7,8 +7,6 @@
 package notificationv1
 
 import (
-	"fmt"
-
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -615,7 +613,6 @@ func (x *ListNotificationsResponse) GetNotifications() []*NotificationLog {
 	return nil
 }
 
-// DeleteNotificationRequest is the request message for DeleteNotification RPC.
 type DeleteNotificationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -624,11 +621,35 @@ type DeleteNotificationRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DeleteNotificationRequest) Reset()         { *x = DeleteNotificationRequest{} }
-func (x *DeleteNotificationRequest) String() string {
-	return fmt.Sprintf("DeleteNotificationRequest{UserId:%q, Id:%q}", x.GetUserId(), x.GetId())
+func (x *DeleteNotificationRequest) Reset() {
+	*x = DeleteNotificationRequest{}
+	mi := &file_notification_v1_notification_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
 }
+
+func (x *DeleteNotificationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
 func (*DeleteNotificationRequest) ProtoMessage() {}
+
+func (x *DeleteNotificationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_notification_v1_notification_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteNotificationRequest.ProtoReflect.Descriptor instead.
+func (*DeleteNotificationRequest) Descriptor() ([]byte, []int) {
+	return file_notification_v1_notification_proto_rawDescGZIP(), []int{9}
+}
 
 func (x *DeleteNotificationRequest) GetUserId() string {
 	if x != nil {
@@ -644,7 +665,6 @@ func (x *DeleteNotificationRequest) GetId() string {
 	return ""
 }
 
-// ClearNotificationsRequest is the request message for ClearNotifications RPC.
 type ClearNotificationsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -652,11 +672,35 @@ type ClearNotificationsRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ClearNotificationsRequest) Reset()         { *x = ClearNotificationsRequest{} }
-func (x *ClearNotificationsRequest) String() string {
-	return fmt.Sprintf("ClearNotificationsRequest{UserId:%q}", x.GetUserId())
+func (x *ClearNotificationsRequest) Reset() {
+	*x = ClearNotificationsRequest{}
+	mi := &file_notification_v1_notification_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
 }
+
+func (x *ClearNotificationsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
 func (*ClearNotificationsRequest) ProtoMessage() {}
+
+func (x *ClearNotificationsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_notification_v1_notification_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClearNotificationsRequest.ProtoReflect.Descriptor instead.
+func (*ClearNotificationsRequest) Descriptor() ([]byte, []int) {
+	return file_notification_v1_notification_proto_rawDescGZIP(), []int{10}
+}
 
 func (x *ClearNotificationsRequest) GetUserId() string {
 	if x != nil {
@@ -664,7 +708,6 @@ func (x *ClearNotificationsRequest) GetUserId() string {
 	}
 	return ""
 }
-
 
 var File_notification_v1_notification_proto protoreflect.FileDescriptor
 
@@ -707,20 +750,27 @@ const file_notification_v1_notification_proto_rawDesc = "" +
 	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12\x16\n" +
 	"\x06offset\x18\x03 \x01(\x05R\x06offset\"c\n" +
 	"\x19ListNotificationsResponse\x12F\n" +
-	"\rnotifications\x18\x01 \x03(\v2 .notification.v1.NotificationLogR\rnotifications*\xf7\x01\n" +
+	"\rnotifications\x18\x01 \x03(\v2 .notification.v1.NotificationLogR\rnotifications\"D\n" +
+	"\x19DeleteNotificationRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\tR\x02id\"4\n" +
+	"\x19ClearNotificationsRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId*\xf7\x01\n" +
 	"\x14NotificationCategory\x12%\n" +
 	"!NOTIFICATION_CATEGORY_UNSPECIFIED\x10\x00\x12'\n" +
 	"#NOTIFICATION_CATEGORY_TRANSACTIONAL\x10\x01\x12\"\n" +
 	"\x1eNOTIFICATION_CATEGORY_SECURITY\x10\x02\x12#\n" +
 	"\x1fNOTIFICATION_CATEGORY_LOW_STOCK\x10\x03\x12!\n" +
 	"\x1dNOTIFICATION_CATEGORY_FOLLOWS\x10\x04\x12#\n" +
-	"\x1fNOTIFICATION_CATEGORY_MARKETING\x10\x052\xc6\x04\n" +
+	"\x1fNOTIFICATION_CATEGORY_MARKETING\x10\x052\xfa\x05\n" +
 	"\x13NotificationService\x12Z\n" +
 	"\x13RegisterDeviceToken\x12+.notification.v1.RegisterDeviceTokenRequest\x1a\x16.google.protobuf.Empty\x12^\n" +
 	"\x15DeregisterDeviceToken\x12-.notification.v1.DeregisterDeviceTokenRequest\x1a\x16.google.protobuf.Empty\x12\x85\x01\n" +
 	"\x1aGetNotificationPreferences\x122.notification.v1.GetNotificationPreferencesRequest\x1a3.notification.v1.GetNotificationPreferencesResponse\x12\x7f\n" +
 	"\x1dUpdateNotificationPreferences\x125.notification.v1.UpdateNotificationPreferencesRequest\x1a'.notification.v1.NotificationPreference\x12j\n" +
-	"\x11ListNotifications\x12).notification.v1.ListNotificationsRequest\x1a*.notification.v1.ListNotificationsResponseB6Z4github.com/wemall/gen/notification/v1;notificationv1b\x06proto3"
+	"\x11ListNotifications\x12).notification.v1.ListNotificationsRequest\x1a*.notification.v1.ListNotificationsResponse\x12X\n" +
+	"\x12DeleteNotification\x12*.notification.v1.DeleteNotificationRequest\x1a\x16.google.protobuf.Empty\x12X\n" +
+	"\x12ClearNotifications\x12*.notification.v1.ClearNotificationsRequest\x1a\x16.google.protobuf.EmptyB6Z4github.com/wemall/gen/notification/v1;notificationv1b\x06proto3"
 
 var (
 	file_notification_v1_notification_proto_rawDescOnce sync.Once
@@ -735,7 +785,7 @@ func file_notification_v1_notification_proto_rawDescGZIP() []byte {
 }
 
 var file_notification_v1_notification_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_notification_v1_notification_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_notification_v1_notification_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_notification_v1_notification_proto_goTypes = []any{
 	(NotificationCategory)(0),                    // 0: notification.v1.NotificationCategory
 	(*NotificationPreference)(nil),               // 1: notification.v1.NotificationPreference
@@ -747,12 +797,14 @@ var file_notification_v1_notification_proto_goTypes = []any{
 	(*UpdateNotificationPreferencesRequest)(nil), // 7: notification.v1.UpdateNotificationPreferencesRequest
 	(*ListNotificationsRequest)(nil),             // 8: notification.v1.ListNotificationsRequest
 	(*ListNotificationsResponse)(nil),            // 9: notification.v1.ListNotificationsResponse
-	(*timestamppb.Timestamp)(nil),                // 10: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),                        // 11: google.protobuf.Empty
+	(*DeleteNotificationRequest)(nil),            // 10: notification.v1.DeleteNotificationRequest
+	(*ClearNotificationsRequest)(nil),            // 11: notification.v1.ClearNotificationsRequest
+	(*timestamppb.Timestamp)(nil),                // 12: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),                        // 13: google.protobuf.Empty
 }
 var file_notification_v1_notification_proto_depIdxs = []int32{
 	0,  // 0: notification.v1.NotificationPreference.category:type_name -> notification.v1.NotificationCategory
-	10, // 1: notification.v1.NotificationLog.created_at:type_name -> google.protobuf.Timestamp
+	12, // 1: notification.v1.NotificationLog.created_at:type_name -> google.protobuf.Timestamp
 	1,  // 2: notification.v1.GetNotificationPreferencesResponse.preferences:type_name -> notification.v1.NotificationPreference
 	0,  // 3: notification.v1.UpdateNotificationPreferencesRequest.category:type_name -> notification.v1.NotificationCategory
 	2,  // 4: notification.v1.ListNotificationsResponse.notifications:type_name -> notification.v1.NotificationLog
@@ -761,13 +813,17 @@ var file_notification_v1_notification_proto_depIdxs = []int32{
 	5,  // 7: notification.v1.NotificationService.GetNotificationPreferences:input_type -> notification.v1.GetNotificationPreferencesRequest
 	7,  // 8: notification.v1.NotificationService.UpdateNotificationPreferences:input_type -> notification.v1.UpdateNotificationPreferencesRequest
 	8,  // 9: notification.v1.NotificationService.ListNotifications:input_type -> notification.v1.ListNotificationsRequest
-	11, // 10: notification.v1.NotificationService.RegisterDeviceToken:output_type -> google.protobuf.Empty
-	11, // 11: notification.v1.NotificationService.DeregisterDeviceToken:output_type -> google.protobuf.Empty
-	6,  // 12: notification.v1.NotificationService.GetNotificationPreferences:output_type -> notification.v1.GetNotificationPreferencesResponse
-	1,  // 13: notification.v1.NotificationService.UpdateNotificationPreferences:output_type -> notification.v1.NotificationPreference
-	9,  // 14: notification.v1.NotificationService.ListNotifications:output_type -> notification.v1.ListNotificationsResponse
-	10, // [10:15] is the sub-list for method output_type
-	5,  // [5:10] is the sub-list for method input_type
+	10, // 10: notification.v1.NotificationService.DeleteNotification:input_type -> notification.v1.DeleteNotificationRequest
+	11, // 11: notification.v1.NotificationService.ClearNotifications:input_type -> notification.v1.ClearNotificationsRequest
+	13, // 12: notification.v1.NotificationService.RegisterDeviceToken:output_type -> google.protobuf.Empty
+	13, // 13: notification.v1.NotificationService.DeregisterDeviceToken:output_type -> google.protobuf.Empty
+	6,  // 14: notification.v1.NotificationService.GetNotificationPreferences:output_type -> notification.v1.GetNotificationPreferencesResponse
+	1,  // 15: notification.v1.NotificationService.UpdateNotificationPreferences:output_type -> notification.v1.NotificationPreference
+	9,  // 16: notification.v1.NotificationService.ListNotifications:output_type -> notification.v1.ListNotificationsResponse
+	13, // 17: notification.v1.NotificationService.DeleteNotification:output_type -> google.protobuf.Empty
+	13, // 18: notification.v1.NotificationService.ClearNotifications:output_type -> google.protobuf.Empty
+	12, // [12:19] is the sub-list for method output_type
+	5,  // [5:12] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name
 	5,  // [5:5] is the sub-list for extension extendee
 	0,  // [0:5] is the sub-list for field type_name
@@ -784,7 +840,7 @@ func file_notification_v1_notification_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_notification_v1_notification_proto_rawDesc), len(file_notification_v1_notification_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

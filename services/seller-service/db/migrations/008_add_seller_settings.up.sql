@@ -1,0 +1,17 @@
+ALTER TABLE sellers
+ADD COLUMN shipping_zones TEXT NOT NULL DEFAULT 'Harare:5.00,Bulawayo:10.00,Mutare:8.00',
+ADD COLUMN bank_name TEXT NOT NULL DEFAULT 'Steward Bank',
+ADD COLUMN bank_account_number TEXT NOT NULL DEFAULT '',
+ADD COLUMN ecocash_number TEXT NOT NULL DEFAULT '',
+ADD COLUMN return_window_days INTEGER NOT NULL DEFAULT 14,
+ADD COLUMN return_policy_text TEXT NOT NULL DEFAULT 'Item must be in original packaging and unused.',
+ADD COLUMN push_notifications_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+ADD COLUMN email_alerts_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+ADD COLUMN sms_alerts_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+ADD COLUMN auto_accept_orders BOOLEAN NOT NULL DEFAULT FALSE,
+ADD COLUMN inventory_alerts_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+ADD COLUMN profile_visibility BOOLEAN NOT NULL DEFAULT TRUE,
+ADD COLUMN search_indexing_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+ADD COLUMN data_sharing_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+ADD COLUMN two_factor_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+ADD COLUMN deactivation_reason TEXT NOT NULL DEFAULT '';
