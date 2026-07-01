@@ -323,11 +323,28 @@ func (r *mutationResolver) UpdateStore(ctx context.Context, input model.UpdateSt
 		DataSharingEnabled:       input.DataSharingEnabled,
 		TwoFactorEnabled:         input.TwoFactorEnabled,
 		DeactivationReason:       input.DeactivationReason,
+		Pin:                      input.Pin,
 	})
 	if err != nil {
 		return nil, err
 	}
 	return mapSeller(resp), nil
+}
+
+func (r *mutationResolver) SetSellerPin(ctx context.Context, pin string) (bool, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return false, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	_, err := r.Clients.Seller.SetSellerPIN(ctx, &sellerv1.SetSellerPINRequest{
+		UserId: uid,
+		Pin:    pin,
+	})
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *mutationResolver) UpdateSellerStatus(ctx context.Context, sellerID string, status model.SellerStatus) (*model.Seller, error) {

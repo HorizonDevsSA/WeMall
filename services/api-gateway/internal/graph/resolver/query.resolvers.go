@@ -170,6 +170,36 @@ func (r *queryResolver) MyStore(ctx context.Context) (*model.Seller, error) {
 	return mapSeller(resp), nil
 }
 
+func (r *queryResolver) RevealBankDetails(ctx context.Context, pin string) (*model.Seller, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	// 1. Fetch the seller profile first
+	sellerProto, err := r.Clients.Seller.GetSellerByUserID(ctx, &sellerv1.GetSellerByUserIDRequest{UserId: uid})
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Fetch the unmasked bank details
+	revealResp, err := r.Clients.Seller.RevealBankDetails(ctx, &sellerv1.RevealBankDetailsRequest{
+		UserId: uid,
+		Pin:    pin,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. Map to model and overwrite with decrypted plaintext details
+	sellerModel := mapSeller(sellerProto)
+	sellerModel.BankName = revealResp.BankName
+	sellerModel.BankAccountNumber = revealResp.BankAccountNumber
+	sellerModel.EcocashNumber = revealResp.EcocashNumber
+
+	return sellerModel, nil
+}
+
 func (r *queryResolver) Seller(ctx context.Context, id string) (*model.Seller, error) {
 	resp, err := r.Clients.Seller.GetSeller(ctx, &sellerv1.GetSellerRequest{Id: id})
 	if err != nil {

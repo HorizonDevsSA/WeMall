@@ -328,6 +328,7 @@ type ComplexityRoot struct {
 		SellerRegister                func(childComplexity int, email string, password string, fullName string) int
 		SendChatMessage               func(childComplexity int, threadID string, content string) int
 		SetCourierOnlineStatus        func(childComplexity int, isOnline bool) int
+		SetSellerPin                  func(childComplexity int, pin string) int
 		StationCheckInPackage         func(childComplexity int, stationID string, trackingNumber string, shelfCode string, direction string) int
 		StationCheckOutPackage        func(childComplexity int, stationID string, trackingNumber string, verificationCode string) int
 		SuspendSeller                 func(childComplexity int, sellerID string, reason string) int
@@ -563,6 +564,7 @@ type ComplexityRoot struct {
 		Product                     func(childComplexity int, id *string, slug *string, language *string) int
 		Products                    func(childComplexity int, filter *model.ProductFilterInput, pageSize *int, pageToken *string, language *string) int
 		RecommendedProducts         func(childComplexity int, pageSize *int, pageToken *string, language *string) int
+		RevealBankDetails           func(childComplexity int, pin string) int
 		Seller                      func(childComplexity int, id string) int
 		SellerDashboard             func(childComplexity int) int
 		StationInventory            func(childComplexity int, stationID string, unclaimedOnly bool) int
@@ -610,6 +612,7 @@ type ComplexityRoot struct {
 		Dsr                      func(childComplexity int) int
 		EcocashNumber            func(childComplexity int) int
 		EmailAlertsEnabled       func(childComplexity int) int
+		HasPin                   func(childComplexity int) int
 		ID                       func(childComplexity int) int
 		InventoryAlertsEnabled   func(childComplexity int) int
 		IsVerified               func(childComplexity int) int
@@ -738,6 +741,7 @@ type MutationResolver interface {
 	DeleteProduct(ctx context.Context, id string) (bool, error)
 	CreateStore(ctx context.Context, input model.CreateStoreInput) (*model.Seller, error)
 	UpdateStore(ctx context.Context, input model.UpdateStoreInput) (*model.Seller, error)
+	SetSellerPin(ctx context.Context, pin string) (bool, error)
 	UpdateSellerStatus(ctx context.Context, sellerID string, status model.SellerStatus) (*model.Seller, error)
 	FollowStore(ctx context.Context, sellerID string) (bool, error)
 	UnfollowStore(ctx context.Context, sellerID string) (bool, error)
@@ -803,6 +807,7 @@ type QueryResolver interface {
 	NearbyProducts(ctx context.Context, latitude float64, longitude float64, radiusMeters float64, pageSize *int, pageToken *string) ([]*model.ProductWithDistance, error)
 	RecommendedProducts(ctx context.Context, pageSize *int, pageToken *string, language *string) (*model.ProductList, error)
 	MyStore(ctx context.Context) (*model.Seller, error)
+	RevealBankDetails(ctx context.Context, pin string) (*model.Seller, error)
 	SellerDashboard(ctx context.Context) (*model.SellerDashboard, error)
 	MySellerOrders(ctx context.Context, pageSize *int, pageToken *string, status *model.OrderStatus) (*model.SellerOrderList, error)
 	Seller(ctx context.Context, id string) (*model.Seller, error)
@@ -2474,6 +2479,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SetCourierOnlineStatus(childComplexity, args["isOnline"].(bool)), true
 
+	case "Mutation.setSellerPin":
+		if e.complexity.Mutation.SetSellerPin == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setSellerPin_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetSellerPin(childComplexity, args["pin"].(string)), true
+
 	case "Mutation.stationCheckInPackage":
 		if e.complexity.Mutation.StationCheckInPackage == nil {
 			break
@@ -3931,6 +3948,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.RecommendedProducts(childComplexity, args["pageSize"].(*int), args["pageToken"].(*string), args["language"].(*string)), true
 
+	case "Query.revealBankDetails":
+		if e.complexity.Query.RevealBankDetails == nil {
+			break
+		}
+
+		args, err := ec.field_Query_revealBankDetails_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.RevealBankDetails(childComplexity, args["pin"].(string)), true
+
 	case "Query.seller":
 		if e.complexity.Query.Seller == nil {
 			break
@@ -4216,6 +4245,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Seller.EmailAlertsEnabled(childComplexity), true
+
+	case "Seller.hasPin":
+		if e.complexity.Seller.HasPin == nil {
+			break
+		}
+
+		return e.complexity.Seller.HasPin(childComplexity), true
 
 	case "Seller.id":
 		if e.complexity.Seller.ID == nil {
@@ -5166,6 +5202,7 @@ type Seller {
   dataSharingEnabled:       Boolean!
   twoFactorEnabled:         Boolean!
   deactivationReason:       String!
+  hasPin:                   Boolean!
 }
 
 # ── Input Types ───────────────────────────────────────────────────────────────
@@ -5285,6 +5322,7 @@ input UpdateStoreInput {
   dataSharingEnabled:       Boolean
   twoFactorEnabled:         Boolean
   deactivationReason:       String
+  pin:                      String
 }
 
 # ── Queries ───────────────────────────────────────────────────────────────────
@@ -5307,6 +5345,7 @@ type Query {
 
   # Seller
   myStore: Seller @hasRole(role: SELLER)
+  revealBankDetails(pin: String!): Seller! @hasRole(role: SELLER)
   sellerDashboard: SellerDashboard! @hasRole(role: SELLER)
   mySellerOrders(pageSize: Int, pageToken: String, status: OrderStatus): SellerOrderList! @hasRole(role: SELLER)
   seller(id: ID!): Seller!
@@ -5420,6 +5459,7 @@ type Mutation {
   # Store (seller)
   createStore(input: CreateStoreInput!): Seller! @hasRole(role: SELLER)
   updateStore(input: UpdateStoreInput!): Seller! @hasRole(role: SELLER)
+  setSellerPin(pin: String!): Boolean! @hasRole(role: SELLER)
   updateSellerStatus(sellerId: ID!, status: SellerStatus!): Seller! @hasRole(role: ADMIN)
 
 
@@ -6921,6 +6961,21 @@ func (ec *executionContext) field_Mutation_setCourierOnlineStatus_args(ctx conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_setSellerPin_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["pin"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pin"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pin"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_stationCheckInPackage_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -7899,6 +7954,21 @@ func (ec *executionContext) field_Query_recommendedProducts_args(ctx context.Con
 		}
 	}
 	args["language"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_revealBankDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["pin"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pin"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pin"] = arg0
 	return args, nil
 }
 
@@ -14502,6 +14572,8 @@ func (ec *executionContext) fieldContext_FollowedStoresList_sellers(ctx context.
 				return ec.fieldContext_Seller_twoFactorEnabled(ctx, field)
 			case "deactivationReason":
 				return ec.fieldContext_Seller_deactivationReason(ctx, field)
+			case "hasPin":
+				return ec.fieldContext_Seller_hasPin(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -16160,6 +16232,8 @@ func (ec *executionContext) fieldContext_Mutation_createStore(ctx context.Contex
 				return ec.fieldContext_Seller_twoFactorEnabled(ctx, field)
 			case "deactivationReason":
 				return ec.fieldContext_Seller_deactivationReason(ctx, field)
+			case "hasPin":
+				return ec.fieldContext_Seller_hasPin(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -16307,6 +16381,8 @@ func (ec *executionContext) fieldContext_Mutation_updateStore(ctx context.Contex
 				return ec.fieldContext_Seller_twoFactorEnabled(ctx, field)
 			case "deactivationReason":
 				return ec.fieldContext_Seller_deactivationReason(ctx, field)
+			case "hasPin":
+				return ec.fieldContext_Seller_hasPin(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -16319,6 +16395,85 @@ func (ec *executionContext) fieldContext_Mutation_updateStore(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateStore_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_setSellerPin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_setSellerPin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().SetSellerPin(rctx, fc.Args["pin"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "SELLER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_setSellerPin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_setSellerPin_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -16454,6 +16609,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSellerStatus(ctx context
 				return ec.fieldContext_Seller_twoFactorEnabled(ctx, field)
 			case "deactivationReason":
 				return ec.fieldContext_Seller_deactivationReason(ctx, field)
+			case "hasPin":
+				return ec.fieldContext_Seller_hasPin(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -24856,6 +25013,8 @@ func (ec *executionContext) fieldContext_Product_seller(ctx context.Context, fie
 				return ec.fieldContext_Seller_twoFactorEnabled(ctx, field)
 			case "deactivationReason":
 				return ec.fieldContext_Seller_deactivationReason(ctx, field)
+			case "hasPin":
+				return ec.fieldContext_Seller_hasPin(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -27295,9 +27454,160 @@ func (ec *executionContext) fieldContext_Query_myStore(ctx context.Context, fiel
 				return ec.fieldContext_Seller_twoFactorEnabled(ctx, field)
 			case "deactivationReason":
 				return ec.fieldContext_Seller_deactivationReason(ctx, field)
+			case "hasPin":
+				return ec.fieldContext_Seller_hasPin(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_revealBankDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_revealBankDetails(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().RevealBankDetails(rctx, fc.Args["pin"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "SELLER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Seller); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/wemall/api-gateway/internal/graph/model.Seller`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Seller)
+	fc.Result = res
+	return ec.marshalNSeller2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐSeller(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_revealBankDetails(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Seller_id(ctx, field)
+			case "userId":
+				return ec.fieldContext_Seller_userId(ctx, field)
+			case "storeName":
+				return ec.fieldContext_Seller_storeName(ctx, field)
+			case "storeSlug":
+				return ec.fieldContext_Seller_storeSlug(ctx, field)
+			case "logoUrl":
+				return ec.fieldContext_Seller_logoUrl(ctx, field)
+			case "bannerUrl":
+				return ec.fieldContext_Seller_bannerUrl(ctx, field)
+			case "description":
+				return ec.fieldContext_Seller_description(ctx, field)
+			case "rating":
+				return ec.fieldContext_Seller_rating(ctx, field)
+			case "totalSales":
+				return ec.fieldContext_Seller_totalSales(ctx, field)
+			case "isVerified":
+				return ec.fieldContext_Seller_isVerified(ctx, field)
+			case "status":
+				return ec.fieldContext_Seller_status(ctx, field)
+			case "latitude":
+				return ec.fieldContext_Seller_latitude(ctx, field)
+			case "longitude":
+				return ec.fieldContext_Seller_longitude(ctx, field)
+			case "storeLocation":
+				return ec.fieldContext_Seller_storeLocation(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Seller_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Seller_updatedAt(ctx, field)
+			case "dsr":
+				return ec.fieldContext_Seller_dsr(ctx, field)
+			case "shippingZones":
+				return ec.fieldContext_Seller_shippingZones(ctx, field)
+			case "bankName":
+				return ec.fieldContext_Seller_bankName(ctx, field)
+			case "bankAccountNumber":
+				return ec.fieldContext_Seller_bankAccountNumber(ctx, field)
+			case "ecocashNumber":
+				return ec.fieldContext_Seller_ecocashNumber(ctx, field)
+			case "returnWindowDays":
+				return ec.fieldContext_Seller_returnWindowDays(ctx, field)
+			case "returnPolicyText":
+				return ec.fieldContext_Seller_returnPolicyText(ctx, field)
+			case "pushNotificationsEnabled":
+				return ec.fieldContext_Seller_pushNotificationsEnabled(ctx, field)
+			case "emailAlertsEnabled":
+				return ec.fieldContext_Seller_emailAlertsEnabled(ctx, field)
+			case "smsAlertsEnabled":
+				return ec.fieldContext_Seller_smsAlertsEnabled(ctx, field)
+			case "autoAcceptOrders":
+				return ec.fieldContext_Seller_autoAcceptOrders(ctx, field)
+			case "inventoryAlertsEnabled":
+				return ec.fieldContext_Seller_inventoryAlertsEnabled(ctx, field)
+			case "profileVisibility":
+				return ec.fieldContext_Seller_profileVisibility(ctx, field)
+			case "searchIndexingEnabled":
+				return ec.fieldContext_Seller_searchIndexingEnabled(ctx, field)
+			case "dataSharingEnabled":
+				return ec.fieldContext_Seller_dataSharingEnabled(ctx, field)
+			case "twoFactorEnabled":
+				return ec.fieldContext_Seller_twoFactorEnabled(ctx, field)
+			case "deactivationReason":
+				return ec.fieldContext_Seller_deactivationReason(ctx, field)
+			case "hasPin":
+				return ec.fieldContext_Seller_hasPin(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_revealBankDetails_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -27578,6 +27888,8 @@ func (ec *executionContext) fieldContext_Query_seller(ctx context.Context, field
 				return ec.fieldContext_Seller_twoFactorEnabled(ctx, field)
 			case "deactivationReason":
 				return ec.fieldContext_Seller_deactivationReason(ctx, field)
+			case "hasPin":
+				return ec.fieldContext_Seller_hasPin(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -32594,6 +32906,50 @@ func (ec *executionContext) fieldContext_Seller_deactivationReason(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _Seller_hasPin(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_hasPin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HasPin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_hasPin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SellerBalance_escrowedBalance(ctx context.Context, field graphql.CollectedField, obj *model.SellerBalance) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SellerBalance_escrowedBalance(ctx, field)
 	if err != nil {
@@ -33007,6 +33363,8 @@ func (ec *executionContext) fieldContext_SellerDashboard_store(ctx context.Conte
 				return ec.fieldContext_Seller_twoFactorEnabled(ctx, field)
 			case "deactivationReason":
 				return ec.fieldContext_Seller_deactivationReason(ctx, field)
+			case "hasPin":
+				return ec.fieldContext_Seller_hasPin(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -38034,7 +38392,7 @@ func (ec *executionContext) unmarshalInputUpdateStoreInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"storeName", "description", "logoUrl", "bannerUrl", "latitude", "longitude", "storeLocation", "shippingZones", "bankName", "bankAccountNumber", "ecocashNumber", "returnWindowDays", "returnPolicyText", "pushNotificationsEnabled", "emailAlertsEnabled", "smsAlertsEnabled", "autoAcceptOrders", "inventoryAlertsEnabled", "profileVisibility", "searchIndexingEnabled", "dataSharingEnabled", "twoFactorEnabled", "deactivationReason"}
+	fieldsInOrder := [...]string{"storeName", "description", "logoUrl", "bannerUrl", "latitude", "longitude", "storeLocation", "shippingZones", "bankName", "bankAccountNumber", "ecocashNumber", "returnWindowDays", "returnPolicyText", "pushNotificationsEnabled", "emailAlertsEnabled", "smsAlertsEnabled", "autoAcceptOrders", "inventoryAlertsEnabled", "profileVisibility", "searchIndexingEnabled", "dataSharingEnabled", "twoFactorEnabled", "deactivationReason", "pin"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -38202,6 +38560,13 @@ func (ec *executionContext) unmarshalInputUpdateStoreInput(ctx context.Context, 
 				return it, err
 			}
 			it.DeactivationReason = data
+		case "pin":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pin"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Pin = data
 		}
 	}
 
@@ -39966,6 +40331,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "updateStore":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateStore(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "setSellerPin":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_setSellerPin(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -41843,6 +42215,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "revealBankDetails":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_revealBankDetails(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "sellerDashboard":
 			field := field
 
@@ -42908,6 +43302,11 @@ func (ec *executionContext) _Seller(ctx context.Context, sel ast.SelectionSet, o
 			}
 		case "deactivationReason":
 			out.Values[i] = ec._Seller_deactivationReason(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "hasPin":
+			out.Values[i] = ec._Seller_hasPin(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}

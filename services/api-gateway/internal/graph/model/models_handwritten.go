@@ -200,6 +200,7 @@ type Seller struct {
 	DataSharingEnabled       bool         `json:"dataSharingEnabled"`
 	TwoFactorEnabled         bool         `json:"twoFactorEnabled"`
 	DeactivationReason       string       `json:"deactivationReason"`
+	HasPin                   bool         `json:"hasPin"`
 }
 
 type FollowedStoresList struct {
@@ -429,4 +430,5 @@ type UpdateStoreInput struct {
 	DataSharingEnabled       *bool    `json:"dataSharingEnabled"`
 	TwoFactorEnabled         *bool    `json:"twoFactorEnabled"`
 	DeactivationReason       *string  `json:"deactivationReason"`
+	Pin                      *string  `json:"pin"`
 }

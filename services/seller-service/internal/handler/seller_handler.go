@@ -405,6 +405,7 @@ func mapSeller(s *db.Seller) *sellerv1.Seller {
 		DataSharingEnabled:         s.DataSharingEnabled,
 		TwoFactorEnabled:           s.TwoFactorEnabled,
 		DeactivationReason:         s.DeactivationReason,
+		HasPin:                     s.SellerPinHash != nil && *s.SellerPinHash != "",
 	}
 
 	// Add coordinates if they exist
