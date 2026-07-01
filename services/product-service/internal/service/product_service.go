@@ -453,12 +453,67 @@ func (s *ProductService) UpdateProduct(ctx context.Context, req *productv1.Updat
 		}
 	}
 
+	var minPriceNumeric pgtype.Numeric
+	var maxPriceNumeric pgtype.Numeric
+
+	// Update Variants if provided in request
+	if len(req.Variants) > 0 {
+		err = qtx.DeleteProductVariants(ctx, productUID)
+		if err != nil {
+			return nil, fmt.Errorf("delete product variants: %w", err)
+		}
+
+		minPrice := req.Variants[0].Price
+		maxPrice := req.Variants[0].Price
+
+		for _, v := range req.Variants {
+			optsJSON := structToJSON(v.Options)
+			var imgPtr *string
+			if v.ImageUrl != "" {
+				imgPtr = &v.ImageUrl
+			}
+			variant, err := qtx.CreateProductVariant(ctx, db.CreateProductVariantParams{
+				ProductID:    productUID,
+				Sku:          v.Sku,
+				Options:      optsJSON,
+				Price:        float64ToNumeric(v.Price),
+				ComparePrice: float64ToNumeric(v.ComparePrice),
+				WeightGrams:  nil,
+				ImageUrl:     imgPtr,
+				IsDefault:    false,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("create variant: %w", err)
+			}
+
+			_, err = qtx.UpsertStock(ctx, db.UpsertStockParams{
+				VariantID: variant.ID,
+				Quantity:  v.InitialQuantity,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("upsert stock: %w", err)
+			}
+
+			if v.Price < minPrice {
+				minPrice = v.Price
+			}
+			if v.Price > maxPrice {
+				maxPrice = v.Price
+			}
+		}
+
+		minPriceNumeric = float64ToNumeric(minPrice)
+		maxPriceNumeric = float64ToNumeric(maxPrice)
+	}
+
 	err = qtx.UpdateProduct(ctx, db.UpdateProductParams{
 		ID:           productUID,
 		Brand:        req.Brand,
 		Status:       statusStr,
 		ImageUrl:     req.ImageUrl,
 		ThumbnailUrl: req.ThumbnailUrl,
+		MinPrice:     minPriceNumeric,
+		MaxPrice:     maxPriceNumeric,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("update product: %w", err)

@@ -361,6 +361,7 @@ type UpdateProductInput struct {
 	ImageURL     *string                `json:"imageUrl"`
 	ThumbnailURL *string                `json:"thumbnailUrl"`
 	Images       []string               `json:"images"`
+	Variants     []*VariantInput        `json:"variants"`
 }
 
 type AddressInput struct {

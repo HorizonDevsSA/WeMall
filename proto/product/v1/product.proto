@@ -206,6 +206,7 @@ message UpdateProductRequest {
   string                 image_url     = 9;
   string                 thumbnail_url = 10;
   repeated string        images        = 11;
+  repeated CreateVariantInput variants = 12;
 }
 
 message DeleteProductRequest {

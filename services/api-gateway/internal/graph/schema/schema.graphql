@@ -350,6 +350,7 @@ input UpdateProductInput {
   imageUrl:     String
   thumbnailUrl: String
   images:       [String!]
+  variants:     [VariantInput!]
 }
 
 input AddressInput {

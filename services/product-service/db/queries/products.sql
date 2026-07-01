@@ -85,6 +85,8 @@ UPDATE products SET
     status        = COALESCE(NULLIF(@status::text, '')::product_status, status),
     image_url     = COALESCE(NULLIF(@image_url::text, ''), image_url),
     thumbnail_url = COALESCE(NULLIF(@thumbnail_url::text, ''), thumbnail_url),
+    min_price     = COALESCE(sqlc.narg('min_price'), min_price),
+    max_price     = COALESCE(sqlc.narg('max_price'), max_price),
     updated_at    = NOW()
 WHERE id = @id AND deleted_at IS NULL;
 
@@ -139,3 +141,8 @@ WHERE pt.product_id = $1;
 -- name: DeleteProductImages :exec
 DELETE FROM product_images
 WHERE product_id = $1;
+
+-- name: DeleteProductVariants :exec
+DELETE FROM product_variants
+WHERE product_id = $1;
+

@@ -1609,6 +1609,7 @@ type UpdateProductRequest struct {
 	ImageUrl      string                 `protobuf:"bytes,9,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
 	ThumbnailUrl  string                 `protobuf:"bytes,10,opt,name=thumbnail_url,json=thumbnailUrl,proto3" json:"thumbnail_url,omitempty"`
 	Images        []string               `protobuf:"bytes,11,rep,name=images,proto3" json:"images,omitempty"`
+	Variants      []*CreateVariantInput  `protobuf:"bytes,12,rep,name=variants,proto3" json:"variants,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1716,6 +1717,13 @@ func (x *UpdateProductRequest) GetThumbnailUrl() string {
 func (x *UpdateProductRequest) GetImages() []string {
 	if x != nil {
 		return x.Images
+	}
+	return nil
+}
+
+func (x *UpdateProductRequest) GetVariants() []*CreateVariantInput {
+	if x != nil {
+		return x.Variants
 	}
 	return nil
 }
@@ -2192,7 +2200,7 @@ const file_product_v1_product_proto_rawDesc = "" +
 	"\fproduct_type\x18\r \x01(\x0e2\x17.product.v1.ProductTypeR\vproductType\x12\x1b\n" +
 	"\timage_url\x18\x0e \x01(\tR\bimageUrl\x12#\n" +
 	"\rthumbnail_url\x18\x0f \x01(\tR\fthumbnailUrl\x12\x16\n" +
-	"\x06images\x18\x10 \x03(\tR\x06images\"\xf3\x02\n" +
+	"\x06images\x18\x10 \x03(\tR\x06images\"\xaf\x03\n" +
 	"\x14UpdateProductRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tseller_id\x18\x02 \x01(\tR\bsellerId\x12\x14\n" +
@@ -2207,7 +2215,8 @@ const file_product_v1_product_proto_rawDesc = "" +
 	"\timage_url\x18\t \x01(\tR\bimageUrl\x12#\n" +
 	"\rthumbnail_url\x18\n" +
 	" \x01(\tR\fthumbnailUrl\x12\x16\n" +
-	"\x06images\x18\v \x03(\tR\x06images\"C\n" +
+	"\x06images\x18\v \x03(\tR\x06images\x12:\n" +
+	"\bvariants\x18\f \x03(\v2\x1e.product.v1.CreateVariantInputR\bvariants\"C\n" +
 	"\x14DeleteProductRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tseller_id\x18\x02 \x01(\tR\bsellerId\"\xd2\x01\n" +
@@ -2343,37 +2352,38 @@ var file_product_v1_product_proto_depIdxs = []int32{
 	1,  // 20: product.v1.CreateProductRequest.product_type:type_name -> product.v1.ProductType
 	27, // 21: product.v1.UpdateProductRequest.attributes:type_name -> google.protobuf.Struct
 	0,  // 22: product.v1.UpdateProductRequest.status:type_name -> product.v1.ProductStatus
-	5,  // 23: product.v1.ListNearbyProductsResponse.products:type_name -> product.v1.Product
-	5,  // 24: product.v1.ListRecommendedProductsResponse.products:type_name -> product.v1.Product
-	5,  // 25: product.v1.GetProductBatchResponse.ProductsEntry.value:type_name -> product.v1.Product
-	3,  // 26: product.v1.GetVariantBatchResponse.VariantsEntry.value:type_name -> product.v1.ProductVariant
-	7,  // 27: product.v1.ProductService.ListCategories:input_type -> product.v1.ListCategoriesRequest
-	9,  // 28: product.v1.ProductService.GetCategory:input_type -> product.v1.GetCategoryRequest
-	10, // 29: product.v1.ProductService.ListProducts:input_type -> product.v1.ListProductsRequest
-	12, // 30: product.v1.ProductService.GetProduct:input_type -> product.v1.GetProductRequest
-	13, // 31: product.v1.ProductService.GetProductBatch:input_type -> product.v1.GetProductBatchRequest
-	15, // 32: product.v1.ProductService.GetVariantBatch:input_type -> product.v1.GetVariantBatchRequest
-	18, // 33: product.v1.ProductService.CreateProduct:input_type -> product.v1.CreateProductRequest
-	19, // 34: product.v1.ProductService.UpdateProduct:input_type -> product.v1.UpdateProductRequest
-	20, // 35: product.v1.ProductService.DeleteProduct:input_type -> product.v1.DeleteProductRequest
-	21, // 36: product.v1.ProductService.ListNearbyProducts:input_type -> product.v1.ListNearbyProductsRequest
-	23, // 37: product.v1.ProductService.ListRecommendedProducts:input_type -> product.v1.ListRecommendedProductsRequest
-	8,  // 38: product.v1.ProductService.ListCategories:output_type -> product.v1.ListCategoriesResponse
-	2,  // 39: product.v1.ProductService.GetCategory:output_type -> product.v1.Category
-	11, // 40: product.v1.ProductService.ListProducts:output_type -> product.v1.ListProductsResponse
-	5,  // 41: product.v1.ProductService.GetProduct:output_type -> product.v1.Product
-	14, // 42: product.v1.ProductService.GetProductBatch:output_type -> product.v1.GetProductBatchResponse
-	16, // 43: product.v1.ProductService.GetVariantBatch:output_type -> product.v1.GetVariantBatchResponse
-	5,  // 44: product.v1.ProductService.CreateProduct:output_type -> product.v1.Product
-	5,  // 45: product.v1.ProductService.UpdateProduct:output_type -> product.v1.Product
-	29, // 46: product.v1.ProductService.DeleteProduct:output_type -> google.protobuf.Empty
-	22, // 47: product.v1.ProductService.ListNearbyProducts:output_type -> product.v1.ListNearbyProductsResponse
-	24, // 48: product.v1.ProductService.ListRecommendedProducts:output_type -> product.v1.ListRecommendedProductsResponse
-	38, // [38:49] is the sub-list for method output_type
-	27, // [27:38] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	17, // 23: product.v1.UpdateProductRequest.variants:type_name -> product.v1.CreateVariantInput
+	5,  // 24: product.v1.ListNearbyProductsResponse.products:type_name -> product.v1.Product
+	5,  // 25: product.v1.ListRecommendedProductsResponse.products:type_name -> product.v1.Product
+	5,  // 26: product.v1.GetProductBatchResponse.ProductsEntry.value:type_name -> product.v1.Product
+	3,  // 27: product.v1.GetVariantBatchResponse.VariantsEntry.value:type_name -> product.v1.ProductVariant
+	7,  // 28: product.v1.ProductService.ListCategories:input_type -> product.v1.ListCategoriesRequest
+	9,  // 29: product.v1.ProductService.GetCategory:input_type -> product.v1.GetCategoryRequest
+	10, // 30: product.v1.ProductService.ListProducts:input_type -> product.v1.ListProductsRequest
+	12, // 31: product.v1.ProductService.GetProduct:input_type -> product.v1.GetProductRequest
+	13, // 32: product.v1.ProductService.GetProductBatch:input_type -> product.v1.GetProductBatchRequest
+	15, // 33: product.v1.ProductService.GetVariantBatch:input_type -> product.v1.GetVariantBatchRequest
+	18, // 34: product.v1.ProductService.CreateProduct:input_type -> product.v1.CreateProductRequest
+	19, // 35: product.v1.ProductService.UpdateProduct:input_type -> product.v1.UpdateProductRequest
+	20, // 36: product.v1.ProductService.DeleteProduct:input_type -> product.v1.DeleteProductRequest
+	21, // 37: product.v1.ProductService.ListNearbyProducts:input_type -> product.v1.ListNearbyProductsRequest
+	23, // 38: product.v1.ProductService.ListRecommendedProducts:input_type -> product.v1.ListRecommendedProductsRequest
+	8,  // 39: product.v1.ProductService.ListCategories:output_type -> product.v1.ListCategoriesResponse
+	2,  // 40: product.v1.ProductService.GetCategory:output_type -> product.v1.Category
+	11, // 41: product.v1.ProductService.ListProducts:output_type -> product.v1.ListProductsResponse
+	5,  // 42: product.v1.ProductService.GetProduct:output_type -> product.v1.Product
+	14, // 43: product.v1.ProductService.GetProductBatch:output_type -> product.v1.GetProductBatchResponse
+	16, // 44: product.v1.ProductService.GetVariantBatch:output_type -> product.v1.GetVariantBatchResponse
+	5,  // 45: product.v1.ProductService.CreateProduct:output_type -> product.v1.Product
+	5,  // 46: product.v1.ProductService.UpdateProduct:output_type -> product.v1.Product
+	29, // 47: product.v1.ProductService.DeleteProduct:output_type -> google.protobuf.Empty
+	22, // 48: product.v1.ProductService.ListNearbyProducts:output_type -> product.v1.ListNearbyProductsResponse
+	24, // 49: product.v1.ProductService.ListRecommendedProducts:output_type -> product.v1.ListRecommendedProductsResponse
+	39, // [39:50] is the sub-list for method output_type
+	28, // [28:39] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_product_v1_product_proto_init() }

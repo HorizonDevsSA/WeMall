@@ -213,6 +213,25 @@ func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input m
 	if input.Status != nil {
 		statusStr = productStatusToProto(*input.Status)
 	}
+	var variants []*productv1.CreateVariantInput
+	if input.Variants != nil {
+		variants = make([]*productv1.CreateVariantInput, len(input.Variants))
+		for i, v := range input.Variants {
+			opts, _ := structpb.NewStruct(jsonToMap(v.Options))
+			var initQty int32 = 0
+			if v.InitialQuantity != nil {
+				initQty = int32(*v.InitialQuantity)
+			}
+			variants[i] = &productv1.CreateVariantInput{
+				Sku:             v.Sku,
+				Options:         opts,
+				Price:           v.Price,
+				ComparePrice:    derefFloat(v.ComparePrice),
+				InitialQuantity: initQty,
+			}
+		}
+	}
+
 	resp, err := r.Clients.Product.UpdateProduct(ctx, &productv1.UpdateProductRequest{
 		Id: id, SellerId: storeID, Title: derefStr(input.Title), Description: derefStr(input.Description),
 		Attributes: attrs, Brand: derefStr(input.Brand), Language: derefStr(input.Language),
@@ -220,6 +239,7 @@ func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input m
 		ImageUrl:     derefStr(input.ImageURL),
 		ThumbnailUrl: derefStr(input.ThumbnailURL),
 		Images:       input.Images,
+		Variants:     variants,
 	})
 	if err != nil {
 		return nil, err

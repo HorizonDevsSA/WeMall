@@ -334,6 +334,20 @@ func (q *Queries) DeleteProductImages(ctx context.Context, productID uuid.UUID) 
 	return err
 }
 
+const deleteProductVariants = `-- name: DeleteProductVariants :exec
+DELETE FROM product_variants
+WHERE product_id = $1
+`
+
+// DeleteProductVariants
+//
+//	DELETE FROM product_variants
+//	WHERE product_id = $1
+func (q *Queries) DeleteProductVariants(ctx context.Context, productID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteProductVariants, productID)
+	return err
+}
+
 const getProductBatch = `-- name: GetProductBatch :many
 SELECT
     p.id, p.seller_id, p.category_id, p.slug, p.attributes, p.brand, p.origin_country,
@@ -931,16 +945,20 @@ UPDATE products SET
     status        = COALESCE(NULLIF($2::text, '')::product_status, status),
     image_url     = COALESCE(NULLIF($3::text, ''), image_url),
     thumbnail_url = COALESCE(NULLIF($4::text, ''), thumbnail_url),
+    min_price     = COALESCE($5, min_price),
+    max_price     = COALESCE($6, max_price),
     updated_at    = NOW()
-WHERE id = $5 AND deleted_at IS NULL
+WHERE id = $7 AND deleted_at IS NULL
 `
 
 type UpdateProductParams struct {
-	Brand        string    `json:"brand"`
-	Status       string    `json:"status"`
-	ImageUrl     string    `json:"image_url"`
-	ThumbnailUrl string    `json:"thumbnail_url"`
-	ID           uuid.UUID `json:"id"`
+	Brand        string         `json:"brand"`
+	Status       string         `json:"status"`
+	ImageUrl     string         `json:"image_url"`
+	ThumbnailUrl string         `json:"thumbnail_url"`
+	MinPrice     pgtype.Numeric `json:"min_price"`
+	MaxPrice     pgtype.Numeric `json:"max_price"`
+	ID           uuid.UUID      `json:"id"`
 }
 
 // UpdateProduct
@@ -950,14 +968,18 @@ type UpdateProductParams struct {
 //	    status        = COALESCE(NULLIF($2::text, '')::product_status, status),
 //	    image_url     = COALESCE(NULLIF($3::text, ''), image_url),
 //	    thumbnail_url = COALESCE(NULLIF($4::text, ''), thumbnail_url),
+//	    min_price     = COALESCE($5, min_price),
+//	    max_price     = COALESCE($6, max_price),
 //	    updated_at    = NOW()
-//	WHERE id = $5 AND deleted_at IS NULL
+//	WHERE id = $7 AND deleted_at IS NULL
 func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) error {
 	_, err := q.db.Exec(ctx, updateProduct,
 		arg.Brand,
 		arg.Status,
 		arg.ImageUrl,
 		arg.ThumbnailUrl,
+		arg.MinPrice,
+		arg.MaxPrice,
 		arg.ID,
 	)
 	return err

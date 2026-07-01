@@ -5217,6 +5217,7 @@ input UpdateProductInput {
   imageUrl:     String
   thumbnailUrl: String
   images:       [String!]
+  variants:     [VariantInput!]
 }
 
 input AddressInput {
@@ -37888,7 +37889,7 @@ func (ec *executionContext) unmarshalInputUpdateProductInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"title", "description", "attributes", "brand", "status", "language", "imageUrl", "thumbnailUrl", "images"}
+	fieldsInOrder := [...]string{"title", "description", "attributes", "brand", "status", "language", "imageUrl", "thumbnailUrl", "images", "variants"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -37958,6 +37959,13 @@ func (ec *executionContext) unmarshalInputUpdateProductInput(ctx context.Context
 				return it, err
 			}
 			it.Images = data
+		case "variants":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("variants"))
+			data, err := ec.unmarshalOVariantInput2ᚕᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐVariantInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Variants = data
 		}
 	}
 
@@ -46281,6 +46289,11 @@ func (ec *executionContext) unmarshalNVariantInput2ᚕgithubᚗcomᚋwemallᚋap
 	return res, nil
 }
 
+func (ec *executionContext) unmarshalNVariantInput2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐVariantInput(ctx context.Context, v interface{}) (*model.VariantInput, error) {
+	res, err := ec.unmarshalInputVariantInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
 	return ec.___Directive(ctx, sel, &v)
 }
@@ -46879,6 +46892,26 @@ func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel
 	}
 	res := graphql.MarshalTime(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOVariantInput2ᚕᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐVariantInputᚄ(ctx context.Context, v interface{}) ([]*model.VariantInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.VariantInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNVariantInput2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐVariantInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {
