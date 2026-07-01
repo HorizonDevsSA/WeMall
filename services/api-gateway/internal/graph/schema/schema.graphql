@@ -299,6 +299,7 @@ type Seller {
   dataSharingEnabled:       Boolean!
   twoFactorEnabled:         Boolean!
   deactivationReason:       String!
+  hasPin:                   Boolean!
 }
 
 # ── Input Types ───────────────────────────────────────────────────────────────
@@ -418,6 +419,7 @@ input UpdateStoreInput {
   dataSharingEnabled:       Boolean
   twoFactorEnabled:         Boolean
   deactivationReason:       String
+  pin:                      String
 }
 
 # ── Queries ───────────────────────────────────────────────────────────────────
@@ -440,6 +442,7 @@ type Query {
 
   # Seller
   myStore: Seller @hasRole(role: SELLER)
+  revealBankDetails(pin: String!): Seller! @hasRole(role: SELLER)
   sellerDashboard: SellerDashboard! @hasRole(role: SELLER)
   mySellerOrders(pageSize: Int, pageToken: String, status: OrderStatus): SellerOrderList! @hasRole(role: SELLER)
   seller(id: ID!): Seller!
@@ -553,6 +556,7 @@ type Mutation {
   # Store (seller)
   createStore(input: CreateStoreInput!): Seller! @hasRole(role: SELLER)
   updateStore(input: UpdateStoreInput!): Seller! @hasRole(role: SELLER)
+  setSellerPin(pin: String!): Boolean! @hasRole(role: SELLER)
   updateSellerStatus(sellerId: ID!, status: SellerStatus!): Seller! @hasRole(role: ADMIN)
 
 
