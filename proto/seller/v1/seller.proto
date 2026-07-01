@@ -126,6 +126,7 @@ message UpdateStoreRequest {
   optional bool   data_sharing_enabled       = 22;
   optional bool   two_factor_enabled         = 23;
   optional string deactivation_reason        = 24;
+  optional string pin                        = 25;
 }
 
 message VerifySellerRequest {
@@ -232,6 +233,10 @@ service SellerService {
   rpc GetSellerEarningsLedger(GetSellerEarningsLedgerRequest) returns (SellerEarningsLedgerResponse);
   rpc AddAdCredit(AddAdCreditRequest) returns (AddAdCreditResponse);
   rpc GetSellerMonetizationConfig(GetSellerMonetizationConfigRequest) returns (SellerMonetizationConfig);
+
+  // Security & PIN APIs
+  rpc SetSellerPIN(SetSellerPINRequest) returns (google.protobuf.Empty);
+  rpc RevealBankDetails(RevealBankDetailsRequest) returns (RevealBankDetailsResponse);
 }
 
 // ── Monetization & Ledger Requests/Responses ───────────────────────────────────
@@ -288,3 +293,22 @@ message SellerMonetizationConfig {
   double commission_rate    = 1;
   double ad_credit_balance = 2;
 }
+
+// ── Security & PIN Requests/Responses ─────────────────────────────────────────
+
+message SetSellerPINRequest {
+  string user_id = 1;
+  string pin     = 2;
+}
+
+message RevealBankDetailsRequest {
+  string user_id = 1;
+  string pin     = 2;
+}
+
+message RevealBankDetailsResponse {
+  string bank_name           = 1;
+  string bank_account_number = 2;
+  string ecocash_number      = 3;
+}
+

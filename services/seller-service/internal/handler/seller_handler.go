@@ -126,6 +126,7 @@ func (h *SellerHandler) UpdateStore(ctx context.Context, req *sellerv1.UpdateSto
 		DataSharingEnabled:       req.DataSharingEnabled,
 		TwoFactorEnabled:         req.TwoFactorEnabled,
 		DeactivationReason:       req.DeactivationReason,
+		PIN:                      req.Pin,
 	})
 	return mapSeller(seller), grpcErr(err)
 }
@@ -390,8 +391,8 @@ func mapSeller(s *db.Seller) *sellerv1.Seller {
 		UpdatedAt:                  timestamppb.New(s.UpdatedAt),
 		ShippingZones:              s.ShippingZones,
 		BankName:                   s.BankName,
-		BankAccountNumber:          s.BankAccountNumber,
-		EcocashNumber:              s.EcocashNumber,
+		BankAccountNumber:          maskBankAccountNumber(s.BankAccountNumber),
+		EcocashNumber:              maskEcocashNumber(s.EcocashNumber),
 		ReturnWindowDays:           s.ReturnWindowDays,
 		ReturnPolicyText:           s.ReturnPolicyText,
 		PushNotificationsEnabled:   s.PushNotificationsEnabled,
@@ -515,4 +516,55 @@ func deref(s *string) string {
 		return ""
 	}
 	return *s
+}
+
+func (h *SellerHandler) SetSellerPIN(ctx context.Context, req *sellerv1.SetSellerPINRequest) (*emptypb.Empty, error) {
+	uid, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid user id")
+	}
+	err = h.svc.SetSellerPIN(ctx, uid, req.Pin)
+	if err != nil {
+		return nil, grpcErr(err)
+	}
+	return &emptypb.Empty{}, nil
+}
+
+func (h *SellerHandler) RevealBankDetails(ctx context.Context, req *sellerv1.RevealBankDetailsRequest) (*sellerv1.RevealBankDetailsResponse, error) {
+	uid, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid user id")
+	}
+	bankName, bankAccount, ecocash, err := h.svc.RevealBankDetails(ctx, uid, req.Pin)
+	if err != nil {
+		return nil, grpcErr(err)
+	}
+	return &sellerv1.RevealBankDetailsResponse{
+		BankName:          bankName,
+		BankAccountNumber: bankAccount,
+		EcocashNumber:     ecocash,
+	}, nil
+}
+
+func maskBankAccountNumber(acc string) string {
+	if acc == "" {
+		return ""
+	}
+	if len(acc) < 4 {
+		return "****"
+	}
+	return "****" + acc[len(acc)-4:]
+}
+
+func maskEcocashNumber(num string) string {
+	if num == "" {
+		return ""
+	}
+	if len(num) < 5 {
+		return "****"
+	}
+	if len(num) > 6 {
+		return num[:3] + "****" + num[len(num)-3:]
+	}
+	return "***" + num[len(num)-3:]
 }

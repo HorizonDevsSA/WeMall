@@ -99,3 +99,21 @@ UPDATE sellers SET
 WHERE id = $1
 RETURNING *;
 
+
+-- name: UpdateSellerPIN :one
+UPDATE sellers SET
+    seller_pin_hash = $2,
+    updated_at = NOW()
+WHERE user_id = $1
+RETURNING *;
+
+
+-- name: UpdateSellerSecurityCooldown :one
+UPDATE sellers SET
+    bank_details_last_updated = COALESCE($2, bank_details_last_updated),
+    payouts_locked_until = COALESCE($3, payouts_locked_until),
+    updated_at = NOW()
+WHERE user_id = $1
+RETURNING *;
+
+

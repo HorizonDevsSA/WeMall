@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -14,17 +15,19 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	werr "github.com/wemall/pkg/errors"
+	"github.com/wemall/seller-service/internal/crypto"
 	"github.com/wemall/seller-service/internal/db"
 )
 
 // SellerService implements store and payout business logic.
 type SellerService struct {
-	q    *db.Queries
-	pool *pgxpool.Pool
+	q         *db.Queries
+	pool      *pgxpool.Pool
+	encryptor *crypto.Encryptor
 }
 
-func NewSellerService(q *db.Queries, pool *pgxpool.Pool) *SellerService {
-	return &SellerService{q: q, pool: pool}
+func NewSellerService(q *db.Queries, pool *pgxpool.Pool, encryptor *crypto.Encryptor) *SellerService {
+	return &SellerService{q: q, pool: pool, encryptor: encryptor}
 }
 
 func (s *SellerService) GetSeller(ctx context.Context, id uuid.UUID) (*db.Seller, error) {
@@ -35,6 +38,7 @@ func (s *SellerService) GetSeller(ctx context.Context, id uuid.UUID) (*db.Seller
 		}
 		return nil, werr.Internal(err)
 	}
+	s.decryptSeller(&seller)
 	return &seller, nil
 }
 
@@ -46,6 +50,7 @@ func (s *SellerService) GetSellerByUserID(ctx context.Context, userID uuid.UUID)
 		}
 		return nil, werr.Internal(err)
 	}
+	s.decryptSeller(&seller)
 	return &seller, nil
 }
 
@@ -59,6 +64,7 @@ func (s *SellerService) GetSellerBatch(ctx context.Context, ids []uuid.UUID) (ma
 	}
 	out := make(map[uuid.UUID]db.Seller, len(rows))
 	for _, row := range rows {
+		s.decryptSeller(&row)
 		out[row.ID] = row
 	}
 	return out, nil
@@ -107,6 +113,7 @@ func (s *SellerService) CreateStore(ctx context.Context, in CreateStoreInput) (*
 		}
 		return nil, werr.Internal(err)
 	}
+	s.decryptSeller(&seller)
 	return &seller, nil
 }
 
@@ -135,6 +142,7 @@ type UpdateStoreInput struct {
 	DataSharingEnabled       *bool
 	TwoFactorEnabled         *bool
 	DeactivationReason       *string
+	PIN                      *string
 }
 
 func (s *SellerService) UpdateStore(ctx context.Context, in UpdateStoreInput) (*db.Seller, error) {
@@ -158,6 +166,53 @@ func (s *SellerService) UpdateStore(ctx context.Context, in UpdateStoreInput) (*
 		storeSlug = &slug
 	}
 
+	// Check if financial details are being updated
+	financialsUpdated := false
+	if in.BankName != nil && *in.BankName != current.BankName {
+		financialsUpdated = true
+	}
+	if in.BankAccountNumber != nil && *in.BankAccountNumber != current.BankAccountNumber {
+		financialsUpdated = true
+	}
+	if in.EcocashNumber != nil && *in.EcocashNumber != current.EcocashNumber {
+		financialsUpdated = true
+	}
+
+	if financialsUpdated {
+		if current.SellerPinHash == nil || *current.SellerPinHash == "" {
+			return nil, werr.FailedPrecondition("a security PIN must be set before configuring bank details")
+		}
+		if in.PIN == nil || *in.PIN == "" {
+			return nil, werr.InvalidArgument("security PIN is required to update financial details")
+		}
+		if err := crypto.ComparePIN(*current.SellerPinHash, *in.PIN); err != nil {
+			return nil, werr.PermissionDenied("invalid security PIN")
+		}
+	}
+
+	var bankName, bankAccountNumber, ecocashNumber *string
+	if in.BankName != nil {
+		encVal, err := s.encryptor.Encrypt(*in.BankName)
+		if err != nil {
+			return nil, werr.Internal(err)
+		}
+		bankName = &encVal
+	}
+	if in.BankAccountNumber != nil {
+		encVal, err := s.encryptor.Encrypt(*in.BankAccountNumber)
+		if err != nil {
+			return nil, werr.Internal(err)
+		}
+		bankAccountNumber = &encVal
+	}
+	if in.EcocashNumber != nil {
+		encVal, err := s.encryptor.Encrypt(*in.EcocashNumber)
+		if err != nil {
+			return nil, werr.Internal(err)
+		}
+		ecocashNumber = &encVal
+	}
+
 	seller, err := s.q.UpdateSeller(ctx, db.UpdateSellerParams{
 		UserID:                   in.UserID,
 		StoreName:                ptrToString(storeName),
@@ -169,9 +224,9 @@ func (s *SellerService) UpdateStore(ctx context.Context, in UpdateStoreInput) (*
 		Longitude:                in.Longitude,
 		StoreLocation:            in.StoreLocation,
 		ShippingZones:            in.ShippingZones,
-		BankName:                 in.BankName,
-		BankAccountNumber:        in.BankAccountNumber,
-		EcocashNumber:            in.EcocashNumber,
+		BankName:                 bankName,
+		BankAccountNumber:        bankAccountNumber,
+		EcocashNumber:            ecocashNumber,
 		ReturnWindowDays:         in.ReturnWindowDays,
 		ReturnPolicyText:         in.ReturnPolicyText,
 		PushNotificationsEnabled: in.PushNotificationsEnabled,
@@ -191,6 +246,21 @@ func (s *SellerService) UpdateStore(ctx context.Context, in UpdateStoreInput) (*
 		}
 		return nil, werr.Internal(err)
 	}
+
+	if financialsUpdated {
+		now := time.Now()
+		lockedUntil := now.Add(24 * time.Hour)
+		seller, err = s.q.UpdateSellerSecurityCooldown(ctx, db.UpdateSellerSecurityCooldownParams{
+			UserID:                 in.UserID,
+			BankDetailsLastUpdated: pgtype.Timestamptz{Time: now, Valid: true},
+			PayoutsLockedUntil:    pgtype.Timestamptz{Time: lockedUntil, Valid: true},
+		})
+		if err != nil {
+			return nil, werr.Internal(err)
+		}
+	}
+
+	s.decryptSeller(&seller)
 	return &seller, nil
 }
 
@@ -230,6 +300,7 @@ func (s *SellerService) UpdateSellerStatus(ctx context.Context, sellerID uuid.UU
 		}
 	}
 
+	s.decryptSeller(&seller)
 	return &seller, nil
 }
 
@@ -244,6 +315,7 @@ func (s *SellerService) VerifySeller(ctx context.Context, sellerID uuid.UUID, ve
 		}
 		return nil, werr.Internal(err)
 	}
+	s.decryptSeller(&seller)
 	return &seller, nil
 }
 
@@ -309,6 +381,10 @@ func (s *SellerService) ListFollowedStores(ctx context.Context, userID uuid.UUID
 	nextToken := ""
 	if int(offset)+len(rows) < int(total) {
 		nextToken = strconv.FormatInt(int64(offset)+int64(pageSize), 10)
+	}
+
+	for i := range rows {
+		s.decryptSeller(&rows[i])
 	}
 
 	return rows, int32(total), nextToken, nil
@@ -385,8 +461,13 @@ func (s *SellerService) CreatePayout(ctx context.Context, sellerID uuid.UUID, am
 		currency = "USD"
 	}
 
-	if _, err := s.GetSeller(ctx, sellerID); err != nil {
+	seller, err := s.GetSeller(ctx, sellerID)
+	if err != nil {
 		return nil, err
+	}
+
+	if seller.PayoutsLockedUntil.Valid && time.Now().Before(seller.PayoutsLockedUntil.Time) {
+		return nil, werr.FailedPrecondition(fmt.Sprintf("payouts are temporarily locked until %s due to recent bank detail changes", seller.PayoutsLockedUntil.Time.Format(time.RFC3339)))
 	}
 
 	tx, err := s.pool.Begin(ctx)
@@ -720,4 +801,92 @@ func ptrToString(s *string) string {
 		return ""
 	}
 	return *s
+}
+
+// decryptSeller decrypts the bank details in a seller struct
+func (s *SellerService) decryptSeller(seller *db.Seller) {
+	if seller == nil || s.encryptor == nil {
+		return
+	}
+	if seller.BankName != "" {
+		if decrypted, err := s.encryptor.Decrypt(seller.BankName); err == nil {
+			seller.BankName = decrypted
+		}
+	}
+	if seller.BankAccountNumber != "" {
+		if decrypted, err := s.encryptor.Decrypt(seller.BankAccountNumber); err == nil {
+			seller.BankAccountNumber = decrypted
+		}
+	}
+	if seller.EcocashNumber != "" {
+		if decrypted, err := s.encryptor.Decrypt(seller.EcocashNumber); err == nil {
+			seller.EcocashNumber = decrypted
+		}
+	}
+}
+
+// SetSellerPIN hashes the pin and updates the seller's PIN in database
+func (s *SellerService) SetSellerPIN(ctx context.Context, userID uuid.UUID, pin string) error {
+	// First check if the seller exists
+	_, err := s.GetSellerByUserID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	pinHash, err := crypto.HashPIN(pin)
+	if err != nil {
+		return werr.InvalidArgument(err.Error())
+	}
+
+	_, err = s.q.UpdateSellerPIN(ctx, db.UpdateSellerPINParams{
+		UserID:        userID,
+		SellerPinHash: &pinHash,
+	})
+	if err != nil {
+		return werr.Internal(err)
+	}
+
+	return nil
+}
+
+// RevealBankDetails verifies the PIN and returns decrypted, unmasked financial details
+func (s *SellerService) RevealBankDetails(ctx context.Context, userID uuid.UUID, pin string) (bankName, bankAccount, ecocash string, err error) {
+	current, err := s.q.GetSellerByUserID(ctx, userID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", "", "", werr.NotFound("seller store not found")
+		}
+		return "", "", "", werr.Internal(err)
+	}
+
+	if current.SellerPinHash == nil || *current.SellerPinHash == "" {
+		return "", "", "", werr.FailedPrecondition("security PIN is not configured")
+	}
+
+	if err := crypto.ComparePIN(*current.SellerPinHash, pin); err != nil {
+		return "", "", "", werr.PermissionDenied("invalid security PIN")
+	}
+
+	// Decrypt the raw fields directly from the database record
+	rawBankName := current.BankName
+	rawBankAccount := current.BankAccountNumber
+	rawEcocash := current.EcocashNumber
+
+	if rawBankName != "" && s.encryptor != nil {
+		if decrypted, err := s.encryptor.Decrypt(rawBankName); err == nil {
+			rawBankName = decrypted
+		}
+	}
+	if rawBankAccount != "" && s.encryptor != nil {
+		if decrypted, err := s.encryptor.Decrypt(rawBankAccount); err == nil {
+			rawBankAccount = decrypted
+		}
+	}
+	if rawEcocash != "" && s.encryptor != nil {
+		if decrypted, err := s.encryptor.Decrypt(rawEcocash); err == nil {
+			rawEcocash = decrypted
+		}
+	}
+
+	return rawBankName, rawBankAccount, rawEcocash, nil
 }

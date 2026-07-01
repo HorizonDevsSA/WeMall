@@ -16,6 +16,7 @@ import (
 	"github.com/wemall/pkg/grpcutil"
 	"github.com/wemall/pkg/logger"
 	"github.com/wemall/seller-service/internal/config"
+	"github.com/wemall/seller-service/internal/crypto"
 	"github.com/wemall/seller-service/internal/db"
 	"github.com/wemall/seller-service/internal/handler"
 	"github.com/wemall/seller-service/internal/service"
@@ -45,7 +46,11 @@ func main() {
 	log.Info().Msg("database connected successfully")
 
 	queries := db.New(dbPool)
-	sellerSvc := service.NewSellerService(queries, dbPool)
+	encryptor, err := crypto.NewEncryptor(cfg.BankEncryptionKey)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to initialize bank details encryptor")
+	}
+	sellerSvc := service.NewSellerService(queries, dbPool, encryptor)
 
 	// Connect to NATS
 	nc, err := nats.Connect(cfg.NatsURL)
