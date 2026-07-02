@@ -1166,3 +1166,18 @@ func (r *mutationResolver) ClearNotifications(ctx context.Context) (bool, error)
 	return true, nil
 }
 
+func (r *mutationResolver) MarkNotificationAsRead(ctx context.Context, id string) (bool, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return false, gqlerrors.Unauthenticated("authentication required")
+	}
+	_, err := r.Clients.Notification.MarkNotificationAsRead(ctx, &notificationv1.MarkNotificationAsReadRequest{
+		UserId: uid,
+		Id:     id,
+	})
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
