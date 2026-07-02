@@ -129,3 +129,4 @@ func hasRoleDirective(jwtSecret string) func(ctx context.Context, obj interface{
 		return next(ctx)
 	}
 }
+// Trigger build & deploy of api-gateway with new docker-compose environment variables
