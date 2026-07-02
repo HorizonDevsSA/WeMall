@@ -13,10 +13,12 @@ for s in user-service product-service order-service seller-service notification-
   if [ "$s" = "recommendation-service" ]; then DB_NAME="wemall_recommendation"; fi
   if [ "$s" = "delivery-service" ]; then DB_NAME="wemall_delivery"; fi
   
-  echo "Migrating $s (Database: $DB_NAME)..."
+  SUFFIX=$(echo $DB_NAME | cut -d_ -f2)
+  DB_HOST="postgres-$SUFFIX"
+  echo "Migrating $s (Database: $DB_NAME on Host: $DB_HOST)..."
   docker run --rm -v /home/ubuntu/WeMall/services/$s/db/migrations:/migrations \
-    --network wemall_wemall-net \
+    --network wemall_default \
     migrate/migrate \
     -path=/migrations/ \
-    -database "postgres://wemall:${DB_PASSWORD}@postgres:5432/$DB_NAME?sslmode=disable" up
+    -database "postgres://wemall:wemall_secret@${DB_HOST}:5432/$DB_NAME?sslmode=disable" up
 done

@@ -591,6 +591,7 @@ type Mutation {
   ): NotificationPreference! @hasRole(role: BUYER)
   deleteNotification(id: ID!): Boolean! @hasRole(role: BUYER)
   clearNotifications: Boolean! @hasRole(role: BUYER)
+  markNotificationAsRead(id: ID!): Boolean! @hasRole(role: BUYER)
 
   # Reviews
   createReview(input: CreateReviewInput!): Review! @hasRole(role: BUYER)

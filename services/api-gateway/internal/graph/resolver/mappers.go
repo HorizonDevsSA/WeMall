@@ -442,6 +442,7 @@ func mapSeller(s *sellerv1.Seller) *model.Seller {
 		DataSharingEnabled:       s.DataSharingEnabled,
 		TwoFactorEnabled:         s.TwoFactorEnabled,
 		DeactivationReason:       s.DeactivationReason,
+		HasPin:                   s.HasPin,
 	}
 }
 

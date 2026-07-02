@@ -232,6 +232,7 @@ func (w *Worker) handlePushSendTask(ctx context.Context, t *asynq.Task) error {
 		"title":      payload.Title,
 		"body":       payload.Body,
 		"data":       payload.Data,
+		"category":   payload.Category,
 	}
 	payloadBytes, _ := json.Marshal(fullPayload)
 
@@ -334,10 +335,11 @@ func (w *Worker) handlePushMulticastTask(ctx context.Context, t *asynq.Task) err
 
 			// Add to push notifications inbox history
 			fullPayload := map[string]interface{}{
-				"token": token,
-				"title": payload.Title,
-				"body":  payload.Body,
-				"data":  payload.Data,
+				"token":    token,
+				"title":    payload.Title,
+				"body":     payload.Body,
+				"data":     payload.Data,
+				"category": payload.Category,
 			}
 			payloadBytes, _ := json.Marshal(fullPayload)
 

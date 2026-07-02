@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -149,24 +150,37 @@ func (h *GRPCHandler) ListNotifications(ctx context.Context, req *notificationv1
 	}
 	offset := req.Offset
 
-	logs, err := h.q.ListNotificationLogs(ctx, db.ListNotificationLogsParams{
+	logs, err := h.q.ListPushNotifications(ctx, db.ListPushNotificationsParams{
 		UserID: uid,
 		Limit:  limit,
 		Offset: offset,
 	})
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to list notification logs: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to list push notifications: %v", err)
 	}
 
 	protoLogs := make([]*notificationv1.NotificationLog, len(logs))
 	for i, l := range logs {
+		category := "general"
+		var payloadMap map[string]interface{}
+		if err := json.Unmarshal(l.Payload, &payloadMap); err == nil {
+			if cat, ok := payloadMap["category"].(string); ok && cat != "" {
+				category = cat
+			}
+		}
+
+		statusStr := "unread"
+		if l.IsRead {
+			statusStr = "read"
+		}
+
 		protoLogs[i] = &notificationv1.NotificationLog{
 			Id:        l.ID.String(),
-			Category:  l.Category,
-			Channel:   l.Channel,
+			Category:  category,
+			Channel:   "push",
 			Title:     l.Title,
-			Content:   l.Content,
-			Status:    string(l.Status),
+			Content:   l.Body,
+			Status:    statusStr,
 			CreatedAt: timestamppb.New(l.CreatedAt),
 		}
 	}
@@ -207,6 +221,28 @@ func (h *GRPCHandler) ClearNotifications(ctx context.Context, req *notificationv
 	err = h.q.DeleteAllNotificationLogs(ctx, uid)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to clear notifications: %v", err)
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+func (h *GRPCHandler) MarkNotificationAsRead(ctx context.Context, req *notificationv1.MarkNotificationAsReadRequest) (*emptypb.Empty, error) {
+	uid, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid user_id: %v", err)
+	}
+
+	id, err := uuid.Parse(req.Id)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid id: %v", err)
+	}
+
+	err = h.q.MarkPushNotificationRead(ctx, db.MarkPushNotificationReadParams{
+		ID:     id,
+		UserID: uid,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to mark notification as read: %v", err)
 	}
 
 	return &emptypb.Empty{}, nil

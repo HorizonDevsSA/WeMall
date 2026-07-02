@@ -76,6 +76,11 @@ message ClearNotificationsRequest {
   string user_id = 1;
 }
 
+message MarkNotificationAsReadRequest {
+  string user_id = 1;
+  string id = 2;
+}
+
 service NotificationService {
   rpc RegisterDeviceToken(RegisterDeviceTokenRequest) returns (google.protobuf.Empty);
   rpc DeregisterDeviceToken(DeregisterDeviceTokenRequest) returns (google.protobuf.Empty);
@@ -84,4 +89,5 @@ service NotificationService {
   rpc ListNotifications(ListNotificationsRequest) returns (ListNotificationsResponse);
   rpc DeleteNotification(DeleteNotificationRequest) returns (google.protobuf.Empty);
   rpc ClearNotifications(ClearNotificationsRequest) returns (google.protobuf.Empty);
+  rpc MarkNotificationAsRead(MarkNotificationAsReadRequest) returns (google.protobuf.Empty);
 }
