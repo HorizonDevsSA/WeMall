@@ -393,38 +393,70 @@ func (r *queryResolver) MyChatThreads(ctx context.Context) ([]*model.ChatThread,
 		return nil, gqlerrors.Unauthenticated("authentication required")
 	}
 
-	// 1. Get seller profile to get store ID
-	sellerStore, err := r.Clients.Seller.GetSellerByUserID(ctx, &sellerv1.GetSellerByUserIDRequest{UserId: uid})
-	if err != nil {
-		return nil, err
-	}
-	storeID := sellerStore.Id
+	role := middleware.RoleFromCtx(ctx)
 
-	// 2. Call chat service to list threads
+	var listUserID string
+	var listRole string
+
+	if role == "SELLER" {
+		// Get seller profile to get store ID
+		sellerStore, err := r.Clients.Seller.GetSellerByUserID(ctx, &sellerv1.GetSellerByUserIDRequest{UserId: uid})
+		if err != nil {
+			return nil, err
+		}
+		listUserID = sellerStore.Id
+		listRole = "SELLER"
+	} else {
+		listUserID = uid
+		listRole = "BUYER"
+	}
+
+	// Call chat service to list threads
 	resp, err := r.Clients.Chat.ListThreads(ctx, &chatv1.ListThreadsRequest{
-		UserId: storeID,
-		Role:   "SELLER",
+		UserId: listUserID,
+		Role:   listRole,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	// Collect buyer IDs
-	buyerIDs := []string{}
-	buyerMap := make(map[string]bool)
-	for _, t := range resp.Threads {
-		if t.BuyerId != "" && !buyerMap[t.BuyerId] {
-			buyerMap[t.BuyerId] = true
-			buyerIDs = append(buyerIDs, t.BuyerId)
+	// Collect participant IDs
+	participantIDs := []string{}
+	participantMap := make(map[string]bool)
+
+	if role == "SELLER" {
+		for _, t := range resp.Threads {
+			if t.BuyerId != "" && !participantMap[t.BuyerId] {
+				participantMap[t.BuyerId] = true
+				participantIDs = append(participantIDs, t.BuyerId)
+			}
+		}
+	} else {
+		for _, t := range resp.Threads {
+			if t.SellerId != "" && !participantMap[t.SellerId] {
+				participantMap[t.SellerId] = true
+				participantIDs = append(participantIDs, t.SellerId)
+			}
 		}
 	}
 
-	// Fetch buyer users in batch
-	users := make(map[string]*userv1.User)
-	if len(buyerIDs) > 0 {
-		batchResp, err := r.Clients.User.GetUserBatch(ctx, &userv1.GetUserBatchRequest{Ids: buyerIDs})
-		if err == nil && batchResp != nil {
-			users = batchResp.Users
+	// Fetch participant names in batch
+	buyerUsers := make(map[string]*userv1.User)
+	sellers := make(map[string]*sellerv1.Seller)
+
+	if role == "SELLER" {
+		if len(participantIDs) > 0 {
+			batchResp, err := r.Clients.User.GetUserBatch(ctx, &userv1.GetUserBatchRequest{Ids: participantIDs})
+			if err == nil && batchResp != nil {
+				buyerUsers = batchResp.Users
+			}
+		}
+	} else {
+		if len(participantIDs) > 0 {
+			batchResp, err := r.Clients.Seller.GetSellerBatch(ctx, &sellerv1.GetSellerBatchRequest{Ids: participantIDs})
+			if err == nil && batchResp != nil {
+				sellers = batchResp.Sellers
+			}
 		}
 	}
 
@@ -432,8 +464,16 @@ func (r *queryResolver) MyChatThreads(ctx context.Context) ([]*model.ChatThread,
 	out := make([]*model.ChatThread, len(resp.Threads))
 	for i, t := range resp.Threads {
 		buyerName := "Customer"
-		if u, exists := users[t.BuyerId]; exists && u != nil {
-			buyerName = u.FullName
+		if role == "SELLER" {
+			if u, exists := buyerUsers[t.BuyerId]; exists && u != nil {
+				buyerName = u.FullName
+			}
+		} else {
+			if s, exists := sellers[t.SellerId]; exists && s != nil {
+				buyerName = s.StoreName
+			} else {
+				buyerName = "Seller"
+			}
 		}
 
 		lastMsg := "No messages yet"
