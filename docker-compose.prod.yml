@@ -113,6 +113,9 @@ services:
       - JWT_SECRET=${JWT_SECRET:-wemall_jwt_secret}
       - ENVIRONMENT=production
       - DELIVERY_SERVICE_ADDR=delivery-service:9017
+      - CHAT_SERVICE_ADDR=chat-service:9012
+      - DISPUTE_SERVICE_ADDR=dispute-service:9013
+      - RECOMMENDATION_SERVICE_ADDR=recommendation-service:9016
     depends_on:
       redis:
         condition: service_healthy
