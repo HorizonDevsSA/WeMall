@@ -13,10 +13,16 @@ type Config struct {
 func Load() *Config {
 	port := os.Getenv("PORT")
 	if port == "" {
+		port = os.Getenv("GRPC_PORT")
+	}
+	if port == "" {
 		port = "50059"
 	}
 
 	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		dbURL = os.Getenv("DB_URL")
+	}
 	if dbURL == "" {
 		dbURL = "postgres://postgres:postgres@localhost:5432/wemall_chat?sslmode=disable"
 	}
