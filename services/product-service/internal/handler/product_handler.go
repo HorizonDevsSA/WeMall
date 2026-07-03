@@ -2,6 +2,8 @@ package handler
 
 import (
 	"context"
+	"log"
+	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -73,7 +75,12 @@ func (h *ProductHandler) GetProduct(ctx context.Context, req *productv1.GetProdu
 
 	prod, err := h.productSvc.GetProduct(ctx, req.Id, req.Slug, lang)
 	if err != nil {
-		return nil, status.Error(codes.NotFound, "product not found")
+		log.Printf("GetProduct error (id=%q slug=%q): %v", req.Id, req.Slug, err)
+		msg := err.Error()
+		if strings.Contains(msg, "no rows") || strings.Contains(msg, "not found") || strings.Contains(msg, "invalid product id") {
+			return nil, status.Error(codes.NotFound, "product not found")
+		}
+		return nil, status.Errorf(codes.Internal, "get product: %v", err)
 	}
 
 	return prod, nil
