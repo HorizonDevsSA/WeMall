@@ -10,6 +10,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	_ "google.golang.org/protobuf/types/known/emptypb"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
@@ -29,6 +30,10 @@ const (
 	ThreadType_THREAD_TYPE_UNSPECIFIED ThreadType = 0
 	ThreadType_THREAD_TYPE_DIRECT      ThreadType = 1
 	ThreadType_THREAD_TYPE_BROADCAST   ThreadType = 2
+	ThreadType_THREAD_TYPE_DELIVERY    ThreadType = 3
+	ThreadType_THREAD_TYPE_COURIER     ThreadType = 4
+	ThreadType_THREAD_TYPE_SUPPORT     ThreadType = 5
+	ThreadType_THREAD_TYPE_SYSTEM      ThreadType = 6
 )
 
 // Enum value maps for ThreadType.
@@ -37,11 +42,19 @@ var (
 		0: "THREAD_TYPE_UNSPECIFIED",
 		1: "THREAD_TYPE_DIRECT",
 		2: "THREAD_TYPE_BROADCAST",
+		3: "THREAD_TYPE_DELIVERY",
+		4: "THREAD_TYPE_COURIER",
+		5: "THREAD_TYPE_SUPPORT",
+		6: "THREAD_TYPE_SYSTEM",
 	}
 	ThreadType_value = map[string]int32{
 		"THREAD_TYPE_UNSPECIFIED": 0,
 		"THREAD_TYPE_DIRECT":      1,
 		"THREAD_TYPE_BROADCAST":   2,
+		"THREAD_TYPE_DELIVERY":    3,
+		"THREAD_TYPE_COURIER":     4,
+		"THREAD_TYPE_SUPPORT":     5,
+		"THREAD_TYPE_SYSTEM":      6,
 	}
 )
 
@@ -84,6 +97,7 @@ const (
 	MessageType_MESSAGE_TYPE_PRODUCT     MessageType = 6
 	MessageType_MESSAGE_TYPE_ORDER       MessageType = 7
 	MessageType_MESSAGE_TYPE_PROMOTION   MessageType = 8
+	MessageType_MESSAGE_TYPE_COUPON      MessageType = 9
 )
 
 // Enum value maps for MessageType.
@@ -98,6 +112,7 @@ var (
 		6: "MESSAGE_TYPE_PRODUCT",
 		7: "MESSAGE_TYPE_ORDER",
 		8: "MESSAGE_TYPE_PROMOTION",
+		9: "MESSAGE_TYPE_COUPON",
 	}
 	MessageType_value = map[string]int32{
 		"MESSAGE_TYPE_UNSPECIFIED": 0,
@@ -109,6 +124,7 @@ var (
 		"MESSAGE_TYPE_PRODUCT":     6,
 		"MESSAGE_TYPE_ORDER":       7,
 		"MESSAGE_TYPE_PROMOTION":   8,
+		"MESSAGE_TYPE_COUPON":      9,
 	}
 )
 
@@ -140,17 +156,21 @@ func (MessageType) EnumDescriptor() ([]byte, []int) {
 }
 
 type Thread struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Type          ThreadType             `protobuf:"varint,2,opt,name=type,proto3,enum=chat.v1.ThreadType" json:"type,omitempty"`
-	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
-	BuyerId       string                 `protobuf:"bytes,4,opt,name=buyer_id,json=buyerId,proto3" json:"buyer_id,omitempty"`
-	SellerId      string                 `protobuf:"bytes,5,opt,name=seller_id,json=sellerId,proto3" json:"seller_id,omitempty"`
-	OrderId       string                 `protobuf:"bytes,6,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"` // Optional
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Type              ThreadType             `protobuf:"varint,2,opt,name=type,proto3,enum=chat.v1.ThreadType" json:"type,omitempty"`
+	Title             string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	BuyerId           string                 `protobuf:"bytes,4,opt,name=buyer_id,json=buyerId,proto3" json:"buyer_id,omitempty"`
+	SellerId          string                 `protobuf:"bytes,5,opt,name=seller_id,json=sellerId,proto3" json:"seller_id,omitempty"`
+	OrderId           string                 `protobuf:"bytes,6,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"` // Optional
+	CreatedAt         *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt         *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	DeliveryBoyId     string                 `protobuf:"bytes,9,opt,name=delivery_boy_id,json=deliveryBoyId,proto3" json:"delivery_boy_id,omitempty"`            // Optional
+	CourierStationId  string                 `protobuf:"bytes,10,opt,name=courier_station_id,json=courierStationId,proto3" json:"courier_station_id,omitempty"`  // Optional
+	SupportAgentId    string                 `protobuf:"bytes,11,opt,name=support_agent_id,json=supportAgentId,proto3" json:"support_agent_id,omitempty"`        // Optional
+	ParticipantAvatar string                 `protobuf:"bytes,12,opt,name=participant_avatar,json=participantAvatar,proto3" json:"participant_avatar,omitempty"` // Optional
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *Thread) Reset() {
@@ -239,6 +259,34 @@ func (x *Thread) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Thread) GetDeliveryBoyId() string {
+	if x != nil {
+		return x.DeliveryBoyId
+	}
+	return ""
+}
+
+func (x *Thread) GetCourierStationId() string {
+	if x != nil {
+		return x.CourierStationId
+	}
+	return ""
+}
+
+func (x *Thread) GetSupportAgentId() string {
+	if x != nil {
+		return x.SupportAgentId
+	}
+	return ""
+}
+
+func (x *Thread) GetParticipantAvatar() string {
+	if x != nil {
+		return x.ParticipantAvatar
+	}
+	return ""
+}
+
 type Message struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -250,6 +298,7 @@ type Message struct {
 	ReferenceId   string                 `protobuf:"bytes,7,opt,name=reference_id,json=referenceId,proto3" json:"reference_id,omitempty"`
 	IsRead        bool                   `protobuf:"varint,8,opt,name=is_read,json=isRead,proto3" json:"is_read,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Metadata      *structpb.Struct       `protobuf:"bytes,10,opt,name=metadata,proto3" json:"metadata,omitempty"` // Optional rich metadata
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -347,13 +396,25 @@ func (x *Message) GetCreatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Message) GetMetadata() *structpb.Struct {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
 type CreateThreadRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	BuyerId       string                 `protobuf:"bytes,1,opt,name=buyer_id,json=buyerId,proto3" json:"buyer_id,omitempty"`
-	SellerId      string                 `protobuf:"bytes,2,opt,name=seller_id,json=sellerId,proto3" json:"seller_id,omitempty"`
-	OrderId       string                 `protobuf:"bytes,3,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	BuyerId           string                 `protobuf:"bytes,1,opt,name=buyer_id,json=buyerId,proto3" json:"buyer_id,omitempty"`
+	SellerId          string                 `protobuf:"bytes,2,opt,name=seller_id,json=sellerId,proto3" json:"seller_id,omitempty"`
+	OrderId           string                 `protobuf:"bytes,3,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	DeliveryBoyId     string                 `protobuf:"bytes,4,opt,name=delivery_boy_id,json=deliveryBoyId,proto3" json:"delivery_boy_id,omitempty"`
+	CourierStationId  string                 `protobuf:"bytes,5,opt,name=courier_station_id,json=courierStationId,proto3" json:"courier_station_id,omitempty"`
+	SupportAgentId    string                 `protobuf:"bytes,6,opt,name=support_agent_id,json=supportAgentId,proto3" json:"support_agent_id,omitempty"`
+	Type              ThreadType             `protobuf:"varint,7,opt,name=type,proto3,enum=chat.v1.ThreadType" json:"type,omitempty"`
+	ParticipantAvatar string                 `protobuf:"bytes,8,opt,name=participant_avatar,json=participantAvatar,proto3" json:"participant_avatar,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *CreateThreadRequest) Reset() {
@@ -407,12 +468,48 @@ func (x *CreateThreadRequest) GetOrderId() string {
 	return ""
 }
 
+func (x *CreateThreadRequest) GetDeliveryBoyId() string {
+	if x != nil {
+		return x.DeliveryBoyId
+	}
+	return ""
+}
+
+func (x *CreateThreadRequest) GetCourierStationId() string {
+	if x != nil {
+		return x.CourierStationId
+	}
+	return ""
+}
+
+func (x *CreateThreadRequest) GetSupportAgentId() string {
+	if x != nil {
+		return x.SupportAgentId
+	}
+	return ""
+}
+
+func (x *CreateThreadRequest) GetType() ThreadType {
+	if x != nil {
+		return x.Type
+	}
+	return ThreadType_THREAD_TYPE_UNSPECIFIED
+}
+
+func (x *CreateThreadRequest) GetParticipantAvatar() string {
+	if x != nil {
+		return x.ParticipantAvatar
+	}
+	return ""
+}
+
 type CreateBroadcastGroupRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	SellerId      string                 `protobuf:"bytes,1,opt,name=seller_id,json=sellerId,proto3" json:"seller_id,omitempty"`
-	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	SellerId          string                 `protobuf:"bytes,1,opt,name=seller_id,json=sellerId,proto3" json:"seller_id,omitempty"`
+	Title             string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	ParticipantAvatar string                 `protobuf:"bytes,3,opt,name=participant_avatar,json=participantAvatar,proto3" json:"participant_avatar,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *CreateBroadcastGroupRequest) Reset() {
@@ -459,6 +556,13 @@ func (x *CreateBroadcastGroupRequest) GetTitle() string {
 	return ""
 }
 
+func (x *CreateBroadcastGroupRequest) GetParticipantAvatar() string {
+	if x != nil {
+		return x.ParticipantAvatar
+	}
+	return ""
+}
+
 type SendMessageRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ThreadId      string                 `protobuf:"bytes,1,opt,name=thread_id,json=threadId,proto3" json:"thread_id,omitempty"`
@@ -467,6 +571,7 @@ type SendMessageRequest struct {
 	Content       string                 `protobuf:"bytes,4,opt,name=content,proto3" json:"content,omitempty"`
 	MediaUrl      string                 `protobuf:"bytes,5,opt,name=media_url,json=mediaUrl,proto3" json:"media_url,omitempty"`
 	ReferenceId   string                 `protobuf:"bytes,6,opt,name=reference_id,json=referenceId,proto3" json:"reference_id,omitempty"`
+	Metadata      *structpb.Struct       `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -543,10 +648,17 @@ func (x *SendMessageRequest) GetReferenceId() string {
 	return ""
 }
 
+func (x *SendMessageRequest) GetMetadata() *structpb.Struct {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
 type ListThreadsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Role          string                 `protobuf:"bytes,2,opt,name=role,proto3" json:"role,omitempty"` // "BUYER" or "SELLER"
+	Role          string                 `protobuf:"bytes,2,opt,name=role,proto3" json:"role,omitempty"` // "BUYER", "SELLER", "DELIVERY", "COURIER", "SUPPORT", "SYSTEM"
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -755,7 +867,7 @@ var File_chat_v1_chat_proto protoreflect.FileDescriptor
 
 const file_chat_v1_chat_proto_rawDesc = "" +
 	"\n" +
-	"\x12chat/v1/chat.proto\x12\achat.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xa0\x02\n" +
+	"\x12chat/v1/chat.proto\x12\achat.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1cgoogle/protobuf/struct.proto\"\xcf\x03\n" +
 	"\x06Thread\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x13.chat.v1.ThreadTypeR\x04type\x12\x14\n" +
@@ -766,7 +878,12 @@ const file_chat_v1_chat_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xab\x02\n" +
+	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12&\n" +
+	"\x0fdelivery_boy_id\x18\t \x01(\tR\rdeliveryBoyId\x12,\n" +
+	"\x12courier_station_id\x18\n" +
+	" \x01(\tR\x10courierStationId\x12(\n" +
+	"\x10support_agent_id\x18\v \x01(\tR\x0esupportAgentId\x12-\n" +
+	"\x12participant_avatar\x18\f \x01(\tR\x11participantAvatar\"\xe0\x02\n" +
 	"\aMessage\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tthread_id\x18\x02 \x01(\tR\bthreadId\x12\x1b\n" +
@@ -777,21 +894,30 @@ const file_chat_v1_chat_proto_rawDesc = "" +
 	"\freference_id\x18\a \x01(\tR\vreferenceId\x12\x17\n" +
 	"\ais_read\x18\b \x01(\bR\x06isRead\x129\n" +
 	"\n" +
-	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"h\n" +
+	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x123\n" +
+	"\bmetadata\x18\n" +
+	" \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\xc0\x02\n" +
 	"\x13CreateThreadRequest\x12\x19\n" +
 	"\bbuyer_id\x18\x01 \x01(\tR\abuyerId\x12\x1b\n" +
 	"\tseller_id\x18\x02 \x01(\tR\bsellerId\x12\x19\n" +
-	"\border_id\x18\x03 \x01(\tR\aorderId\"P\n" +
+	"\border_id\x18\x03 \x01(\tR\aorderId\x12&\n" +
+	"\x0fdelivery_boy_id\x18\x04 \x01(\tR\rdeliveryBoyId\x12,\n" +
+	"\x12courier_station_id\x18\x05 \x01(\tR\x10courierStationId\x12(\n" +
+	"\x10support_agent_id\x18\x06 \x01(\tR\x0esupportAgentId\x12'\n" +
+	"\x04type\x18\a \x01(\x0e2\x13.chat.v1.ThreadTypeR\x04type\x12-\n" +
+	"\x12participant_avatar\x18\b \x01(\tR\x11participantAvatar\"\x7f\n" +
 	"\x1bCreateBroadcastGroupRequest\x12\x1b\n" +
 	"\tseller_id\x18\x01 \x01(\tR\bsellerId\x12\x14\n" +
-	"\x05title\x18\x02 \x01(\tR\x05title\"\xd2\x01\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12-\n" +
+	"\x12participant_avatar\x18\x03 \x01(\tR\x11participantAvatar\"\x87\x02\n" +
 	"\x12SendMessageRequest\x12\x1b\n" +
 	"\tthread_id\x18\x01 \x01(\tR\bthreadId\x12\x1b\n" +
 	"\tsender_id\x18\x02 \x01(\tR\bsenderId\x12(\n" +
 	"\x04type\x18\x03 \x01(\x0e2\x14.chat.v1.MessageTypeR\x04type\x12\x18\n" +
 	"\acontent\x18\x04 \x01(\tR\acontent\x12\x1b\n" +
 	"\tmedia_url\x18\x05 \x01(\tR\bmediaUrl\x12!\n" +
-	"\freference_id\x18\x06 \x01(\tR\vreferenceId\"A\n" +
+	"\freference_id\x18\x06 \x01(\tR\vreferenceId\x123\n" +
+	"\bmetadata\x18\a \x01(\v2\x17.google.protobuf.StructR\bmetadata\"A\n" +
 	"\x12ListThreadsRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x12\n" +
 	"\x04role\x18\x02 \x01(\tR\x04role\"@\n" +
@@ -804,12 +930,16 @@ const file_chat_v1_chat_proto_rawDesc = "" +
 	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"l\n" +
 	"\x14ListMessagesResponse\x12,\n" +
 	"\bmessages\x18\x01 \x03(\v2\x10.chat.v1.MessageR\bmessages\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken*\\\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken*\xc0\x01\n" +
 	"\n" +
 	"ThreadType\x12\x1b\n" +
 	"\x17THREAD_TYPE_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12THREAD_TYPE_DIRECT\x10\x01\x12\x19\n" +
-	"\x15THREAD_TYPE_BROADCAST\x10\x02*\xf3\x01\n" +
+	"\x15THREAD_TYPE_BROADCAST\x10\x02\x12\x18\n" +
+	"\x14THREAD_TYPE_DELIVERY\x10\x03\x12\x17\n" +
+	"\x13THREAD_TYPE_COURIER\x10\x04\x12\x17\n" +
+	"\x13THREAD_TYPE_SUPPORT\x10\x05\x12\x16\n" +
+	"\x12THREAD_TYPE_SYSTEM\x10\x06*\x8c\x02\n" +
 	"\vMessageType\x12\x1c\n" +
 	"\x18MESSAGE_TYPE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11MESSAGE_TYPE_TEXT\x10\x01\x12\x16\n" +
@@ -819,7 +949,8 @@ const file_chat_v1_chat_proto_rawDesc = "" +
 	"\x12MESSAGE_TYPE_AUDIO\x10\x05\x12\x18\n" +
 	"\x14MESSAGE_TYPE_PRODUCT\x10\x06\x12\x16\n" +
 	"\x12MESSAGE_TYPE_ORDER\x10\a\x12\x1a\n" +
-	"\x16MESSAGE_TYPE_PROMOTION\x10\b2\xf0\x02\n" +
+	"\x16MESSAGE_TYPE_PROMOTION\x10\b\x12\x17\n" +
+	"\x13MESSAGE_TYPE_COUPON\x10\t2\xf0\x02\n" +
 	"\vChatService\x12=\n" +
 	"\fCreateThread\x12\x1c.chat.v1.CreateThreadRequest\x1a\x0f.chat.v1.Thread\x12M\n" +
 	"\x14CreateBroadcastGroup\x12$.chat.v1.CreateBroadcastGroupRequest\x1a\x0f.chat.v1.Thread\x12<\n" +
@@ -854,6 +985,7 @@ var file_chat_v1_chat_proto_goTypes = []any{
 	(*ListMessagesRequest)(nil),         // 9: chat.v1.ListMessagesRequest
 	(*ListMessagesResponse)(nil),        // 10: chat.v1.ListMessagesResponse
 	(*timestamppb.Timestamp)(nil),       // 11: google.protobuf.Timestamp
+	(*structpb.Struct)(nil),             // 12: google.protobuf.Struct
 }
 var file_chat_v1_chat_proto_depIdxs = []int32{
 	0,  // 0: chat.v1.Thread.type:type_name -> chat.v1.ThreadType
@@ -861,24 +993,27 @@ var file_chat_v1_chat_proto_depIdxs = []int32{
 	11, // 2: chat.v1.Thread.updated_at:type_name -> google.protobuf.Timestamp
 	1,  // 3: chat.v1.Message.type:type_name -> chat.v1.MessageType
 	11, // 4: chat.v1.Message.created_at:type_name -> google.protobuf.Timestamp
-	1,  // 5: chat.v1.SendMessageRequest.type:type_name -> chat.v1.MessageType
-	2,  // 6: chat.v1.ListThreadsResponse.threads:type_name -> chat.v1.Thread
-	3,  // 7: chat.v1.ListMessagesResponse.messages:type_name -> chat.v1.Message
-	4,  // 8: chat.v1.ChatService.CreateThread:input_type -> chat.v1.CreateThreadRequest
-	5,  // 9: chat.v1.ChatService.CreateBroadcastGroup:input_type -> chat.v1.CreateBroadcastGroupRequest
-	6,  // 10: chat.v1.ChatService.SendMessage:input_type -> chat.v1.SendMessageRequest
-	7,  // 11: chat.v1.ChatService.ListThreads:input_type -> chat.v1.ListThreadsRequest
-	9,  // 12: chat.v1.ChatService.ListMessages:input_type -> chat.v1.ListMessagesRequest
-	2,  // 13: chat.v1.ChatService.CreateThread:output_type -> chat.v1.Thread
-	2,  // 14: chat.v1.ChatService.CreateBroadcastGroup:output_type -> chat.v1.Thread
-	3,  // 15: chat.v1.ChatService.SendMessage:output_type -> chat.v1.Message
-	8,  // 16: chat.v1.ChatService.ListThreads:output_type -> chat.v1.ListThreadsResponse
-	10, // 17: chat.v1.ChatService.ListMessages:output_type -> chat.v1.ListMessagesResponse
-	13, // [13:18] is the sub-list for method output_type
-	8,  // [8:13] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	12, // 5: chat.v1.Message.metadata:type_name -> google.protobuf.Struct
+	0,  // 6: chat.v1.CreateThreadRequest.type:type_name -> chat.v1.ThreadType
+	1,  // 7: chat.v1.SendMessageRequest.type:type_name -> chat.v1.MessageType
+	12, // 8: chat.v1.SendMessageRequest.metadata:type_name -> google.protobuf.Struct
+	2,  // 9: chat.v1.ListThreadsResponse.threads:type_name -> chat.v1.Thread
+	3,  // 10: chat.v1.ListMessagesResponse.messages:type_name -> chat.v1.Message
+	4,  // 11: chat.v1.ChatService.CreateThread:input_type -> chat.v1.CreateThreadRequest
+	5,  // 12: chat.v1.ChatService.CreateBroadcastGroup:input_type -> chat.v1.CreateBroadcastGroupRequest
+	6,  // 13: chat.v1.ChatService.SendMessage:input_type -> chat.v1.SendMessageRequest
+	7,  // 14: chat.v1.ChatService.ListThreads:input_type -> chat.v1.ListThreadsRequest
+	9,  // 15: chat.v1.ChatService.ListMessages:input_type -> chat.v1.ListMessagesRequest
+	2,  // 16: chat.v1.ChatService.CreateThread:output_type -> chat.v1.Thread
+	2,  // 17: chat.v1.ChatService.CreateBroadcastGroup:output_type -> chat.v1.Thread
+	3,  // 18: chat.v1.ChatService.SendMessage:output_type -> chat.v1.Message
+	8,  // 19: chat.v1.ChatService.ListThreads:output_type -> chat.v1.ListThreadsResponse
+	10, // 20: chat.v1.ChatService.ListMessages:output_type -> chat.v1.ListMessagesResponse
+	16, // [16:21] is the sub-list for method output_type
+	11, // [11:16] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_chat_v1_chat_proto_init() }

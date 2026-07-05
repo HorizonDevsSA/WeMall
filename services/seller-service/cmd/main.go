@@ -45,21 +45,22 @@ func main() {
 	}
 	log.Info().Msg("database connected successfully")
 
-	queries := db.New(dbPool)
-	encryptor, err := crypto.NewEncryptor(cfg.BankEncryptionKey)
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to initialize bank details encryptor")
-	}
-	sellerSvc := service.NewSellerService(queries, dbPool, encryptor)
-
 	// Connect to NATS
-	nc, err := nats.Connect(cfg.NatsURL)
+	var nc *nats.Conn
+	nc, err = nats.Connect(cfg.NatsURL)
 	if err != nil {
 		log.Warn().Err(err).Msgf("failed to connect to NATS at %s, proceeding without NATS events", cfg.NatsURL)
 	} else {
 		defer nc.Close()
 		log.Info().Msg("NATS connected successfully")
 	}
+
+	queries := db.New(dbPool)
+	encryptor, err := crypto.NewEncryptor(cfg.BankEncryptionKey)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to initialize bank details encryptor")
+	}
+	sellerSvc := service.NewSellerService(queries, dbPool, encryptor, nc)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

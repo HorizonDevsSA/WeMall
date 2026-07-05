@@ -5,9 +5,10 @@ import (
 )
 
 type Config struct {
-	Port        string
-	DatabaseURL string
-	NatsURL     string
+	Port              string
+	DatabaseURL       string
+	NatsURL           string
+	SellerServiceAddr string
 }
 
 func Load() *Config {
@@ -32,9 +33,15 @@ func Load() *Config {
 		natsURL = "nats://localhost:4222"
 	}
 
+	sellerAddr := os.Getenv("SELLER_SERVICE_ADDR")
+	if sellerAddr == "" {
+		sellerAddr = "localhost:50052"
+	}
+
 	return &Config{
-		Port:        port,
-		DatabaseURL: dbURL,
-		NatsURL:     natsURL,
+		Port:              port,
+		DatabaseURL:       dbURL,
+		NatsURL:           natsURL,
+		SellerServiceAddr: sellerAddr,
 	}
 }

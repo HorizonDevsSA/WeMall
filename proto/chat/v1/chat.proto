@@ -4,11 +4,16 @@ option go_package = "github.com/wemall/gen/chat/v1;chatv1";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
 
 enum ThreadType {
   THREAD_TYPE_UNSPECIFIED = 0;
   THREAD_TYPE_DIRECT = 1;
   THREAD_TYPE_BROADCAST = 2;
+  THREAD_TYPE_DELIVERY = 3;
+  THREAD_TYPE_COURIER = 4;
+  THREAD_TYPE_SUPPORT = 5;
+  THREAD_TYPE_SYSTEM = 6;
 }
 
 enum MessageType {
@@ -21,6 +26,7 @@ enum MessageType {
   MESSAGE_TYPE_PRODUCT = 6;
   MESSAGE_TYPE_ORDER = 7;
   MESSAGE_TYPE_PROMOTION = 8;
+  MESSAGE_TYPE_COUPON = 9;
 }
 
 message Thread {
@@ -32,6 +38,10 @@ message Thread {
   string order_id = 6; // Optional
   google.protobuf.Timestamp created_at = 7;
   google.protobuf.Timestamp updated_at = 8;
+  string delivery_boy_id = 9; // Optional
+  string courier_station_id = 10; // Optional
+  string support_agent_id = 11; // Optional
+  string participant_avatar = 12; // Optional
 }
 
 message Message {
@@ -44,17 +54,24 @@ message Message {
   string reference_id = 7;
   bool is_read = 8;
   google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Struct metadata = 10; // Optional rich metadata
 }
 
 message CreateThreadRequest {
   string buyer_id = 1;
   string seller_id = 2;
   string order_id = 3;
+  string delivery_boy_id = 4;
+  string courier_station_id = 5;
+  string support_agent_id = 6;
+  ThreadType type = 7;
+  string participant_avatar = 8;
 }
 
 message CreateBroadcastGroupRequest {
   string seller_id = 1;
   string title = 2;
+  string participant_avatar = 3;
 }
 
 message SendMessageRequest {
@@ -64,11 +81,12 @@ message SendMessageRequest {
   string content = 4;
   string media_url = 5;
   string reference_id = 6;
+  google.protobuf.Struct metadata = 7;
 }
 
 message ListThreadsRequest {
   string user_id = 1;
-  string role = 2; // "BUYER" or "SELLER"
+  string role = 2; // "BUYER", "SELLER", "DELIVERY", "COURIER", "SUPPORT", "SYSTEM"
 }
 
 message ListThreadsResponse {
@@ -93,3 +111,4 @@ service ChatService {
   rpc ListThreads(ListThreadsRequest) returns (ListThreadsResponse);
   rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse);
 }
+

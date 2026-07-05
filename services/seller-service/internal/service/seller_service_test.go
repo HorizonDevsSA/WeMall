@@ -162,7 +162,7 @@ func TestSellerService_SecurityPINAndEncryption(t *testing.T) {
 	}
 
 	queries := db.New(dbtx)
-	svc := service.NewSellerService(queries, nil, enc)
+	svc := service.NewSellerService(queries, nil, enc, nil)
 
 	// --- 1. Test update bank details without a PIN set ---
 	_, err = svc.UpdateStore(ctx, service.UpdateStoreInput{

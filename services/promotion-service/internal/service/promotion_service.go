@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -10,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	promotionv1 "github.com/wemall/gen/promotion/v1"
@@ -19,10 +21,11 @@ import (
 type PromotionService struct {
 	queries *db.Queries
 	db      *pgxpool.Pool
+	nc      *nats.Conn
 }
 
-func NewPromotionService(queries *db.Queries, dbPool *pgxpool.Pool) *PromotionService {
-	return &PromotionService{queries: queries, db: dbPool}
+func NewPromotionService(queries *db.Queries, dbPool *pgxpool.Pool, nc *nats.Conn) *PromotionService {
+	return &PromotionService{queries: queries, db: dbPool, nc: nc}
 }
 
 // Convert float64 to pgtype.Numeric
@@ -52,6 +55,16 @@ func numericToFloat64(n pgtype.Numeric) float64 {
 	return 0
 }
 
+type CouponCreatedEvent struct {
+	ID            string    `json:"id"`
+	Code          string    `json:"code"`
+	SellerID      string    `json:"seller_id"`
+	DiscountType  string    `json:"discount_type"`
+	DiscountValue float64   `json:"discount_value"`
+	MinOrderValue float64   `json:"min_order_value"`
+	EndDate       time.Time `json:"end_date"`
+}
+
 func (s *PromotionService) CreateCoupon(ctx context.Context, req *promotionv1.CreateCouponRequest) (*promotionv1.Coupon, error) {
 	sellerId := pgtype.Text{String: req.SellerId, Valid: req.SellerId != ""}
 	
@@ -70,6 +83,21 @@ func (s *PromotionService) CreateCoupon(ctx context.Context, req *promotionv1.Cr
 	c, err := s.queries.CreateCoupon(ctx, params)
 	if err != nil {
 		return nil, fmt.Errorf("create coupon: %w", err)
+	}
+
+	if s.nc != nil {
+		event := CouponCreatedEvent{
+			ID:            c.ID.String(),
+			Code:          c.Code,
+			SellerID:      c.SellerID.String,
+			DiscountType:  c.DiscountType,
+			DiscountValue: numericToFloat64(c.DiscountValue),
+			MinOrderValue: numericToFloat64(c.MinOrderValue),
+			EndDate:       c.EndDate.Time,
+		}
+		if eventBytes, err := json.Marshal(event); err == nil {
+			_ = s.nc.Publish("wemall.coupon.created", eventBytes)
+		}
 	}
 
 	return s.mapCoupon(c), nil
@@ -168,6 +196,13 @@ func (s *PromotionService) ListCoupons(ctx context.Context, req *promotionv1.Lis
 	}, nil
 }
 
+type FlashSaleCreatedEvent struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	StartTime time.Time `json:"start_time"`
+	EndTime   time.Time `json:"end_time"`
+}
+
 func (s *PromotionService) CreateFlashSale(ctx context.Context, req *promotionv1.CreateFlashSaleRequest) (*promotionv1.FlashSale, error) {
 	params := db.CreateFlashSaleParams{
 		Name:      req.Name,
@@ -179,6 +214,18 @@ func (s *PromotionService) CreateFlashSale(ctx context.Context, req *promotionv1
 	fs, err := s.queries.CreateFlashSale(ctx, params)
 	if err != nil {
 		return nil, fmt.Errorf("create flash sale: %w", err)
+	}
+
+	if s.nc != nil {
+		event := FlashSaleCreatedEvent{
+			ID:        fs.ID.String(),
+			Name:      fs.Name,
+			StartTime: fs.StartTime.Time,
+			EndTime:   fs.EndTime.Time,
+		}
+		if eventBytes, err := json.Marshal(event); err == nil {
+			_ = s.nc.Publish("wemall.promotion.created", eventBytes)
+		}
 	}
 
 	return s.mapFlashSale(fs, nil), nil

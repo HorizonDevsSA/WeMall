@@ -462,6 +462,7 @@ type Query {
   # Chat
   myChatThreads: [ChatThread!]!
   chatMessages(threadId: ID!, pageToken: String, pageSize: Int): [ChatMessage!]!
+  chatThread(threadId: ID!): ChatThread!
 
   # Dispute
   myDisputes: DisputeList!
@@ -601,8 +602,11 @@ type Mutation {
   createSellerReply(input: SellerReplyInput!): SellerReply! @hasRole(role: SELLER)
 
   # Chat
-  createChatThread(sellerId: ID!, orderId: ID): ChatThread! @hasRole(role: BUYER)
-  sendChatMessage(threadId: ID!, content: String!): ChatMessage!
+  createChatThread(sellerId: ID!, orderId: ID, type: ChatThreadType, participantAvatar: String): ChatThread! @hasRole(role: BUYER)
+  createDeliveryThread(orderId: ID!, deliveryBoyId: ID!, participantAvatar: String): ChatThread! @hasRole(role: BUYER)
+  createCourierThread(orderId: ID!, courierStationId: ID!, participantAvatar: String): ChatThread! @hasRole(role: BUYER)
+  createSupportThread(participantAvatar: String): ChatThread! @hasRole(role: BUYER)
+  sendChatMessage(threadId: ID!, content: String!, type: ChatMessageType, mediaUrl: String, referenceId: ID): ChatMessage!
 
   # Dispute
   openDispute(orderId: ID!, reason: String!, evidenceUrls: [String!]): Dispute! @hasRole(role: BUYER)
@@ -792,12 +796,39 @@ type InitiatePaymentResponse {
 
 # ── Chat Types ────────────────────────────────────────────────────────────────
 
+enum ChatThreadType {
+  DIRECT
+  BROADCAST
+  DELIVERY
+  COURIER
+  SUPPORT
+  SYSTEM
+}
+
+enum ChatMessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  DOCUMENT
+  AUDIO
+  PRODUCT
+  ORDER
+  PROMOTION
+  COUPON
+}
+
 type ChatThread {
   id: ID!
+  type: ChatThreadType!
+  title: String
   buyerId: ID!
   sellerId: ID!
   orderId: ID
-  buyerName: String!
+  deliveryBoyId: ID
+  courierStationId: ID
+  supportAgentId: ID
+  participantName: String!
+  participantAvatar: String
   lastMessage: String!
   timestamp: String!
   createdAt: Time!
@@ -808,7 +839,11 @@ type ChatMessage {
   id: ID!
   threadId: ID!
   senderId: ID!
+  type: ChatMessageType!
   content: String!
+  mediaUrl: String
+  referenceId: ID
+  metadata: String
   isRead: Boolean!
   timestamp: String!
   createdAt: Time!

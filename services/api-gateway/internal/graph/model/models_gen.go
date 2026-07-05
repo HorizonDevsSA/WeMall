@@ -35,13 +35,17 @@ type AppendReviewInput struct {
 }
 
 type ChatMessage struct {
-	ID        string    `json:"id"`
-	ThreadID  string    `json:"threadId"`
-	SenderID  string    `json:"senderId"`
-	Content   string    `json:"content"`
-	IsRead    bool      `json:"isRead"`
-	Timestamp string    `json:"timestamp"`
-	CreatedAt time.Time `json:"createdAt"`
+	ID          string          `json:"id"`
+	ThreadID    string          `json:"threadId"`
+	SenderID    string          `json:"senderId"`
+	Type        ChatMessageType `json:"type"`
+	Content     string          `json:"content"`
+	MediaURL    *string         `json:"mediaUrl,omitempty"`
+	ReferenceID *string         `json:"referenceId,omitempty"`
+	Metadata    *string         `json:"metadata,omitempty"`
+	IsRead      bool            `json:"isRead"`
+	Timestamp   string          `json:"timestamp"`
+	CreatedAt   time.Time       `json:"createdAt"`
 }
 
 type ChatMessageList struct {
@@ -50,15 +54,21 @@ type ChatMessageList struct {
 }
 
 type ChatThread struct {
-	ID          string    `json:"id"`
-	BuyerID     string    `json:"buyerId"`
-	SellerID    string    `json:"sellerId"`
-	OrderID     *string   `json:"orderId,omitempty"`
-	BuyerName   string    `json:"buyerName"`
-	LastMessage string    `json:"lastMessage"`
-	Timestamp   string    `json:"timestamp"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
+	ID                string         `json:"id"`
+	Type              ChatThreadType `json:"type"`
+	Title             *string        `json:"title,omitempty"`
+	BuyerID           string         `json:"buyerId"`
+	SellerID          string         `json:"sellerId"`
+	OrderID           *string        `json:"orderId,omitempty"`
+	DeliveryBoyID     *string        `json:"deliveryBoyId,omitempty"`
+	CourierStationID  *string        `json:"courierStationId,omitempty"`
+	SupportAgentID    *string        `json:"supportAgentId,omitempty"`
+	ParticipantName   string         `json:"participantName"`
+	ParticipantAvatar *string        `json:"participantAvatar,omitempty"`
+	LastMessage       string         `json:"lastMessage"`
+	Timestamp         string         `json:"timestamp"`
+	CreatedAt         time.Time      `json:"createdAt"`
+	UpdatedAt         time.Time      `json:"updatedAt"`
 }
 
 type ChatThreadList struct {
@@ -433,6 +443,110 @@ type UpdateReviewInput struct {
 	RatingService     int     `json:"ratingService"`
 	RatingDelivery    int     `json:"ratingDelivery"`
 	Content           *string `json:"content,omitempty"`
+}
+
+type ChatMessageType string
+
+const (
+	ChatMessageTypeText      ChatMessageType = "TEXT"
+	ChatMessageTypeImage     ChatMessageType = "IMAGE"
+	ChatMessageTypeVideo     ChatMessageType = "VIDEO"
+	ChatMessageTypeDocument  ChatMessageType = "DOCUMENT"
+	ChatMessageTypeAudio     ChatMessageType = "AUDIO"
+	ChatMessageTypeProduct   ChatMessageType = "PRODUCT"
+	ChatMessageTypeOrder     ChatMessageType = "ORDER"
+	ChatMessageTypePromotion ChatMessageType = "PROMOTION"
+	ChatMessageTypeCoupon    ChatMessageType = "COUPON"
+)
+
+var AllChatMessageType = []ChatMessageType{
+	ChatMessageTypeText,
+	ChatMessageTypeImage,
+	ChatMessageTypeVideo,
+	ChatMessageTypeDocument,
+	ChatMessageTypeAudio,
+	ChatMessageTypeProduct,
+	ChatMessageTypeOrder,
+	ChatMessageTypePromotion,
+	ChatMessageTypeCoupon,
+}
+
+func (e ChatMessageType) IsValid() bool {
+	switch e {
+	case ChatMessageTypeText, ChatMessageTypeImage, ChatMessageTypeVideo, ChatMessageTypeDocument, ChatMessageTypeAudio, ChatMessageTypeProduct, ChatMessageTypeOrder, ChatMessageTypePromotion, ChatMessageTypeCoupon:
+		return true
+	}
+	return false
+}
+
+func (e ChatMessageType) String() string {
+	return string(e)
+}
+
+func (e *ChatMessageType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ChatMessageType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ChatMessageType", str)
+	}
+	return nil
+}
+
+func (e ChatMessageType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ChatThreadType string
+
+const (
+	ChatThreadTypeDirect    ChatThreadType = "DIRECT"
+	ChatThreadTypeBroadcast ChatThreadType = "BROADCAST"
+	ChatThreadTypeDelivery  ChatThreadType = "DELIVERY"
+	ChatThreadTypeCourier   ChatThreadType = "COURIER"
+	ChatThreadTypeSupport   ChatThreadType = "SUPPORT"
+	ChatThreadTypeSystem    ChatThreadType = "SYSTEM"
+)
+
+var AllChatThreadType = []ChatThreadType{
+	ChatThreadTypeDirect,
+	ChatThreadTypeBroadcast,
+	ChatThreadTypeDelivery,
+	ChatThreadTypeCourier,
+	ChatThreadTypeSupport,
+	ChatThreadTypeSystem,
+}
+
+func (e ChatThreadType) IsValid() bool {
+	switch e {
+	case ChatThreadTypeDirect, ChatThreadTypeBroadcast, ChatThreadTypeDelivery, ChatThreadTypeCourier, ChatThreadTypeSupport, ChatThreadTypeSystem:
+		return true
+	}
+	return false
+}
+
+func (e ChatThreadType) String() string {
+	return string(e)
+}
+
+func (e *ChatThreadType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ChatThreadType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ChatThreadType", str)
+	}
+	return nil
+}
+
+func (e ChatThreadType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type DeliveryType string

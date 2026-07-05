@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -13,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nats-io/nats.go"
 
 	werr "github.com/wemall/pkg/errors"
 	"github.com/wemall/seller-service/internal/crypto"
@@ -24,10 +26,11 @@ type SellerService struct {
 	q         *db.Queries
 	pool      *pgxpool.Pool
 	encryptor *crypto.Encryptor
+	nc        *nats.Conn
 }
 
-func NewSellerService(q *db.Queries, pool *pgxpool.Pool, encryptor *crypto.Encryptor) *SellerService {
-	return &SellerService{q: q, pool: pool, encryptor: encryptor}
+func NewSellerService(q *db.Queries, pool *pgxpool.Pool, encryptor *crypto.Encryptor, nc *nats.Conn) *SellerService {
+	return &SellerService{q: q, pool: pool, encryptor: encryptor, nc: nc}
 }
 
 func (s *SellerService) GetSeller(ctx context.Context, id uuid.UUID) (*db.Seller, error) {
@@ -321,6 +324,11 @@ func (s *SellerService) VerifySeller(ctx context.Context, sellerID uuid.UUID, ve
 
 // ── Store Follows ─────────────────────────────────────────────────────────────
 
+type StoreFollowedEvent struct {
+	UserID   string `json:"user_id"`
+	SellerID string `json:"seller_id"`
+}
+
 func (s *SellerService) FollowStore(ctx context.Context, userID, sellerID uuid.UUID) error {
 	// Verify seller exists
 	if _, err := s.GetSeller(ctx, sellerID); err != nil {
@@ -329,12 +337,30 @@ func (s *SellerService) FollowStore(ctx context.Context, userID, sellerID uuid.U
 	if err := s.q.FollowStore(ctx, db.FollowStoreParams{UserID: userID, SellerID: sellerID}); err != nil {
 		return werr.Internal(err)
 	}
+	if s.nc != nil {
+		event := StoreFollowedEvent{
+			UserID:   userID.String(),
+			SellerID: sellerID.String(),
+		}
+		if eventBytes, err := json.Marshal(event); err == nil {
+			_ = s.nc.Publish("wemall.store.followed", eventBytes)
+		}
+	}
 	return nil
 }
 
 func (s *SellerService) UnfollowStore(ctx context.Context, userID, sellerID uuid.UUID) error {
 	if err := s.q.UnfollowStore(ctx, db.UnfollowStoreParams{UserID: userID, SellerID: sellerID}); err != nil {
 		return werr.Internal(err)
+	}
+	if s.nc != nil {
+		event := StoreFollowedEvent{
+			UserID:   userID.String(),
+			SellerID: sellerID.String(),
+		}
+		if eventBytes, err := json.Marshal(event); err == nil {
+			_ = s.nc.Publish("wemall.store.unfollowed", eventBytes)
+		}
 	}
 	return nil
 }

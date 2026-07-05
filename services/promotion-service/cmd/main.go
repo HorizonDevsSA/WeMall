@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nats-io/nats.go"
 	"google.golang.org/grpc"
 
 	"github.com/rs/zerolog"
@@ -43,11 +44,21 @@ func main() {
 	}
 	log.Info().Msg("database connected successfully")
 
+	// Connect to NATS
+	var nc *nats.Conn
+	nc, err = nats.Connect(cfg.NatsURL)
+	if err != nil {
+		log.Warn().Err(err).Msgf("failed to connect to NATS at %s, proceeding without NATS events", cfg.NatsURL)
+	} else {
+		defer nc.Close()
+		log.Info().Msg("NATS connected successfully")
+	}
+
 	// Initialize database queries
 	queries := db.New(dbPool)
 
 	// Initialize services
-	promotionSvc := service.NewPromotionService(queries, dbPool)
+	promotionSvc := service.NewPromotionService(queries, dbPool, nc)
 
 	// Initialize gRPC server
 	grpcServer := grpc.NewServer(grpcutil.UnaryServerOptions(log.Logger)...)

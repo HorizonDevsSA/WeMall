@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 
 	chatv1 "github.com/wemall/gen/chat/v1"
@@ -22,28 +23,43 @@ import (
 func main() {
 	cfg := config.Load()
 
-	// Connect to Database
-	dbPool, err := pgxpool.New(context.Background(), cfg.DatabaseURL)
+	// Connect to Postgres using database/sql + lib/pq
+	sqlDB, err := sql.Open("postgres", cfg.DatabaseURL)
 	if err != nil {
-		log.Fatalf("Unable to connect to database: %v\n", err)
+		log.Fatalf("Unable to open database connection: %v\n", err)
 	}
-	defer dbPool.Close()
+	defer sqlDB.Close()
+	if err := sqlDB.PingContext(context.Background()); err != nil {
+		log.Fatalf("Unable to reach database: %v\n", err)
+	}
 
-	queries := db.New(dbPool)
+	queries := db.New(sqlDB)
 
 	// Initialize Service and Handler
 	chatService := service.NewChatService(queries)
 	chatHandler := handler.NewChatHandler(chatService)
 
-	// Initialize NATS worker
+	// Initialize product broadcast NATS worker
 	productListener, err := worker.NewProductListener(cfg.NatsURL, chatService)
 	if err != nil {
-		log.Printf("Failed to initialize NATS listener: %v", err)
+		log.Printf("Warning: Failed to initialize product NATS listener: %v", err)
 	} else {
 		if err := productListener.Start(); err != nil {
-			log.Printf("Failed to start NATS listener: %v", err)
+			log.Printf("Warning: Failed to start product NATS listener: %v", err)
 		} else {
 			defer productListener.Close()
+		}
+	}
+
+	// Initialize store-follow / coupon / promotion NATS worker
+	eventListener, err := worker.NewEventListener(cfg.NatsURL, chatService)
+	if err != nil {
+		log.Printf("Warning: Failed to initialize event NATS listener: %v", err)
+	} else {
+		if err := eventListener.Start(); err != nil {
+			log.Printf("Warning: Failed to start event NATS listener: %v", err)
+		} else {
+			defer eventListener.Close()
 		}
 	}
 
@@ -55,7 +71,7 @@ func main() {
 	grpcServer := grpc.NewServer()
 	chatv1.RegisterChatServiceServer(grpcServer, chatHandler)
 
-	// Handle graceful shutdown
+	// Graceful shutdown
 	go func() {
 		sigCh := make(chan os.Signal, 1)
 		signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)

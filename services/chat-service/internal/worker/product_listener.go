@@ -56,32 +56,37 @@ func (l *ProductListener) Start() error {
 func (l *ProductListener) handleProductCreated(event ProductCreatedEvent) {
 	ctx := context.Background()
 
-	// 1. Fetch the broadcast group for this seller
+	// 1. Fetch or auto-create the broadcast group for this seller
 	thread, err := l.svc.GetBroadcastThreadForSeller(ctx, event.SellerID)
 	if err != nil {
-		// No broadcast group exists yet for this seller. We could auto-create it:
 		log.Printf("No broadcast group for seller %s, creating one automatically...", event.SellerID)
-		thread, err = l.svc.CreateBroadcastGroup(ctx, event.SellerID, "Store Updates")
+		thread, err = l.svc.CreateBroadcastGroup(ctx, event.SellerID, "Store Updates", "")
 		if err != nil {
 			log.Printf("Failed to create broadcast group for seller %s: %v", event.SellerID, err)
 			return
 		}
 	}
 
-	// 2. Send the broadcast message
+	// 2. Build rich metadata JSON
+	meta := map[string]interface{}{
+		"product_id": event.ProductID,
+		"title":      event.Title,
+		"image_url":  event.ImageURL,
+	}
+	metaBytes, _ := json.Marshal(meta)
+
 	content := fmt.Sprintf("New product available: %s!", event.Title)
-	msgType := "MESSAGE_TYPE_PRODUCT"
 
 	_, err = l.svc.SendMessage(
 		ctx,
 		thread.ID,
-		event.SellerID, // Sender is the seller
-		msgType,
+		event.SellerID,      // sender is the seller
+		"MESSAGE_TYPE_PRODUCT",
 		content,
-		event.ImageURL,
-		event.ProductID, // reference_id
+		event.ImageURL,      // media_url
+		event.ProductID,     // reference_id
+		metaBytes,           // metadata JSON
 	)
-
 	if err != nil {
 		log.Printf("Failed to send broadcast message for product %s: %v", event.ProductID, err)
 		return
@@ -89,6 +94,7 @@ func (l *ProductListener) handleProductCreated(event ProductCreatedEvent) {
 
 	log.Printf("Broadcasted new product %s to followers of seller %s", event.ProductID, event.SellerID)
 }
+
 
 func (l *ProductListener) Close() {
 	if l.sub != nil {

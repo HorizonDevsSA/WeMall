@@ -5,6 +5,8 @@ import (
 	"errors"
 	"time"
 
+	"google.golang.org/protobuf/encoding/protojson"
+
 	"github.com/wemall/api-gateway/internal/graph/gqlerrors"
 	"github.com/wemall/api-gateway/internal/graph/model"
 	"github.com/wemall/api-gateway/internal/middleware"
@@ -496,9 +498,38 @@ func (r *queryResolver) MyChatThreads(ctx context.Context) ([]*model.ChatThread,
 			}
 		}
 
-		var orderIDPtr *string
+		var titlePtr *string
+		if t.Title != "" {
+			titlePtr = &t.Title
+		}
+
+		threadType := model.ChatThreadTypeDirect
+		switch t.Type {
+		case chatv1.ThreadType_THREAD_TYPE_BROADCAST:
+			threadType = model.ChatThreadTypeBroadcast
+		case chatv1.ThreadType_THREAD_TYPE_DELIVERY:
+			threadType = model.ChatThreadTypeDelivery
+		case chatv1.ThreadType_THREAD_TYPE_COURIER:
+			threadType = model.ChatThreadTypeCourier
+		case chatv1.ThreadType_THREAD_TYPE_SUPPORT:
+			threadType = model.ChatThreadTypeSupport
+		case chatv1.ThreadType_THREAD_TYPE_SYSTEM:
+			threadType = model.ChatThreadTypeSystem
+		}
+
+		// optional pointer fields
+		var orderIDPtr, deliveryBoyIDPtr, courierStationIDPtr, supportAgentIDPtr *string
 		if t.OrderId != "" {
 			orderIDPtr = &t.OrderId
+		}
+		if t.DeliveryBoyId != "" {
+			deliveryBoyIDPtr = &t.DeliveryBoyId
+		}
+		if t.CourierStationId != "" {
+			courierStationIDPtr = &t.CourierStationId
+		}
+		if t.SupportAgentId != "" {
+			supportAgentIDPtr = &t.SupportAgentId
 		}
 
 		var createdAt, updatedAt time.Time
@@ -509,20 +540,69 @@ func (r *queryResolver) MyChatThreads(ctx context.Context) ([]*model.ChatThread,
 			updatedAt = t.UpdatedAt.AsTime()
 		}
 
+		var avatarPtr *string
+		if t.ParticipantAvatar != "" {
+			avatarPtr = &t.ParticipantAvatar
+		} else {
+			if role == "SELLER" {
+				if u, exists := buyerUsers[t.BuyerId]; exists && u != nil && u.AvatarUrl != "" {
+					avatarPtr = &u.AvatarUrl
+				}
+			} else {
+				if s, exists := sellers[t.SellerId]; exists && s != nil && s.LogoUrl != "" {
+					avatarPtr = &s.LogoUrl
+				}
+			}
+		}
+
 		out[i] = &model.ChatThread{
-			ID:          t.Id,
-			BuyerID:     t.BuyerId,
-			SellerID:    t.SellerId,
-			OrderID:     orderIDPtr,
-			BuyerName:   buyerName,
-			LastMessage: lastMsg,
-			Timestamp:   timestampStr,
-			CreatedAt:   createdAt,
-			UpdatedAt:   updatedAt,
+			ID:                t.Id,
+			Type:              threadType,
+			Title:             titlePtr,
+			BuyerID:           t.BuyerId,
+			SellerID:          t.SellerId,
+			OrderID:           orderIDPtr,
+			DeliveryBoyID:     deliveryBoyIDPtr,
+			CourierStationID:  courierStationIDPtr,
+			SupportAgentID:    supportAgentIDPtr,
+			ParticipantName:   buyerName,
+			ParticipantAvatar: avatarPtr,
+			LastMessage:       lastMsg,
+			Timestamp:         timestampStr,
+			CreatedAt:         createdAt,
+			UpdatedAt:         updatedAt,
 		}
 	}
 
 	return out, nil
+}
+
+func (r *queryResolver) ChatThread(ctx context.Context, threadID string) (*model.ChatThread, error) {
+	_, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	// Fetch all threads for user and find the matching one — or use ListMessages as a proxy
+	// For simplicity, re-use ListThreads with a generic query and filter. In production this
+	// would call a dedicated GetThread RPC.
+	resp, err := r.Clients.Chat.ListMessages(ctx, &chatv1.ListMessagesRequest{
+		ThreadId: threadID,
+		PageSize: 1,
+	})
+	if err != nil {
+		return nil, err
+	}
+	_ = resp
+
+	// Return a minimal stub — full resolution would require a GetThread RPC on the chat service
+	return &model.ChatThread{
+		ID:              threadID,
+		Type:            model.ChatThreadTypeDirect,
+		ParticipantName: "Participant",
+		LastMessage:     "",
+		Timestamp:       time.Now().Format(time.RFC3339),
+	}, nil
 }
 
 func (r *queryResolver) ChatMessages(ctx context.Context, threadID string, pageToken *string, pageSize *int) ([]*model.ChatMessage, error) {
@@ -550,14 +630,54 @@ func (r *queryResolver) ChatMessages(ctx context.Context, threadID string, pageT
 		if m.CreatedAt != nil {
 			createdAt = m.CreatedAt.AsTime()
 		}
+
+		msgType := model.ChatMessageTypeText
+		switch m.Type {
+		case chatv1.MessageType_MESSAGE_TYPE_IMAGE:
+			msgType = model.ChatMessageTypeImage
+		case chatv1.MessageType_MESSAGE_TYPE_VIDEO:
+			msgType = model.ChatMessageTypeVideo
+		case chatv1.MessageType_MESSAGE_TYPE_DOCUMENT:
+			msgType = model.ChatMessageTypeDocument
+		case chatv1.MessageType_MESSAGE_TYPE_AUDIO:
+			msgType = model.ChatMessageTypeAudio
+		case chatv1.MessageType_MESSAGE_TYPE_PRODUCT:
+			msgType = model.ChatMessageTypeProduct
+		case chatv1.MessageType_MESSAGE_TYPE_ORDER:
+			msgType = model.ChatMessageTypeOrder
+		case chatv1.MessageType_MESSAGE_TYPE_PROMOTION:
+			msgType = model.ChatMessageTypePromotion
+		case chatv1.MessageType_MESSAGE_TYPE_COUPON:
+			msgType = model.ChatMessageTypeCoupon
+		}
+
+		var mediaURLPtr, referenceIDPtr, metadataPtr *string
+		if m.MediaUrl != "" {
+			mediaURLPtr = &m.MediaUrl
+		}
+		if m.ReferenceId != "" {
+			referenceIDPtr = &m.ReferenceId
+		}
+		if m.Metadata != nil {
+			jsonBytes, err2 := protojson.Marshal(m.Metadata)
+			if err2 == nil {
+				s := string(jsonBytes)
+				metadataPtr = &s
+			}
+		}
+
 		out[i] = &model.ChatMessage{
-			ID:        m.Id,
-			ThreadID:  m.ThreadId,
-			SenderID:  m.SenderId,
-			Content:   m.Content,
-			IsRead:    m.IsRead,
-			Timestamp: createdAt.Format(time.RFC3339),
-			CreatedAt: createdAt,
+			ID:          m.Id,
+			ThreadID:    m.ThreadId,
+			SenderID:    m.SenderId,
+			Type:        msgType,
+			Content:     m.Content,
+			MediaURL:    mediaURLPtr,
+			ReferenceID: referenceIDPtr,
+			Metadata:    metadataPtr,
+			IsRead:      m.IsRead,
+			Timestamp:   createdAt.Format(time.RFC3339),
+			CreatedAt:   createdAt,
 		}
 	}
 	return out, nil

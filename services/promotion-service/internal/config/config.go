@@ -7,8 +7,9 @@ import (
 )
 
 type Config struct {
-	Port  string
-	DBURL string
+	Port    string
+	DBURL   string
+	NatsURL string
 }
 
 func Load() *Config {
@@ -24,8 +25,14 @@ func Load() *Config {
 		dbURL = "postgres://postgres:postgres@localhost:5432/wemall?sslmode=disable"
 	}
 
+	natsURL := os.Getenv("NATS_URL")
+	if natsURL == "" {
+		natsURL = "nats://localhost:4222"
+	}
+
 	return &Config{
-		Port:  port,
-		DBURL: dbURL,
+		Port:    port,
+		DBURL:   dbURL,
+		NatsURL: natsURL,
 	}
 }

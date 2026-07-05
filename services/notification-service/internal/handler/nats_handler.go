@@ -59,20 +59,21 @@ func (h *NATSHandler) Start(ctx context.Context) error {
 	}
 
 	subscriptions := map[string]nats.MsgHandler{
-		"wemall.user.registered":      h.handleUserRegistered,
-		"wemall.user.password_reset":  h.handleUserPasswordReset,
+		"wemall.user.registered":       h.handleUserRegistered,
+		"wemall.user.password_reset":   h.handleUserPasswordReset,
 		"wemall.user.password_changed": h.handleUserPasswordChanged,
-		"wemall.order.created":        h.handleOrderCreated,
-		"wemall.payment.completed":    h.handlePaymentCompleted,
-		"wemall.payment.failed":       h.handlePaymentFailed,
-		"wemall.order.shipped":        h.handleOrderShipped,
-		"wemall.order.delivered":      h.handleOrderDelivered,
-		"wemall.payment.refunded":     h.handlePaymentRefunded,
+		"wemall.order.created":         h.handleOrderCreated,
+		"wemall.payment.completed":     h.handlePaymentCompleted,
+		"wemall.payment.failed":        h.handlePaymentFailed,
+		"wemall.order.shipped":         h.handleOrderShipped,
+		"wemall.order.delivered":       h.handleOrderDelivered,
+		"wemall.payment.refunded":      h.handlePaymentRefunded,
 		"wemall.seller.status_changed": h.handleSellerStatusChanged,
-		"wemall.inventory.low_stock":  h.handleInventoryLowStock,
-		"wemall.store.post_update":    h.handleStorePostUpdate,
+		"wemall.inventory.low_stock":   h.handleInventoryLowStock,
+		"wemall.store.post_update":     h.handleStorePostUpdate,
 		"wemall.product.price_dropped": h.handleProductPriceDropped,
-		"wemall.inventory.restocked":  h.handleInventoryRestocked,
+		"wemall.inventory.restocked":   h.handleInventoryRestocked,
+		"wemall.chat.message_sent":     h.handleChatMessageSent,
 	}
 
 	for subject, handlerFunc := range subscriptions {
@@ -804,4 +805,54 @@ func (h *NATSHandler) getOrderThumbnail(ctx context.Context, orderID, userID str
 
 func formatFloat(f float64) string {
 	return "" // Simplified
+}
+
+// handleChatMessageSent sends a push notification to the message recipient.
+func (h *NATSHandler) handleChatMessageSent(msg *nats.Msg) {
+	var event struct {
+		ThreadID    string `json:"thread_id"`
+		SenderID    string `json:"sender_id"`
+		RecipientID string `json:"recipient_id"`
+		SenderName  string `json:"sender_name"`
+		Content     string `json:"content"`
+		MessageType string `json:"message_type"`
+	}
+	if err := json.Unmarshal(msg.Data, &event); err != nil {
+		h.logger.Error().Err(err).Msg("Failed to unmarshal chat.message_sent event")
+		return
+	}
+
+	recipientUID, err := uuid.Parse(event.RecipientID)
+	if err != nil {
+		return
+	}
+
+	// Build a user-friendly push body based on message type
+	body := event.Content
+	title := event.SenderName + " sent you a message"
+	switch event.MessageType {
+	case "MESSAGE_TYPE_IMAGE":
+		body = event.SenderName + " sent you a photo 📷"
+	case "MESSAGE_TYPE_VIDEO":
+		body = event.SenderName + " sent you a video 🎥"
+	case "MESSAGE_TYPE_DOCUMENT":
+		body = event.SenderName + " sent you a document 📎"
+	case "MESSAGE_TYPE_AUDIO":
+		body = event.SenderName + " sent you a voice message 🎙️"
+	case "MESSAGE_TYPE_PRODUCT":
+		title = "New product from " + event.SenderName
+		body = event.Content
+	case "MESSAGE_TYPE_COUPON":
+		title = "New coupon from " + event.SenderName + " 🎟️"
+		body = event.Content
+	case "MESSAGE_TYPE_PROMOTION":
+		title = "New promotion from " + event.SenderName + " 🔥"
+		body = event.Content
+	}
+
+	ctx := context.Background()
+	h.queuePush(ctx, recipientUID, "transactional", title, body, map[string]string{
+		"thread_id": event.ThreadID,
+		"action":    "open_chat",
+	})
 }

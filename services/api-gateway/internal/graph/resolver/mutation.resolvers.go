@@ -627,7 +627,7 @@ func (r *mutationResolver) ProcessPayment(ctx context.Context, paymentID string,
 	return mapPayment(resp.Payment), nil
 }
 
-func (r *mutationResolver) CreateChatThread(ctx context.Context, sellerID string, orderID *string) (*model.ChatThread, error) {
+func (r *mutationResolver) CreateChatThread(ctx context.Context, sellerID string, orderID *string, threadType *model.ChatThreadType, participantAvatar *string) (*model.ChatThread, error) {
 	uid, ok := middleware.UserIDFromCtx(ctx)
 	if !ok {
 		return nil, gqlerrors.Unauthenticated("authentication required")
@@ -638,20 +638,35 @@ func (r *mutationResolver) CreateChatThread(ctx context.Context, sellerID string
 		ordID = *orderID
 	}
 
+	var avatar string
+	if participantAvatar != nil {
+		avatar = *participantAvatar
+	}
+
+	pbType := chatv1.ThreadType_THREAD_TYPE_DIRECT
+	if threadType != nil {
+		switch *threadType {
+		case model.ChatThreadTypeBroadcast:
+			pbType = chatv1.ThreadType_THREAD_TYPE_BROADCAST
+		}
+	}
+
 	resp, err := r.Clients.Chat.CreateThread(ctx, &chatv1.CreateThreadRequest{
-		BuyerId:  uid,
-		SellerId: sellerID,
-		OrderId:  ordID,
+		BuyerId:           uid,
+		SellerId:          sellerID,
+		OrderId:           ordID,
+		Type:              pbType,
+		ParticipantAvatar: avatar,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	// Fetch buyer name to populate field
+	// Fetch buyer name to populate participant field
 	buyerUser, err := r.Clients.User.GetUser(ctx, &userv1.GetUserRequest{Id: uid})
-	buyerName := "Customer"
+	participantName := "Customer"
 	if err == nil && buyerUser != nil {
-		buyerName = buyerUser.FullName
+		participantName = buyerUser.FullName
 	}
 
 	var orderIDPtr *string
@@ -667,30 +682,182 @@ func (r *mutationResolver) CreateChatThread(ctx context.Context, sellerID string
 		updatedAt = resp.UpdatedAt.AsTime()
 	}
 
+	var avatarPtr *string
+	if resp.ParticipantAvatar != "" {
+		avatarPtr = &resp.ParticipantAvatar
+	}
+
 	return &model.ChatThread{
-		ID:          resp.Id,
-		BuyerID:     resp.BuyerId,
-		SellerID:    resp.SellerId,
-		OrderID:     orderIDPtr,
-		BuyerName:   buyerName,
-		LastMessage: "",
-		Timestamp:   time.Now().Format(time.RFC3339),
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
+		ID:                resp.Id,
+		Type:              model.ChatThreadTypeDirect,
+		BuyerID:           resp.BuyerId,
+		SellerID:          resp.SellerId,
+		OrderID:           orderIDPtr,
+		ParticipantName:   participantName,
+		ParticipantAvatar: avatarPtr,
+		LastMessage:       "",
+		Timestamp:         time.Now().Format(time.RFC3339),
+		CreatedAt:         createdAt,
+		UpdatedAt:         updatedAt,
 	}, nil
 }
 
-func (r *mutationResolver) SendChatMessage(ctx context.Context, threadID string, content string) (*model.ChatMessage, error) {
+func (r *mutationResolver) CreateDeliveryThread(ctx context.Context, orderID string, deliveryBoyID string, participantAvatar *string) (*model.ChatThread, error) {
 	uid, ok := middleware.UserIDFromCtx(ctx)
 	if !ok {
 		return nil, gqlerrors.Unauthenticated("authentication required")
 	}
 
+	var avatar string
+	if participantAvatar != nil {
+		avatar = *participantAvatar
+	}
+
+	resp, err := r.Clients.Chat.CreateThread(ctx, &chatv1.CreateThreadRequest{
+		Type:              chatv1.ThreadType_THREAD_TYPE_DELIVERY,
+		BuyerId:           uid,
+		OrderId:           orderID,
+		DeliveryBoyId:     deliveryBoyID,
+		ParticipantAvatar: avatar,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	dBoyIDPtr := &resp.DeliveryBoyId
+	var avatarPtr *string
+	if resp.ParticipantAvatar != "" {
+		avatarPtr = &resp.ParticipantAvatar
+	}
+
+	return &model.ChatThread{
+		ID:                resp.Id,
+		Type:              model.ChatThreadTypeDelivery,
+		BuyerID:           resp.BuyerId,
+		SellerID:          resp.SellerId,
+		DeliveryBoyID:     dBoyIDPtr,
+		ParticipantName:   "Delivery",
+		ParticipantAvatar: avatarPtr,
+		LastMessage:       "",
+		Timestamp:         time.Now().Format(time.RFC3339),
+	}, nil
+}
+
+func (r *mutationResolver) CreateCourierThread(ctx context.Context, orderID string, courierStationID string, participantAvatar *string) (*model.ChatThread, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	var avatar string
+	if participantAvatar != nil {
+		avatar = *participantAvatar
+	}
+
+	resp, err := r.Clients.Chat.CreateThread(ctx, &chatv1.CreateThreadRequest{
+		Type:              chatv1.ThreadType_THREAD_TYPE_COURIER,
+		BuyerId:           uid,
+		OrderId:           orderID,
+		CourierStationId:  courierStationID,
+		ParticipantAvatar: avatar,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	cIDPtr := &resp.CourierStationId
+	var avatarPtr *string
+	if resp.ParticipantAvatar != "" {
+		avatarPtr = &resp.ParticipantAvatar
+	}
+
+	return &model.ChatThread{
+		ID:                resp.Id,
+		Type:              model.ChatThreadTypeCourier,
+		BuyerID:           resp.BuyerId,
+		CourierStationID:  cIDPtr,
+		ParticipantName:   "Courier Station",
+		ParticipantAvatar: avatarPtr,
+		LastMessage:       "",
+		Timestamp:         time.Now().Format(time.RFC3339),
+	}, nil
+}
+
+func (r *mutationResolver) CreateSupportThread(ctx context.Context, participantAvatar *string) (*model.ChatThread, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	var avatar string
+	if participantAvatar != nil {
+		avatar = *participantAvatar
+	}
+
+	resp, err := r.Clients.Chat.CreateThread(ctx, &chatv1.CreateThreadRequest{
+		Type:              chatv1.ThreadType_THREAD_TYPE_SUPPORT,
+		BuyerId:           uid,
+		ParticipantAvatar: avatar,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var avatarPtr *string
+	if resp.ParticipantAvatar != "" {
+		avatarPtr = &resp.ParticipantAvatar
+	}
+
+	return &model.ChatThread{
+		ID:                resp.Id,
+		Type:              model.ChatThreadTypeSupport,
+		BuyerID:           resp.BuyerId,
+		ParticipantName:   "Support",
+		ParticipantAvatar: avatarPtr,
+		LastMessage:       "",
+		Timestamp:         time.Now().Format(time.RFC3339),
+	}, nil
+}
+
+func (r *mutationResolver) SendChatMessage(ctx context.Context, threadID string, content string, msgType *model.ChatMessageType, mediaURL *string, referenceID *string) (*model.ChatMessage, error) {
+	uid, ok := middleware.UserIDFromCtx(ctx)
+	if !ok {
+		return nil, gqlerrors.Unauthenticated("authentication required")
+	}
+
+	pbMsgType := chatv1.MessageType_MESSAGE_TYPE_TEXT
+	if msgType != nil {
+		switch *msgType {
+		case model.ChatMessageTypeImage:
+			pbMsgType = chatv1.MessageType_MESSAGE_TYPE_IMAGE
+		case model.ChatMessageTypeVideo:
+			pbMsgType = chatv1.MessageType_MESSAGE_TYPE_VIDEO
+		case model.ChatMessageTypeDocument:
+			pbMsgType = chatv1.MessageType_MESSAGE_TYPE_DOCUMENT
+		case model.ChatMessageTypeAudio:
+			pbMsgType = chatv1.MessageType_MESSAGE_TYPE_AUDIO
+		case model.ChatMessageTypeProduct:
+			pbMsgType = chatv1.MessageType_MESSAGE_TYPE_PRODUCT
+		case model.ChatMessageTypeOrder:
+			pbMsgType = chatv1.MessageType_MESSAGE_TYPE_ORDER
+		}
+	}
+
+	var mURL, refID string
+	if mediaURL != nil {
+		mURL = *mediaURL
+	}
+	if referenceID != nil {
+		refID = *referenceID
+	}
+
 	resp, err := r.Clients.Chat.SendMessage(ctx, &chatv1.SendMessageRequest{
-		ThreadId: threadID,
-		SenderId: uid,
-		Type:     chatv1.MessageType_MESSAGE_TYPE_TEXT,
-		Content:  content,
+		ThreadId:    threadID,
+		SenderId:    uid,
+		Type:        pbMsgType,
+		Content:     content,
+		MediaUrl:    mURL,
+		ReferenceId: refID,
 	})
 	if err != nil {
 		return nil, err
@@ -701,14 +868,25 @@ func (r *mutationResolver) SendChatMessage(ctx context.Context, threadID string,
 		createdAt = resp.CreatedAt.AsTime()
 	}
 
+	var mediaURLPtr, referenceIDPtr *string
+	if resp.MediaUrl != "" {
+		mediaURLPtr = &resp.MediaUrl
+	}
+	if resp.ReferenceId != "" {
+		referenceIDPtr = &resp.ReferenceId
+	}
+
 	return &model.ChatMessage{
-		ID:        resp.Id,
-		ThreadID:  resp.ThreadId,
-		SenderID:  resp.SenderId,
-		Content:   resp.Content,
-		IsRead:    resp.IsRead,
-		Timestamp: createdAt.Format(time.RFC3339),
-		CreatedAt: createdAt,
+		ID:          resp.Id,
+		ThreadID:    resp.ThreadId,
+		SenderID:    resp.SenderId,
+		Type:        model.ChatMessageTypeText,
+		Content:     resp.Content,
+		MediaURL:    mediaURLPtr,
+		ReferenceID: referenceIDPtr,
+		IsRead:      resp.IsRead,
+		Timestamp:   createdAt.Format(time.RFC3339),
+		CreatedAt:   createdAt,
 	}, nil
 }
 

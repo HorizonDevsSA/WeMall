@@ -123,13 +123,17 @@ type ComplexityRoot struct {
 	}
 
 	ChatMessage struct {
-		Content   func(childComplexity int) int
-		CreatedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
-		IsRead    func(childComplexity int) int
-		SenderID  func(childComplexity int) int
-		ThreadID  func(childComplexity int) int
-		Timestamp func(childComplexity int) int
+		Content     func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		ID          func(childComplexity int) int
+		IsRead      func(childComplexity int) int
+		MediaURL    func(childComplexity int) int
+		Metadata    func(childComplexity int) int
+		ReferenceID func(childComplexity int) int
+		SenderID    func(childComplexity int) int
+		ThreadID    func(childComplexity int) int
+		Timestamp   func(childComplexity int) int
+		Type        func(childComplexity int) int
 	}
 
 	ChatMessageList struct {
@@ -138,15 +142,21 @@ type ComplexityRoot struct {
 	}
 
 	ChatThread struct {
-		BuyerID     func(childComplexity int) int
-		BuyerName   func(childComplexity int) int
-		CreatedAt   func(childComplexity int) int
-		ID          func(childComplexity int) int
-		LastMessage func(childComplexity int) int
-		OrderID     func(childComplexity int) int
-		SellerID    func(childComplexity int) int
-		Timestamp   func(childComplexity int) int
-		UpdatedAt   func(childComplexity int) int
+		BuyerID           func(childComplexity int) int
+		CourierStationID  func(childComplexity int) int
+		CreatedAt         func(childComplexity int) int
+		DeliveryBoyID     func(childComplexity int) int
+		ID                func(childComplexity int) int
+		LastMessage       func(childComplexity int) int
+		OrderID           func(childComplexity int) int
+		ParticipantAvatar func(childComplexity int) int
+		ParticipantName   func(childComplexity int) int
+		SellerID          func(childComplexity int) int
+		SupportAgentID    func(childComplexity int) int
+		Timestamp         func(childComplexity int) int
+		Title             func(childComplexity int) int
+		Type              func(childComplexity int) int
+		UpdatedAt         func(childComplexity int) int
 	}
 
 	ChatThreadList struct {
@@ -296,14 +306,17 @@ type ComplexityRoot struct {
 		ClearCart                     func(childComplexity int) int
 		ClearNotifications            func(childComplexity int) int
 		CreateAddress                 func(childComplexity int, input model.AddressInput) int
-		CreateChatThread              func(childComplexity int, sellerID string, orderID *string) int
+		CreateChatThread              func(childComplexity int, sellerID string, orderID *string, typeArg *model.ChatThreadType, participantAvatar *string) int
 		CreateCoupon                  func(childComplexity int, input model.CreateCouponInput) int
+		CreateCourierThread           func(childComplexity int, orderID string, courierStationID string, participantAvatar *string) int
+		CreateDeliveryThread          func(childComplexity int, orderID string, deliveryBoyID string, participantAvatar *string) int
 		CreateFlashSale               func(childComplexity int, input model.CreateFlashSaleInput) int
 		CreatePersonalDelivery        func(childComplexity int, input model.PersonalDeliveryInput) int
 		CreateProduct                 func(childComplexity int, input model.CreateProductInput) int
 		CreateReview                  func(childComplexity int, input model.CreateReviewInput) int
 		CreateSellerReply             func(childComplexity int, input model.SellerReplyInput) int
 		CreateStore                   func(childComplexity int, input model.CreateStoreInput) int
+		CreateSupportThread           func(childComplexity int, participantAvatar *string) int
 		DeleteAddress                 func(childComplexity int, addressID string) int
 		DeleteNotification            func(childComplexity int, id string) int
 		DeleteProduct                 func(childComplexity int, id string) int
@@ -327,7 +340,7 @@ type ComplexityRoot struct {
 		SellerFirebaseSignIn          func(childComplexity int, idToken string, fullName string) int
 		SellerLogin                   func(childComplexity int, email string, password string) int
 		SellerRegister                func(childComplexity int, email string, password string, fullName string) int
-		SendChatMessage               func(childComplexity int, threadID string, content string) int
+		SendChatMessage               func(childComplexity int, threadID string, content string, typeArg *model.ChatMessageType, mediaURL *string, referenceID *string) int
 		SetCourierOnlineStatus        func(childComplexity int, isOnline bool) int
 		SetSellerPin                  func(childComplexity int, pin string) int
 		StationCheckInPackage         func(childComplexity int, stationID string, trackingNumber string, shelfCode string, direction string) int
@@ -536,6 +549,7 @@ type ComplexityRoot struct {
 		Categories                  func(childComplexity int, language *string) int
 		Category                    func(childComplexity int, slug string, language *string) int
 		ChatMessages                func(childComplexity int, threadID string, pageToken *string, pageSize *int) int
+		ChatThread                  func(childComplexity int, threadID string) int
 		Coupons                     func(childComplexity int, sellerID *string) int
 		DeliveryByOrderID           func(childComplexity int, orderID string) int
 		Dispute                     func(childComplexity int, id string) int
@@ -766,8 +780,11 @@ type MutationResolver interface {
 	UpdateReview(ctx context.Context, input model.UpdateReviewInput) (*model.Review, error)
 	DeleteReview(ctx context.Context, reviewID string) (bool, error)
 	CreateSellerReply(ctx context.Context, input model.SellerReplyInput) (*model.SellerReply, error)
-	CreateChatThread(ctx context.Context, sellerID string, orderID *string) (*model.ChatThread, error)
-	SendChatMessage(ctx context.Context, threadID string, content string) (*model.ChatMessage, error)
+	CreateChatThread(ctx context.Context, sellerID string, orderID *string, typeArg *model.ChatThreadType, participantAvatar *string) (*model.ChatThread, error)
+	CreateDeliveryThread(ctx context.Context, orderID string, deliveryBoyID string, participantAvatar *string) (*model.ChatThread, error)
+	CreateCourierThread(ctx context.Context, orderID string, courierStationID string, participantAvatar *string) (*model.ChatThread, error)
+	CreateSupportThread(ctx context.Context, participantAvatar *string) (*model.ChatThread, error)
+	SendChatMessage(ctx context.Context, threadID string, content string, typeArg *model.ChatMessageType, mediaURL *string, referenceID *string) (*model.ChatMessage, error)
 	OpenDispute(ctx context.Context, orderID string, reason string, evidenceUrls []string) (*model.Dispute, error)
 	ReplyToDispute(ctx context.Context, disputeID string, message string, evidenceUrls []string) (*model.DisputeMessage, error)
 	EscalateDispute(ctx context.Context, disputeID string) (*model.Dispute, error)
@@ -823,6 +840,7 @@ type QueryResolver interface {
 	MyNotifications(ctx context.Context, limit *int, offset *int) ([]*model.NotificationLog, error)
 	MyChatThreads(ctx context.Context) ([]*model.ChatThread, error)
 	ChatMessages(ctx context.Context, threadID string, pageToken *string, pageSize *int) ([]*model.ChatMessage, error)
+	ChatThread(ctx context.Context, threadID string) (*model.ChatThread, error)
 	MyDisputes(ctx context.Context) (*model.DisputeList, error)
 	Dispute(ctx context.Context, id string) (*model.Dispute, error)
 	DisputeMessages(ctx context.Context, disputeID string) (*model.DisputeMessageList, error)
@@ -1243,6 +1261,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ChatMessage.IsRead(childComplexity), true
 
+	case "ChatMessage.mediaUrl":
+		if e.complexity.ChatMessage.MediaURL == nil {
+			break
+		}
+
+		return e.complexity.ChatMessage.MediaURL(childComplexity), true
+
+	case "ChatMessage.metadata":
+		if e.complexity.ChatMessage.Metadata == nil {
+			break
+		}
+
+		return e.complexity.ChatMessage.Metadata(childComplexity), true
+
+	case "ChatMessage.referenceId":
+		if e.complexity.ChatMessage.ReferenceID == nil {
+			break
+		}
+
+		return e.complexity.ChatMessage.ReferenceID(childComplexity), true
+
 	case "ChatMessage.senderId":
 		if e.complexity.ChatMessage.SenderID == nil {
 			break
@@ -1263,6 +1302,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ChatMessage.Timestamp(childComplexity), true
+
+	case "ChatMessage.type":
+		if e.complexity.ChatMessage.Type == nil {
+			break
+		}
+
+		return e.complexity.ChatMessage.Type(childComplexity), true
 
 	case "ChatMessageList.messages":
 		if e.complexity.ChatMessageList.Messages == nil {
@@ -1285,12 +1331,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ChatThread.BuyerID(childComplexity), true
 
-	case "ChatThread.buyerName":
-		if e.complexity.ChatThread.BuyerName == nil {
+	case "ChatThread.courierStationId":
+		if e.complexity.ChatThread.CourierStationID == nil {
 			break
 		}
 
-		return e.complexity.ChatThread.BuyerName(childComplexity), true
+		return e.complexity.ChatThread.CourierStationID(childComplexity), true
 
 	case "ChatThread.createdAt":
 		if e.complexity.ChatThread.CreatedAt == nil {
@@ -1298,6 +1344,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ChatThread.CreatedAt(childComplexity), true
+
+	case "ChatThread.deliveryBoyId":
+		if e.complexity.ChatThread.DeliveryBoyID == nil {
+			break
+		}
+
+		return e.complexity.ChatThread.DeliveryBoyID(childComplexity), true
 
 	case "ChatThread.id":
 		if e.complexity.ChatThread.ID == nil {
@@ -1320,6 +1373,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ChatThread.OrderID(childComplexity), true
 
+	case "ChatThread.participantAvatar":
+		if e.complexity.ChatThread.ParticipantAvatar == nil {
+			break
+		}
+
+		return e.complexity.ChatThread.ParticipantAvatar(childComplexity), true
+
+	case "ChatThread.participantName":
+		if e.complexity.ChatThread.ParticipantName == nil {
+			break
+		}
+
+		return e.complexity.ChatThread.ParticipantName(childComplexity), true
+
 	case "ChatThread.sellerId":
 		if e.complexity.ChatThread.SellerID == nil {
 			break
@@ -1327,12 +1394,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ChatThread.SellerID(childComplexity), true
 
+	case "ChatThread.supportAgentId":
+		if e.complexity.ChatThread.SupportAgentID == nil {
+			break
+		}
+
+		return e.complexity.ChatThread.SupportAgentID(childComplexity), true
+
 	case "ChatThread.timestamp":
 		if e.complexity.ChatThread.Timestamp == nil {
 			break
 		}
 
 		return e.complexity.ChatThread.Timestamp(childComplexity), true
+
+	case "ChatThread.title":
+		if e.complexity.ChatThread.Title == nil {
+			break
+		}
+
+		return e.complexity.ChatThread.Title(childComplexity), true
+
+	case "ChatThread.type":
+		if e.complexity.ChatThread.Type == nil {
+			break
+		}
+
+		return e.complexity.ChatThread.Type(childComplexity), true
 
 	case "ChatThread.updatedAt":
 		if e.complexity.ChatThread.UpdatedAt == nil {
@@ -2107,7 +2195,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateChatThread(childComplexity, args["sellerId"].(string), args["orderId"].(*string)), true
+		return e.complexity.Mutation.CreateChatThread(childComplexity, args["sellerId"].(string), args["orderId"].(*string), args["type"].(*model.ChatThreadType), args["participantAvatar"].(*string)), true
 
 	case "Mutation.createCoupon":
 		if e.complexity.Mutation.CreateCoupon == nil {
@@ -2120,6 +2208,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateCoupon(childComplexity, args["input"].(model.CreateCouponInput)), true
+
+	case "Mutation.createCourierThread":
+		if e.complexity.Mutation.CreateCourierThread == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createCourierThread_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateCourierThread(childComplexity, args["orderId"].(string), args["courierStationId"].(string), args["participantAvatar"].(*string)), true
+
+	case "Mutation.createDeliveryThread":
+		if e.complexity.Mutation.CreateDeliveryThread == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createDeliveryThread_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateDeliveryThread(childComplexity, args["orderId"].(string), args["deliveryBoyId"].(string), args["participantAvatar"].(*string)), true
 
 	case "Mutation.createFlashSale":
 		if e.complexity.Mutation.CreateFlashSale == nil {
@@ -2192,6 +2304,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateStore(childComplexity, args["input"].(model.CreateStoreInput)), true
+
+	case "Mutation.createSupportThread":
+		if e.complexity.Mutation.CreateSupportThread == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createSupportThread_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateSupportThread(childComplexity, args["participantAvatar"].(*string)), true
 
 	case "Mutation.deleteAddress":
 		if e.complexity.Mutation.DeleteAddress == nil {
@@ -2479,7 +2603,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SendChatMessage(childComplexity, args["threadId"].(string), args["content"].(string)), true
+		return e.complexity.Mutation.SendChatMessage(childComplexity, args["threadId"].(string), args["content"].(string), args["type"].(*model.ChatMessageType), args["mediaUrl"].(*string), args["referenceId"].(*string)), true
 
 	case "Mutation.setCourierOnlineStatus":
 		if e.complexity.Mutation.SetCourierOnlineStatus == nil {
@@ -3658,6 +3782,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ChatMessages(childComplexity, args["threadId"].(string), args["pageToken"].(*string), args["pageSize"].(*int)), true
+
+	case "Query.chatThread":
+		if e.complexity.Query.ChatThread == nil {
+			break
+		}
+
+		args, err := ec.field_Query_chatThread_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ChatThread(childComplexity, args["threadId"].(string)), true
 
 	case "Query.coupons":
 		if e.complexity.Query.Coupons == nil {
@@ -5379,6 +5515,7 @@ type Query {
   # Chat
   myChatThreads: [ChatThread!]!
   chatMessages(threadId: ID!, pageToken: String, pageSize: Int): [ChatMessage!]!
+  chatThread(threadId: ID!): ChatThread!
 
   # Dispute
   myDisputes: DisputeList!
@@ -5518,8 +5655,11 @@ type Mutation {
   createSellerReply(input: SellerReplyInput!): SellerReply! @hasRole(role: SELLER)
 
   # Chat
-  createChatThread(sellerId: ID!, orderId: ID): ChatThread! @hasRole(role: BUYER)
-  sendChatMessage(threadId: ID!, content: String!): ChatMessage!
+  createChatThread(sellerId: ID!, orderId: ID, type: ChatThreadType, participantAvatar: String): ChatThread! @hasRole(role: BUYER)
+  createDeliveryThread(orderId: ID!, deliveryBoyId: ID!, participantAvatar: String): ChatThread! @hasRole(role: BUYER)
+  createCourierThread(orderId: ID!, courierStationId: ID!, participantAvatar: String): ChatThread! @hasRole(role: BUYER)
+  createSupportThread(participantAvatar: String): ChatThread! @hasRole(role: BUYER)
+  sendChatMessage(threadId: ID!, content: String!, type: ChatMessageType, mediaUrl: String, referenceId: ID): ChatMessage!
 
   # Dispute
   openDispute(orderId: ID!, reason: String!, evidenceUrls: [String!]): Dispute! @hasRole(role: BUYER)
@@ -5709,12 +5849,39 @@ type InitiatePaymentResponse {
 
 # ── Chat Types ────────────────────────────────────────────────────────────────
 
+enum ChatThreadType {
+  DIRECT
+  BROADCAST
+  DELIVERY
+  COURIER
+  SUPPORT
+  SYSTEM
+}
+
+enum ChatMessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  DOCUMENT
+  AUDIO
+  PRODUCT
+  ORDER
+  PROMOTION
+  COUPON
+}
+
 type ChatThread {
   id: ID!
+  type: ChatThreadType!
+  title: String
   buyerId: ID!
   sellerId: ID!
   orderId: ID
-  buyerName: String!
+  deliveryBoyId: ID
+  courierStationId: ID
+  supportAgentId: ID
+  participantName: String!
+  participantAvatar: String
   lastMessage: String!
   timestamp: String!
   createdAt: Time!
@@ -5725,7 +5892,11 @@ type ChatMessage {
   id: ID!
   threadId: ID!
   senderId: ID!
+  type: ChatMessageType!
   content: String!
+  mediaUrl: String
+  referenceId: ID
+  metadata: String
   isRead: Boolean!
   timestamp: String!
   createdAt: Time!
@@ -6364,6 +6535,24 @@ func (ec *executionContext) field_Mutation_createChatThread_args(ctx context.Con
 		}
 	}
 	args["orderId"] = arg1
+	var arg2 *model.ChatThreadType
+	if tmp, ok := rawArgs["type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+		arg2, err = ec.unmarshalOChatThreadType2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatThreadType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["type"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["participantAvatar"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("participantAvatar"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["participantAvatar"] = arg3
 	return args, nil
 }
 
@@ -6379,6 +6568,72 @@ func (ec *executionContext) field_Mutation_createCoupon_args(ctx context.Context
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createCourierThread_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["orderId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderId"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["courierStationId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("courierStationId"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["courierStationId"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["participantAvatar"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("participantAvatar"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["participantAvatar"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createDeliveryThread_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["orderId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderId"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["deliveryBoyId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deliveryBoyId"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["deliveryBoyId"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["participantAvatar"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("participantAvatar"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["participantAvatar"] = arg2
 	return args, nil
 }
 
@@ -6469,6 +6724,21 @@ func (ec *executionContext) field_Mutation_createStore_args(ctx context.Context,
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createSupportThread_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["participantAvatar"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("participantAvatar"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["participantAvatar"] = arg0
 	return args, nil
 }
 
@@ -6973,6 +7243,33 @@ func (ec *executionContext) field_Mutation_sendChatMessage_args(ctx context.Cont
 		}
 	}
 	args["content"] = arg1
+	var arg2 *model.ChatMessageType
+	if tmp, ok := rawArgs["type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+		arg2, err = ec.unmarshalOChatMessageType2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatMessageType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["type"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["mediaUrl"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mediaUrl"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["mediaUrl"] = arg3
+	var arg4 *string
+	if tmp, ok := rawArgs["referenceId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("referenceId"))
+		arg4, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["referenceId"] = arg4
 	return args, nil
 }
 
@@ -7495,6 +7792,21 @@ func (ec *executionContext) field_Query_chatMessages_args(ctx context.Context, r
 		}
 	}
 	args["pageSize"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_chatThread_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["threadId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threadId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["threadId"] = arg0
 	return args, nil
 }
 
@@ -10493,6 +10805,50 @@ func (ec *executionContext) fieldContext_ChatMessage_senderId(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _ChatMessage_type(ctx context.Context, field graphql.CollectedField, obj *model.ChatMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessage_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.ChatMessageType)
+	fc.Result = res
+	return ec.marshalNChatMessageType2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatMessageType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessage_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ChatMessageType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ChatMessage_content(ctx context.Context, field graphql.CollectedField, obj *model.ChatMessage) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ChatMessage_content(ctx, field)
 	if err != nil {
@@ -10525,6 +10881,129 @@ func (ec *executionContext) _ChatMessage_content(ctx context.Context, field grap
 }
 
 func (ec *executionContext) fieldContext_ChatMessage_content(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessage_mediaUrl(ctx context.Context, field graphql.CollectedField, obj *model.ChatMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessage_mediaUrl(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MediaURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessage_mediaUrl(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessage_referenceId(ctx context.Context, field graphql.CollectedField, obj *model.ChatMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessage_referenceId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ReferenceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessage_referenceId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatMessage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatMessage_metadata(ctx context.Context, field graphql.CollectedField, obj *model.ChatMessage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatMessage_metadata(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Metadata, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatMessage_metadata(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ChatMessage",
 		Field:      field,
@@ -10714,8 +11193,16 @@ func (ec *executionContext) fieldContext_ChatMessageList_messages(ctx context.Co
 				return ec.fieldContext_ChatMessage_threadId(ctx, field)
 			case "senderId":
 				return ec.fieldContext_ChatMessage_senderId(ctx, field)
+			case "type":
+				return ec.fieldContext_ChatMessage_type(ctx, field)
 			case "content":
 				return ec.fieldContext_ChatMessage_content(ctx, field)
+			case "mediaUrl":
+				return ec.fieldContext_ChatMessage_mediaUrl(ctx, field)
+			case "referenceId":
+				return ec.fieldContext_ChatMessage_referenceId(ctx, field)
+			case "metadata":
+				return ec.fieldContext_ChatMessage_metadata(ctx, field)
 			case "isRead":
 				return ec.fieldContext_ChatMessage_isRead(ctx, field)
 			case "timestamp":
@@ -10809,6 +11296,91 @@ func (ec *executionContext) fieldContext_ChatThread_id(ctx context.Context, fiel
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatThread_type(ctx context.Context, field graphql.CollectedField, obj *model.ChatThread) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatThread_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.ChatThreadType)
+	fc.Result = res
+	return ec.marshalNChatThreadType2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatThreadType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatThread_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatThread",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ChatThreadType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatThread_title(ctx context.Context, field graphql.CollectedField, obj *model.ChatThread) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatThread_title(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Title, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatThread_title(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatThread",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -10943,8 +11515,8 @@ func (ec *executionContext) fieldContext_ChatThread_orderId(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _ChatThread_buyerName(ctx context.Context, field graphql.CollectedField, obj *model.ChatThread) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ChatThread_buyerName(ctx, field)
+func (ec *executionContext) _ChatThread_deliveryBoyId(ctx context.Context, field graphql.CollectedField, obj *model.ChatThread) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatThread_deliveryBoyId(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -10957,7 +11529,130 @@ func (ec *executionContext) _ChatThread_buyerName(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.BuyerName, nil
+		return obj.DeliveryBoyID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatThread_deliveryBoyId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatThread",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatThread_courierStationId(ctx context.Context, field graphql.CollectedField, obj *model.ChatThread) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatThread_courierStationId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CourierStationID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatThread_courierStationId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatThread",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatThread_supportAgentId(ctx context.Context, field graphql.CollectedField, obj *model.ChatThread) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatThread_supportAgentId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SupportAgentID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatThread_supportAgentId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatThread",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatThread_participantName(ctx context.Context, field graphql.CollectedField, obj *model.ChatThread) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatThread_participantName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParticipantName, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10974,7 +11669,48 @@ func (ec *executionContext) _ChatThread_buyerName(ctx context.Context, field gra
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ChatThread_buyerName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ChatThread_participantName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChatThread",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChatThread_participantAvatar(ctx context.Context, field graphql.CollectedField, obj *model.ChatThread) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChatThread_participantAvatar(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ParticipantAvatar, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ChatThread_participantAvatar(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ChatThread",
 		Field:      field,
@@ -11204,14 +11940,26 @@ func (ec *executionContext) fieldContext_ChatThreadList_threads(ctx context.Cont
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_ChatThread_id(ctx, field)
+			case "type":
+				return ec.fieldContext_ChatThread_type(ctx, field)
+			case "title":
+				return ec.fieldContext_ChatThread_title(ctx, field)
 			case "buyerId":
 				return ec.fieldContext_ChatThread_buyerId(ctx, field)
 			case "sellerId":
 				return ec.fieldContext_ChatThread_sellerId(ctx, field)
 			case "orderId":
 				return ec.fieldContext_ChatThread_orderId(ctx, field)
-			case "buyerName":
-				return ec.fieldContext_ChatThread_buyerName(ctx, field)
+			case "deliveryBoyId":
+				return ec.fieldContext_ChatThread_deliveryBoyId(ctx, field)
+			case "courierStationId":
+				return ec.fieldContext_ChatThread_courierStationId(ctx, field)
+			case "supportAgentId":
+				return ec.fieldContext_ChatThread_supportAgentId(ctx, field)
+			case "participantName":
+				return ec.fieldContext_ChatThread_participantName(ctx, field)
+			case "participantAvatar":
+				return ec.fieldContext_ChatThread_participantAvatar(ctx, field)
 			case "lastMessage":
 				return ec.fieldContext_ChatThread_lastMessage(ctx, field)
 			case "timestamp":
@@ -18640,7 +19388,7 @@ func (ec *executionContext) _Mutation_createChatThread(ctx context.Context, fiel
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().CreateChatThread(rctx, fc.Args["sellerId"].(string), fc.Args["orderId"].(*string))
+			return ec.resolvers.Mutation().CreateChatThread(rctx, fc.Args["sellerId"].(string), fc.Args["orderId"].(*string), fc.Args["type"].(*model.ChatThreadType), fc.Args["participantAvatar"].(*string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "BUYER")
@@ -18690,14 +19438,26 @@ func (ec *executionContext) fieldContext_Mutation_createChatThread(ctx context.C
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_ChatThread_id(ctx, field)
+			case "type":
+				return ec.fieldContext_ChatThread_type(ctx, field)
+			case "title":
+				return ec.fieldContext_ChatThread_title(ctx, field)
 			case "buyerId":
 				return ec.fieldContext_ChatThread_buyerId(ctx, field)
 			case "sellerId":
 				return ec.fieldContext_ChatThread_sellerId(ctx, field)
 			case "orderId":
 				return ec.fieldContext_ChatThread_orderId(ctx, field)
-			case "buyerName":
-				return ec.fieldContext_ChatThread_buyerName(ctx, field)
+			case "deliveryBoyId":
+				return ec.fieldContext_ChatThread_deliveryBoyId(ctx, field)
+			case "courierStationId":
+				return ec.fieldContext_ChatThread_courierStationId(ctx, field)
+			case "supportAgentId":
+				return ec.fieldContext_ChatThread_supportAgentId(ctx, field)
+			case "participantName":
+				return ec.fieldContext_ChatThread_participantName(ctx, field)
+			case "participantAvatar":
+				return ec.fieldContext_ChatThread_participantAvatar(ctx, field)
 			case "lastMessage":
 				return ec.fieldContext_ChatThread_lastMessage(ctx, field)
 			case "timestamp":
@@ -18724,6 +19484,339 @@ func (ec *executionContext) fieldContext_Mutation_createChatThread(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createDeliveryThread(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createDeliveryThread(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateDeliveryThread(rctx, fc.Args["orderId"].(string), fc.Args["deliveryBoyId"].(string), fc.Args["participantAvatar"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "BUYER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.ChatThread); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/wemall/api-gateway/internal/graph/model.ChatThread`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ChatThread)
+	fc.Result = res
+	return ec.marshalNChatThread2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatThread(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createDeliveryThread(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ChatThread_id(ctx, field)
+			case "type":
+				return ec.fieldContext_ChatThread_type(ctx, field)
+			case "title":
+				return ec.fieldContext_ChatThread_title(ctx, field)
+			case "buyerId":
+				return ec.fieldContext_ChatThread_buyerId(ctx, field)
+			case "sellerId":
+				return ec.fieldContext_ChatThread_sellerId(ctx, field)
+			case "orderId":
+				return ec.fieldContext_ChatThread_orderId(ctx, field)
+			case "deliveryBoyId":
+				return ec.fieldContext_ChatThread_deliveryBoyId(ctx, field)
+			case "courierStationId":
+				return ec.fieldContext_ChatThread_courierStationId(ctx, field)
+			case "supportAgentId":
+				return ec.fieldContext_ChatThread_supportAgentId(ctx, field)
+			case "participantName":
+				return ec.fieldContext_ChatThread_participantName(ctx, field)
+			case "participantAvatar":
+				return ec.fieldContext_ChatThread_participantAvatar(ctx, field)
+			case "lastMessage":
+				return ec.fieldContext_ChatThread_lastMessage(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ChatThread_timestamp(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ChatThread_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ChatThread_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ChatThread", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createDeliveryThread_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createCourierThread(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createCourierThread(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateCourierThread(rctx, fc.Args["orderId"].(string), fc.Args["courierStationId"].(string), fc.Args["participantAvatar"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "BUYER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.ChatThread); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/wemall/api-gateway/internal/graph/model.ChatThread`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ChatThread)
+	fc.Result = res
+	return ec.marshalNChatThread2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatThread(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createCourierThread(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ChatThread_id(ctx, field)
+			case "type":
+				return ec.fieldContext_ChatThread_type(ctx, field)
+			case "title":
+				return ec.fieldContext_ChatThread_title(ctx, field)
+			case "buyerId":
+				return ec.fieldContext_ChatThread_buyerId(ctx, field)
+			case "sellerId":
+				return ec.fieldContext_ChatThread_sellerId(ctx, field)
+			case "orderId":
+				return ec.fieldContext_ChatThread_orderId(ctx, field)
+			case "deliveryBoyId":
+				return ec.fieldContext_ChatThread_deliveryBoyId(ctx, field)
+			case "courierStationId":
+				return ec.fieldContext_ChatThread_courierStationId(ctx, field)
+			case "supportAgentId":
+				return ec.fieldContext_ChatThread_supportAgentId(ctx, field)
+			case "participantName":
+				return ec.fieldContext_ChatThread_participantName(ctx, field)
+			case "participantAvatar":
+				return ec.fieldContext_ChatThread_participantAvatar(ctx, field)
+			case "lastMessage":
+				return ec.fieldContext_ChatThread_lastMessage(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ChatThread_timestamp(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ChatThread_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ChatThread_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ChatThread", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createCourierThread_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createSupportThread(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createSupportThread(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateSupportThread(rctx, fc.Args["participantAvatar"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "BUYER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.ChatThread); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/wemall/api-gateway/internal/graph/model.ChatThread`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ChatThread)
+	fc.Result = res
+	return ec.marshalNChatThread2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatThread(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createSupportThread(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ChatThread_id(ctx, field)
+			case "type":
+				return ec.fieldContext_ChatThread_type(ctx, field)
+			case "title":
+				return ec.fieldContext_ChatThread_title(ctx, field)
+			case "buyerId":
+				return ec.fieldContext_ChatThread_buyerId(ctx, field)
+			case "sellerId":
+				return ec.fieldContext_ChatThread_sellerId(ctx, field)
+			case "orderId":
+				return ec.fieldContext_ChatThread_orderId(ctx, field)
+			case "deliveryBoyId":
+				return ec.fieldContext_ChatThread_deliveryBoyId(ctx, field)
+			case "courierStationId":
+				return ec.fieldContext_ChatThread_courierStationId(ctx, field)
+			case "supportAgentId":
+				return ec.fieldContext_ChatThread_supportAgentId(ctx, field)
+			case "participantName":
+				return ec.fieldContext_ChatThread_participantName(ctx, field)
+			case "participantAvatar":
+				return ec.fieldContext_ChatThread_participantAvatar(ctx, field)
+			case "lastMessage":
+				return ec.fieldContext_ChatThread_lastMessage(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ChatThread_timestamp(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ChatThread_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ChatThread_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ChatThread", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createSupportThread_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_sendChatMessage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_sendChatMessage(ctx, field)
 	if err != nil {
@@ -18738,7 +19831,7 @@ func (ec *executionContext) _Mutation_sendChatMessage(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SendChatMessage(rctx, fc.Args["threadId"].(string), fc.Args["content"].(string))
+		return ec.resolvers.Mutation().SendChatMessage(rctx, fc.Args["threadId"].(string), fc.Args["content"].(string), fc.Args["type"].(*model.ChatMessageType), fc.Args["mediaUrl"].(*string), fc.Args["referenceId"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18769,8 +19862,16 @@ func (ec *executionContext) fieldContext_Mutation_sendChatMessage(ctx context.Co
 				return ec.fieldContext_ChatMessage_threadId(ctx, field)
 			case "senderId":
 				return ec.fieldContext_ChatMessage_senderId(ctx, field)
+			case "type":
+				return ec.fieldContext_ChatMessage_type(ctx, field)
 			case "content":
 				return ec.fieldContext_ChatMessage_content(ctx, field)
+			case "mediaUrl":
+				return ec.fieldContext_ChatMessage_mediaUrl(ctx, field)
+			case "referenceId":
+				return ec.fieldContext_ChatMessage_referenceId(ctx, field)
+			case "metadata":
+				return ec.fieldContext_ChatMessage_metadata(ctx, field)
 			case "isRead":
 				return ec.fieldContext_ChatMessage_isRead(ctx, field)
 			case "timestamp":
@@ -28774,14 +29875,26 @@ func (ec *executionContext) fieldContext_Query_myChatThreads(ctx context.Context
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_ChatThread_id(ctx, field)
+			case "type":
+				return ec.fieldContext_ChatThread_type(ctx, field)
+			case "title":
+				return ec.fieldContext_ChatThread_title(ctx, field)
 			case "buyerId":
 				return ec.fieldContext_ChatThread_buyerId(ctx, field)
 			case "sellerId":
 				return ec.fieldContext_ChatThread_sellerId(ctx, field)
 			case "orderId":
 				return ec.fieldContext_ChatThread_orderId(ctx, field)
-			case "buyerName":
-				return ec.fieldContext_ChatThread_buyerName(ctx, field)
+			case "deliveryBoyId":
+				return ec.fieldContext_ChatThread_deliveryBoyId(ctx, field)
+			case "courierStationId":
+				return ec.fieldContext_ChatThread_courierStationId(ctx, field)
+			case "supportAgentId":
+				return ec.fieldContext_ChatThread_supportAgentId(ctx, field)
+			case "participantName":
+				return ec.fieldContext_ChatThread_participantName(ctx, field)
+			case "participantAvatar":
+				return ec.fieldContext_ChatThread_participantAvatar(ctx, field)
 			case "lastMessage":
 				return ec.fieldContext_ChatThread_lastMessage(ctx, field)
 			case "timestamp":
@@ -28842,8 +29955,16 @@ func (ec *executionContext) fieldContext_Query_chatMessages(ctx context.Context,
 				return ec.fieldContext_ChatMessage_threadId(ctx, field)
 			case "senderId":
 				return ec.fieldContext_ChatMessage_senderId(ctx, field)
+			case "type":
+				return ec.fieldContext_ChatMessage_type(ctx, field)
 			case "content":
 				return ec.fieldContext_ChatMessage_content(ctx, field)
+			case "mediaUrl":
+				return ec.fieldContext_ChatMessage_mediaUrl(ctx, field)
+			case "referenceId":
+				return ec.fieldContext_ChatMessage_referenceId(ctx, field)
+			case "metadata":
+				return ec.fieldContext_ChatMessage_metadata(ctx, field)
 			case "isRead":
 				return ec.fieldContext_ChatMessage_isRead(ctx, field)
 			case "timestamp":
@@ -28862,6 +29983,93 @@ func (ec *executionContext) fieldContext_Query_chatMessages(ctx context.Context,
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_chatMessages_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_chatThread(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_chatThread(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ChatThread(rctx, fc.Args["threadId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ChatThread)
+	fc.Result = res
+	return ec.marshalNChatThread2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatThread(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_chatThread(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ChatThread_id(ctx, field)
+			case "type":
+				return ec.fieldContext_ChatThread_type(ctx, field)
+			case "title":
+				return ec.fieldContext_ChatThread_title(ctx, field)
+			case "buyerId":
+				return ec.fieldContext_ChatThread_buyerId(ctx, field)
+			case "sellerId":
+				return ec.fieldContext_ChatThread_sellerId(ctx, field)
+			case "orderId":
+				return ec.fieldContext_ChatThread_orderId(ctx, field)
+			case "deliveryBoyId":
+				return ec.fieldContext_ChatThread_deliveryBoyId(ctx, field)
+			case "courierStationId":
+				return ec.fieldContext_ChatThread_courierStationId(ctx, field)
+			case "supportAgentId":
+				return ec.fieldContext_ChatThread_supportAgentId(ctx, field)
+			case "participantName":
+				return ec.fieldContext_ChatThread_participantName(ctx, field)
+			case "participantAvatar":
+				return ec.fieldContext_ChatThread_participantAvatar(ctx, field)
+			case "lastMessage":
+				return ec.fieldContext_ChatThread_lastMessage(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ChatThread_timestamp(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ChatThread_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ChatThread_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ChatThread", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_chatThread_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -39211,11 +40419,22 @@ func (ec *executionContext) _ChatMessage(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "type":
+			out.Values[i] = ec._ChatMessage_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "content":
 			out.Values[i] = ec._ChatMessage_content(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "mediaUrl":
+			out.Values[i] = ec._ChatMessage_mediaUrl(ctx, field, obj)
+		case "referenceId":
+			out.Values[i] = ec._ChatMessage_referenceId(ctx, field, obj)
+		case "metadata":
+			out.Values[i] = ec._ChatMessage_metadata(ctx, field, obj)
 		case "isRead":
 			out.Values[i] = ec._ChatMessage_isRead(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -39311,6 +40530,13 @@ func (ec *executionContext) _ChatThread(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "type":
+			out.Values[i] = ec._ChatThread_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "title":
+			out.Values[i] = ec._ChatThread_title(ctx, field, obj)
 		case "buyerId":
 			out.Values[i] = ec._ChatThread_buyerId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -39323,11 +40549,19 @@ func (ec *executionContext) _ChatThread(ctx context.Context, sel ast.SelectionSe
 			}
 		case "orderId":
 			out.Values[i] = ec._ChatThread_orderId(ctx, field, obj)
-		case "buyerName":
-			out.Values[i] = ec._ChatThread_buyerName(ctx, field, obj)
+		case "deliveryBoyId":
+			out.Values[i] = ec._ChatThread_deliveryBoyId(ctx, field, obj)
+		case "courierStationId":
+			out.Values[i] = ec._ChatThread_courierStationId(ctx, field, obj)
+		case "supportAgentId":
+			out.Values[i] = ec._ChatThread_supportAgentId(ctx, field, obj)
+		case "participantName":
+			out.Values[i] = ec._ChatThread_participantName(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "participantAvatar":
+			out.Values[i] = ec._ChatThread_participantAvatar(ctx, field, obj)
 		case "lastMessage":
 			out.Values[i] = ec._ChatThread_lastMessage(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -40591,6 +41825,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "createChatThread":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createChatThread(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createDeliveryThread":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createDeliveryThread(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createCourierThread":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createCourierThread(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createSupportThread":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createSupportThread(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -42603,6 +43858,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_chatMessages(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "chatThread":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_chatThread(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -44683,6 +45960,16 @@ func (ec *executionContext) marshalNChatMessage2ᚖgithubᚗcomᚋwemallᚋapi�
 	return ec._ChatMessage(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNChatMessageType2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatMessageType(ctx context.Context, v interface{}) (model.ChatMessageType, error) {
+	var res model.ChatMessageType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNChatMessageType2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatMessageType(ctx context.Context, sel ast.SelectionSet, v model.ChatMessageType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNChatThread2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatThread(ctx context.Context, sel ast.SelectionSet, v model.ChatThread) graphql.Marshaler {
 	return ec._ChatThread(ctx, sel, &v)
 }
@@ -44739,6 +46026,16 @@ func (ec *executionContext) marshalNChatThread2ᚖgithubᚗcomᚋwemallᚋapiᚑ
 		return graphql.Null
 	}
 	return ec._ChatThread(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNChatThreadType2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatThreadType(ctx context.Context, v interface{}) (model.ChatThreadType, error) {
+	var res model.ChatThreadType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNChatThreadType2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatThreadType(ctx context.Context, sel ast.SelectionSet, v model.ChatThreadType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNCheckoutInput2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐCheckoutInput(ctx context.Context, v interface{}) (model.CheckoutInput, error) {
@@ -47069,6 +48366,38 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOChatMessageType2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatMessageType(ctx context.Context, v interface{}) (*model.ChatMessageType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ChatMessageType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOChatMessageType2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatMessageType(ctx context.Context, sel ast.SelectionSet, v *model.ChatMessageType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOChatThreadType2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatThreadType(ctx context.Context, v interface{}) (*model.ChatThreadType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ChatThreadType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOChatThreadType2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐChatThreadType(ctx context.Context, sel ast.SelectionSet, v *model.ChatThreadType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOCurrency2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐCurrency(ctx context.Context, v interface{}) (*model.Currency, error) {
