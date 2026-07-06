@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/nats-io/nats.go"
+	fb "github.com/wemall/chat-service/internal/firebase"
 	"github.com/wemall/chat-service/internal/service"
 )
 
@@ -46,15 +47,16 @@ type PromotionCreatedEvent struct {
 type EventListener struct {
 	nc   *nats.Conn
 	svc  *service.ChatService
+	fc   *fb.FirestoreClient
 	subs []*nats.Subscription
 }
 
-func NewEventListener(natsURL string, svc *service.ChatService) (*EventListener, error) {
+func NewEventListener(natsURL string, svc *service.ChatService, fc *fb.FirestoreClient) (*EventListener, error) {
 	nc, err := nats.Connect(natsURL)
 	if err != nil {
 		return nil, err
 	}
-	return &EventListener{nc: nc, svc: svc}, nil
+	return &EventListener{nc: nc, svc: svc, fc: fc}, nil
 }
 
 func (l *EventListener) Start() error {
@@ -107,6 +109,12 @@ func (l *EventListener) handleStoreFollowed(data []byte) {
 		return
 	}
 	log.Printf("[event_listener] User %s joined broadcast group for seller %s", event.FollowerID, event.SellerID)
+
+	// Also add to Firestore thread members
+	if l.fc != nil {
+		firestoreThreadID := fmt.Sprintf("group_%s", event.SellerID)
+		_ = l.fc.AddMemberToThread(ctx, firestoreThreadID, event.FollowerID)
+	}
 }
 
 // handleStoreUnfollowed: removes the buyer from the seller's broadcast group.
@@ -123,6 +131,12 @@ func (l *EventListener) handleStoreUnfollowed(data []byte) {
 		return
 	}
 	log.Printf("[event_listener] User %s left broadcast group for seller %s", event.FollowerID, event.SellerID)
+
+	// Also remove from Firestore thread members
+	if l.fc != nil {
+		firestoreThreadID := fmt.Sprintf("group_%s", event.SellerID)
+		_ = l.fc.RemoveMemberFromThread(ctx, firestoreThreadID, event.FollowerID)
+	}
 }
 
 // handleCouponCreated: broadcasts a coupon message to the seller's followers.
@@ -159,6 +173,30 @@ func (l *EventListener) handleCouponCreated(data []byte) {
 		return
 	}
 	log.Printf("[event_listener] Broadcasted coupon %s to followers of seller %s", event.CouponID, event.SellerID)
+
+	// Write to Firestore for push notification trigger
+	if l.fc != nil {
+		firestoreThreadID := fmt.Sprintf("group_%s", event.SellerID)
+		_ = l.fc.EnsureThreadExists(ctx, firestoreThreadID, "GROUP", "Store Updates", event.SellerID, []string{event.SellerID})
+
+		msgData := map[string]interface{}{
+			"senderId":    event.SellerID,
+			"type":        "COUPON",
+			"content":     content,
+			"referenceId": event.CouponID,
+			"metadata": map[string]string{
+				"coupon_id":  event.CouponID,
+				"code":       event.Code,
+				"expires_at": event.ExpiresAt,
+			},
+		}
+		docID, writeErr := l.fc.WriteMessage(ctx, firestoreThreadID, msgData)
+		if writeErr != nil {
+			log.Printf("[firestore] Failed to write coupon announcement: %v", writeErr)
+		} else {
+			log.Printf("[firestore] Wrote coupon announcement %s to thread %s", docID, firestoreThreadID)
+		}
+	}
 }
 
 // handlePromotionCreated: broadcasts a promotion message to the seller's followers.
@@ -196,4 +234,31 @@ func (l *EventListener) handlePromotionCreated(data []byte) {
 		return
 	}
 	log.Printf("[event_listener] Broadcasted promotion %s to followers of seller %s", event.PromotionID, event.SellerID)
+
+	// Write to Firestore for push notification trigger
+	if l.fc != nil {
+		firestoreThreadID := fmt.Sprintf("group_%s", event.SellerID)
+		_ = l.fc.EnsureThreadExists(ctx, firestoreThreadID, "GROUP", "Store Updates", event.SellerID, []string{event.SellerID})
+
+		msgData := map[string]interface{}{
+			"senderId":    event.SellerID,
+			"type":        "PROMOTION",
+			"content":     content,
+			"mediaUrl":    event.BannerURL,
+			"referenceId": event.PromotionID,
+			"metadata": map[string]string{
+				"promotion_id": event.PromotionID,
+				"title":        event.Title,
+				"description":  event.Description,
+				"banner_url":   event.BannerURL,
+			},
+		}
+		docID, writeErr := l.fc.WriteMessage(ctx, firestoreThreadID, msgData)
+		if writeErr != nil {
+			log.Printf("[firestore] Failed to write promotion announcement: %v", writeErr)
+		} else {
+			log.Printf("[firestore] Wrote promotion announcement %s to thread %s", docID, firestoreThreadID)
+		}
+	}
 }
+

@@ -5,10 +5,11 @@ import (
 )
 
 type Config struct {
-	Port              string
-	DatabaseURL       string
-	NatsURL           string
-	SellerServiceAddr string
+	Port                    string
+	DatabaseURL             string
+	NatsURL                 string
+	SellerServiceAddr       string
+	FirebaseCredentialsFile string
 }
 
 func Load() *Config {
@@ -38,10 +39,17 @@ func Load() *Config {
 		sellerAddr = "localhost:50052"
 	}
 
+	firebaseCreds := os.Getenv("FIREBASE_CREDENTIALS_FILE")
+	if firebaseCreds == "" {
+		firebaseCreds = "firebase-service-account.json"
+	}
+
 	return &Config{
-		Port:              port,
-		DatabaseURL:       dbURL,
-		NatsURL:           natsURL,
-		SellerServiceAddr: sellerAddr,
+		Port:                    port,
+		DatabaseURL:             dbURL,
+		NatsURL:                 natsURL,
+		SellerServiceAddr:       sellerAddr,
+		FirebaseCredentialsFile: firebaseCreds,
 	}
 }
+

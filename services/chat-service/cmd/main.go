@@ -15,6 +15,7 @@ import (
 	chatv1 "github.com/wemall/gen/chat/v1"
 	"github.com/wemall/chat-service/internal/config"
 	"github.com/wemall/chat-service/internal/db"
+	fb "github.com/wemall/chat-service/internal/firebase"
 	"github.com/wemall/chat-service/internal/handler"
 	"github.com/wemall/chat-service/internal/service"
 	"github.com/wemall/chat-service/internal/worker"
@@ -39,8 +40,17 @@ func main() {
 	chatService := service.NewChatService(queries)
 	chatHandler := handler.NewChatHandler(chatService)
 
+	// Initialize Firestore client for writing announcements
+	var firestoreClient *fb.FirestoreClient
+	firestoreClient, err = fb.NewFirestoreClient(context.Background(), cfg.FirebaseCredentialsFile)
+	if err != nil {
+		log.Printf("Warning: Failed to initialize Firestore client: %v", err)
+	} else {
+		defer firestoreClient.Close()
+	}
+
 	// Initialize product broadcast NATS worker
-	productListener, err := worker.NewProductListener(cfg.NatsURL, chatService)
+	productListener, err := worker.NewProductListener(cfg.NatsURL, chatService, firestoreClient)
 	if err != nil {
 		log.Printf("Warning: Failed to initialize product NATS listener: %v", err)
 	} else {
@@ -52,7 +62,7 @@ func main() {
 	}
 
 	// Initialize store-follow / coupon / promotion NATS worker
-	eventListener, err := worker.NewEventListener(cfg.NatsURL, chatService)
+	eventListener, err := worker.NewEventListener(cfg.NatsURL, chatService, firestoreClient)
 	if err != nil {
 		log.Printf("Warning: Failed to initialize event NATS listener: %v", err)
 	} else {
@@ -85,3 +95,4 @@ func main() {
 		log.Fatalf("failed to serve: %v", err)
 	}
 }
+

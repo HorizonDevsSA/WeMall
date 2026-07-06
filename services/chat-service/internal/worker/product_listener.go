@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/nats-io/nats.go"
+	fb "github.com/wemall/chat-service/internal/firebase"
 	"github.com/wemall/chat-service/internal/service"
 )
 
@@ -20,10 +21,11 @@ type ProductCreatedEvent struct {
 type ProductListener struct {
 	nc  *nats.Conn
 	svc *service.ChatService
+	fc  *fb.FirestoreClient
 	sub *nats.Subscription
 }
 
-func NewProductListener(natsURL string, svc *service.ChatService) (*ProductListener, error) {
+func NewProductListener(natsURL string, svc *service.ChatService, fc *fb.FirestoreClient) (*ProductListener, error) {
 	nc, err := nats.Connect(natsURL)
 	if err != nil {
 		return nil, err
@@ -32,6 +34,7 @@ func NewProductListener(natsURL string, svc *service.ChatService) (*ProductListe
 	return &ProductListener{
 		nc:  nc,
 		svc: svc,
+		fc:  fc,
 	}, nil
 }
 
@@ -93,6 +96,34 @@ func (l *ProductListener) handleProductCreated(event ProductCreatedEvent) {
 	}
 
 	log.Printf("Broadcasted new product %s to followers of seller %s", event.ProductID, event.SellerID)
+
+	// 3. Write to Firestore for push notification trigger
+	if l.fc != nil {
+		firestoreThreadID := fmt.Sprintf("group_%s", event.SellerID)
+
+		// Ensure thread document exists in Firestore
+		_ = l.fc.EnsureThreadExists(ctx, firestoreThreadID, "GROUP", "Store Updates", event.SellerID, []string{event.SellerID})
+
+		msgData := map[string]interface{}{
+			"senderId":    event.SellerID,
+			"type":        "PRODUCT",
+			"content":     content,
+			"mediaUrl":    event.ImageURL,
+			"referenceId": event.ProductID,
+			"metadata": map[string]string{
+				"product_id": event.ProductID,
+				"title":      event.Title,
+				"image_url":  event.ImageURL,
+			},
+		}
+
+		docID, writeErr := l.fc.WriteMessage(ctx, firestoreThreadID, msgData)
+		if writeErr != nil {
+			log.Printf("[firestore] Failed to write product announcement: %v", writeErr)
+		} else {
+			log.Printf("[firestore] Wrote product announcement %s to thread %s", docID, firestoreThreadID)
+		}
+	}
 }
 
 
@@ -104,3 +135,4 @@ func (l *ProductListener) Close() {
 		l.nc.Close()
 	}
 }
+
