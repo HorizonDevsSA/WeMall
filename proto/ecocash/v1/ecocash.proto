@@ -1,0 +1,195 @@
+syntax = "proto3";
+package ecocash.v1;
+option go_package = "github.com/wemall/gen/ecocash/v1;ecocashv1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// ── Enums ─────────────────────────────────────────────────────────────────────
+
+enum TransactionStatus {
+  TRANSACTION_STATUS_UNSPECIFIED   = 0;
+  TRANSACTION_STATUS_PENDING       = 1;
+  TRANSACTION_STATUS_SUCCESS       = 2;
+  TRANSACTION_STATUS_FAILED        = 3;
+  TRANSACTION_STATUS_REFUNDED      = 4;
+  TRANSACTION_STATUS_REVERSED      = 5;
+  TRANSACTION_STATUS_MANUAL_REVIEW = 6;
+}
+
+enum TransactionType {
+  TRANSACTION_TYPE_UNSPECIFIED = 0;
+  TRANSACTION_TYPE_MER         = 1; // Customer charge
+  TRANSACTION_TYPE_REF         = 2; // Refund
+  TRANSACTION_TYPE_REV         = 3; // Reversal
+}
+
+enum PayoutStatus {
+  PAYOUT_STATUS_UNSPECIFIED    = 0;
+  PAYOUT_STATUS_QUEUED         = 1;
+  PAYOUT_STATUS_PROCESSING     = 2;
+  PAYOUT_STATUS_PAID           = 3;
+  PAYOUT_STATUS_FAILED         = 4;
+  PAYOUT_STATUS_MANUAL_REVIEW  = 5;
+}
+
+// ── Core Messages ─────────────────────────────────────────────────────────────
+
+message Transaction {
+  string                    id                     = 1;
+  string                    order_id               = 2;
+  string                    client_correlator      = 3;
+  string                    reference_code         = 4;
+  TransactionType           tran_type              = 5;
+  string                    msisdn_masked          = 6; // e.g. 773***653
+  int64                     amount_cents           = 7;
+  string                    currency               = 8;
+  TransactionStatus         status                 = 9;
+  string                    ecocash_status_code    = 10;
+  string                    ecocash_status_msg     = 11;
+  string                    ecocash_transaction_id = 12;
+  google.protobuf.Timestamp created_at             = 13;
+  google.protobuf.Timestamp updated_at             = 14;
+}
+
+message RefundRecord {
+  string                    id                     = 1;
+  string                    original_txn_id        = 2;
+  string                    client_correlator      = 3;
+  int64                     amount_cents           = 4;
+  TransactionStatus         status                 = 5;
+  string                    ecocash_status_code    = 6;
+  string                    ecocash_status_msg     = 7;
+  google.protobuf.Timestamp created_at             = 8;
+}
+
+message Payout {
+  string                    id           = 1;
+  string                    seller_id    = 2;
+  int64                     amount_cents = 3;
+  string                    currency     = 4;
+  PayoutStatus              status       = 5;
+  string                    method       = 6; // "manual_bulk"
+  string                    provider_ref = 7;
+  google.protobuf.Timestamp created_at   = 8;
+  google.protobuf.Timestamp updated_at   = 9;
+}
+
+// ── Request / Response Messages ───────────────────────────────────────────────
+
+// ChargeCustomer — initiates an EcoCash MER charge
+message ChargeCustomerRequest {
+  string order_id     = 1;
+  string msisdn       = 2; // e.g. 2637XXXXXXXX or 07XXXXXXXX
+  int64  amount_cents = 3;
+  string currency     = 4; // USD or ZWG
+}
+
+message ChargeCustomerResponse {
+  Transaction transaction   = 1;
+  string      status_msg    = 2;
+}
+
+// LookupTransaction — check status of an existing transaction
+message LookupTransactionRequest {
+  string order_id          = 1;
+  string client_correlator = 2;
+}
+
+message LookupTransactionResponse {
+  Transaction transaction = 1;
+}
+
+// RefundTransaction — refund a succeeded transaction
+message RefundTransactionRequest {
+  string original_txn_id = 1;
+  int64  amount_cents    = 2; // 0 = full refund
+  string reason          = 3;
+}
+
+message RefundTransactionResponse {
+  RefundRecord refund = 1;
+}
+
+// ReverseTransaction — reverse a pending/unsettled transaction
+message ReverseTransactionRequest {
+  string original_txn_id = 1;
+  string reason          = 2;
+}
+
+message ReverseTransactionResponse {
+  RefundRecord reversal = 1;
+}
+
+// GetTransaction — fetch a transaction by id
+message GetTransactionRequest {
+  string id = 1;
+}
+
+// ListTransactionsByOrder — all transactions for an order
+message ListTransactionsByOrderRequest {
+  string order_id = 1;
+}
+
+message ListTransactionsByOrderResponse {
+  repeated Transaction transactions = 1;
+}
+
+// CreatePayout — queue a seller payout for manual settlement
+message CreatePayoutRequest {
+  string seller_id    = 1;
+  int64  amount_cents = 2;
+  string currency     = 3;
+}
+
+message CreatePayoutResponse {
+  Payout payout = 1;
+}
+
+// GetPayout — fetch a payout by id
+message GetPayoutRequest {
+  string id = 1;
+}
+
+// UpdatePayoutStatus — finance team marks payout as paid/failed
+message UpdatePayoutStatusRequest {
+  string       id           = 1;
+  PayoutStatus status       = 2;
+  string       provider_ref = 3; // bank/portal reference
+}
+
+message UpdatePayoutStatusResponse {
+  Payout payout = 1;
+}
+
+// HandleWebhook — EcoCash notifyUrl callback
+message HandleWebhookRequest {
+  string client_correlator = 1;
+  string transaction_id    = 2;
+  string status_code       = 3;
+  string status_message    = 4;
+  string reference_code    = 5;
+  bytes  raw_payload       = 6;
+}
+
+// ── Service ───────────────────────────────────────────────────────────────────
+
+service EcoCashService {
+  // Payment flows
+  rpc ChargeCustomer(ChargeCustomerRequest)           returns (ChargeCustomerResponse);
+  rpc LookupTransaction(LookupTransactionRequest)     returns (LookupTransactionResponse);
+  rpc RefundTransaction(RefundTransactionRequest)     returns (RefundTransactionResponse);
+  rpc ReverseTransaction(ReverseTransactionRequest)   returns (ReverseTransactionResponse);
+
+  // Transaction queries
+  rpc GetTransaction(GetTransactionRequest)                       returns (Transaction);
+  rpc ListTransactionsByOrder(ListTransactionsByOrderRequest)     returns (ListTransactionsByOrderResponse);
+
+  // Payout management
+  rpc CreatePayout(CreatePayoutRequest)               returns (CreatePayoutResponse);
+  rpc GetPayout(GetPayoutRequest)                     returns (Payout);
+  rpc UpdatePayoutStatus(UpdatePayoutStatusRequest)   returns (UpdatePayoutStatusResponse);
+
+  // EcoCash webhook receiver (called by the HTTP adapter internally)
+  rpc HandleWebhook(HandleWebhookRequest)             returns (google.protobuf.Empty);
+}

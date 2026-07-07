@@ -197,6 +197,21 @@ services:
       retries: 5
 
 
+  postgres-ecocash:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wemall_ecocash
+      POSTGRES_USER: wemall
+      POSTGRES_PASSWORD: wemall_secret
+    ports: ['5446:5432']
+    volumes:
+      - pgdata-ecocash:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U wemall -d wemall_ecocash']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   # ── Redis ──────────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
@@ -325,6 +340,7 @@ services:
       PROMOTION_SERVICE_ADDR: promotion-service:9015
       RECOMMENDATION_SERVICE_ADDR: recommendation-service:9016
       DELIVERY_SERVICE_ADDR: delivery-service:9017
+      ECOCASH_SERVICE_ADDR: ecocash-service:9018
     depends_on:
       - user-service
       - product-service
@@ -339,6 +355,7 @@ services:
       - promotion-service
       - recommendation-service
       - delivery-service
+      - ecocash-service
     restart: unless-stopped
 
   notification-service:
@@ -508,6 +525,40 @@ services:
         condition: service_started
     restart: unless-stopped
 
+  ecocash-service:
+    build:
+      context: .
+      dockerfile: ./services/ecocash-service/Dockerfile
+    ports:
+      - '9018:9018'  # gRPC
+      - '8018:8018'  # webhook HTTP
+    environment:
+      DB_URL: postgres://wemall:wemall_secret@postgres-ecocash:5432/wemall_ecocash?sslmode=disable
+      GRPC_PORT: '9018'
+      HTTP_PORT: '8018'
+      NATS_URL: nats://nats:4222
+      ENVIRONMENT: development
+      # EcoCash EIP — override these with real values for sandbox/production
+      ECOCASH_BASE_URL: ${ECOCASH_BASE_URL:-https://developers.ecocash.co.zw/sandbox/payment/v1}
+      ECOCASH_USERNAME: ${ECOCASH_USERNAME:-}
+      ECOCASH_PASSWORD: ${ECOCASH_PASSWORD:-}
+      ECOCASH_MERCHANT_CODE: ${ECOCASH_MERCHANT_CODE:-}
+      ECOCASH_MERCHANT_PIN: ${ECOCASH_MERCHANT_PIN:-}
+      ECOCASH_MERCHANT_NUMBER: ${ECOCASH_MERCHANT_NUMBER:-}
+      ECOCASH_TERMINAL_ID: ${ECOCASH_TERMINAL_ID:-}
+      ECOCASH_COUNTRY_CODE: ${ECOCASH_COUNTRY_CODE:-ZW}
+      ECOCASH_MERCHANT_NAME: ${ECOCASH_MERCHANT_NAME:-WeMall}
+      ECOCASH_SUPER_MERCHANT: ${ECOCASH_SUPER_MERCHANT:-}
+      # Publicly reachable base URL for notifyUrl (use ngrok/tunnel in dev)
+      WEBHOOK_BASE_URL: ${WEBHOOK_BASE_URL:-http://localhost:8018}
+      WEBHOOK_SECRET_PATH: ${WEBHOOK_SECRET_PATH:-/webhooks/ecocash/callback}
+    depends_on:
+      postgres-ecocash:
+        condition: service_healthy
+      nats:
+        condition: service_started
+    restart: unless-stopped
+
   delivery-service:
     build:
       context: .
@@ -544,6 +595,7 @@ volumes:
   pgdata-promotion:
   pgdata-recommendation:
   pgdata-delivery:
+  pgdata-ecocash:
   redisdata:
   natsdata:
   meilidata:

@@ -24,11 +24,11 @@ type StoreUnfollowedEvent struct {
 }
 
 type CouponCreatedEvent struct {
-	CouponID   string  `json:"coupon_id"`
-	SellerID   string  `json:"seller_id"`
-	Code       string  `json:"code"`
-	Discount   float64 `json:"discount"`
-	ExpiresAt  string  `json:"expires_at"`
+	CouponID  string  `json:"coupon_id"`
+	SellerID  string  `json:"seller_id"`
+	Code      string  `json:"code"`
+	Discount  float64 `json:"discount"`
+	ExpiresAt string  `json:"expires_at"`
 }
 
 type PromotionCreatedEvent struct {
@@ -261,4 +261,3 @@ func (l *EventListener) handlePromotionCreated(data []byte) {
 		}
 	}
 }
-
