@@ -122,6 +122,14 @@ jobs:
               - 'go.work'
               - 'go.work.sum'
               - 'Makefile'
+            ecocash-service:
+              - 'services/ecocash-service/**'
+              - 'proto/ecocash/**'
+              - 'gen/ecocash/**'
+              - 'pkg/**'
+              - 'go.work'
+              - 'go.work.sum'
+              - 'Makefile'
             documentation-service:
               - 'services/documentation-service/**'
               - 'proto/**'

@@ -30,7 +30,7 @@ services:
     environment:
       POSTGRES_USER: ${DB_USER:-wemall}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-wemall_secret}
-      POSTGRES_MULTIPLE_DATABASES: wemall_users,wemall_products,wemall_orders,wemall_sellers,wemall_notifications,wemall_reviews,wemall_payments,wemall_chat,wemall_dispute,wemall_admin,wemall_promotion,wemall_recommendation,wemall_delivery
+      POSTGRES_MULTIPLE_DATABASES: wemall_users,wemall_products,wemall_orders,wemall_sellers,wemall_notifications,wemall_reviews,wemall_payments,wemall_chat,wemall_dispute,wemall_admin,wemall_promotion,wemall_recommendation,wemall_delivery,wemall_ecocash
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./infrastructure/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
@@ -116,6 +116,7 @@ services:
       - CHAT_SERVICE_ADDR=chat-service:9012
       - DISPUTE_SERVICE_ADDR=dispute-service:9013
       - RECOMMENDATION_SERVICE_ADDR=recommendation-service:9016
+      - ECOCASH_SERVICE_ADDR=ecocash-service:9018
     depends_on:
       redis:
         condition: service_healthy
@@ -130,6 +131,8 @@ services:
       promotion-service:
         condition: service_started
       delivery-service:
+        condition: service_started
+      ecocash-service:
         condition: service_started
     networks:
       - wemall-net
@@ -417,6 +420,41 @@ services:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - wemall-net
+    logging: *default-logging
+
+  ecocash-service:
+    image: ghcr.io/horizondevssa/wemall-ecocash-service:latest
+    build:
+      context: .
+      dockerfile: services/ecocash-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - GRPC_PORT=9018
+      - HTTP_PORT=8018
+      - DB_URL=postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@postgres:5432/wemall_ecocash?sslmode=disable
+      - NATS_URL=nats://nats:4222
+      - ENVIRONMENT=production
+      # EcoCash EIP — set these in your server .env file
+      - ECOCASH_BASE_URL=${ECOCASH_BASE_URL:-https://developers.ecocash.co.zw/sandbox/payment/v1}
+      - ECOCASH_USERNAME=${ECOCASH_USERNAME}
+      - ECOCASH_PASSWORD=${ECOCASH_PASSWORD}
+      - ECOCASH_MERCHANT_CODE=${ECOCASH_MERCHANT_CODE}
+      - ECOCASH_MERCHANT_PIN=${ECOCASH_MERCHANT_PIN}
+      - ECOCASH_MERCHANT_NUMBER=${ECOCASH_MERCHANT_NUMBER}
+      - ECOCASH_TERMINAL_ID=${ECOCASH_TERMINAL_ID}
+      - ECOCASH_COUNTRY_CODE=${ECOCASH_COUNTRY_CODE:-ZW}
+      - ECOCASH_MERCHANT_NAME=${ECOCASH_MERCHANT_NAME:-WeMall}
+      - ECOCASH_SUPER_MERCHANT=${ECOCASH_SUPER_MERCHANT:-}
+      # Public URL EcoCash will POST webhook callbacks to
+      - WEBHOOK_BASE_URL=${WEBHOOK_BASE_URL}
+      - WEBHOOK_SECRET_PATH=${WEBHOOK_SECRET_PATH:-/webhooks/ecocash/callback}
+    depends_on:
+      postgres:
         condition: service_healthy
       nats:
         condition: service_healthy

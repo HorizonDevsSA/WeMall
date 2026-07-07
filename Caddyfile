@@ -1,4 +1,10 @@
 {$DOMAIN} {
+    # EcoCash webhook endpoint — direct route to ecocash-service HTTP server
+    handle /webhooks/ecocash/* {
+        reverse_proxy ecocash-service:8018
+    }
+
+    # All other routes → api-gateway (GraphQL, REST)
     reverse_proxy api-gateway:8080
 }
 
