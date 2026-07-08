@@ -1,0 +1,29 @@
+# Reverse a pending/unsettled EcoCash charge (REV transaction).
+#
+# Use this when the original charge is still PENDING — e.g. the customer never
+# completed the USSD PIN prompt or the transaction failed shortly after
+# submission but before settlement. A reversal cancels the charge before it
+# reaches the EcoCash settlement cycle.
+#
+# For already-settled SUCCESS transactions, use ecocashRefund instead.
+#
+# Variables:
+# {
+#   "originalTxnId": "550e8400-e29b-41d4-a716-446655440000",
+#   "reason": "Order cancelled before payment confirmed"
+# }
+
+mutation EcoCashReverse($originalTxnId: ID!, $reason: String) {
+  ecocashReverse(originalTxnId: $originalTxnId, reason: $reason) {
+    reversal {
+      id
+      originalTxnId
+      clientCorrelator
+      amountCents
+      status
+      ecocashStatusCode
+      ecocashStatusMsg
+      createdAt
+    }
+  }
+}

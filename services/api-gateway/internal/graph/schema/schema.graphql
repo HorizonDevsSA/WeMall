@@ -1156,3 +1156,120 @@ type AddAdCreditResponse {
   newAdCreditBalance: Float!
 }
 
+# ── EcoCash Payment Types ─────────────────────────────────────────────────────
+
+enum EcoCashTransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+  REVERSED
+  MANUAL_REVIEW
+}
+
+enum EcoCashTransactionType {
+  MER
+  REF
+  REV
+}
+
+enum EcoCashPayoutStatus {
+  QUEUED
+  PROCESSING
+  PAID
+  FAILED
+  MANUAL_REVIEW
+}
+
+type EcoCashTransaction {
+  id:                   ID!
+  orderId:              ID!
+  clientCorrelator:     String!
+  referenceCode:        String!
+  tranType:             EcoCashTransactionType!
+  msisdnMasked:         String!
+  amountCents:          Int!
+  currency:             String!
+  status:               EcoCashTransactionStatus!
+  ecocashStatusCode:    String
+  ecocashStatusMsg:     String
+  ecocashTransactionId: String
+  createdAt:            Time!
+  updatedAt:            Time!
+}
+
+type EcoCashRefundRecord {
+  id:                ID!
+  originalTxnId:     ID!
+  clientCorrelator:  String!
+  amountCents:       Int!
+  status:            EcoCashTransactionStatus!
+  ecocashStatusCode: String
+  ecocashStatusMsg:  String
+  createdAt:         Time!
+}
+
+type EcoCashPayout {
+  id:          ID!
+  sellerId:    ID!
+  amountCents: Int!
+  currency:    String!
+  status:      EcoCashPayoutStatus!
+  method:      String!
+  providerRef: String
+  createdAt:   Time!
+  updatedAt:   Time!
+}
+
+type EcoCashChargeResponse {
+  transaction: EcoCashTransaction!
+  statusMsg:   String!
+}
+
+type EcoCashRefundResponse {
+  refund: EcoCashRefundRecord!
+}
+
+type EcoCashReversalResponse {
+  reversal: EcoCashRefundRecord!
+}
+
+type EcoCashPayoutResponse {
+  payout: EcoCashPayout!
+}
+
+type EcoCashTransactionList {
+  transactions: [EcoCashTransaction!]!
+}
+
+extend type Query {
+  # EcoCash — look up a specific transaction by its internal ID
+  ecocashTransaction(id: ID!): EcoCashTransaction! @hasRole(role: BUYER)
+
+  # EcoCash — list all transactions for an order (charge + any refund/reversal attempts)
+  ecocashTransactionsByOrder(orderId: ID!): EcoCashTransactionList! @hasRole(role: BUYER)
+
+  # EcoCash — look up a transaction's current status from EcoCash directly
+  ecocashLookup(orderId: ID!, clientCorrelator: String!): EcoCashTransaction! @hasRole(role: BUYER)
+
+  # EcoCash — seller payout record
+  ecocashPayout(id: ID!): EcoCashPayout! @hasRole(role: SELLER)
+}
+
+extend type Mutation {
+  # EcoCash — charge customer wallet (MER transaction)
+  ecocashCharge(orderId: ID!, msisdn: String!, amountCents: Int!, currency: String!): EcoCashChargeResponse! @hasRole(role: BUYER)
+
+  # EcoCash — refund a completed charge (REF) — full or partial
+  ecocashRefund(originalTxnId: ID!, amountCents: Int, reason: String): EcoCashRefundResponse! @hasRole(role: BUYER)
+
+  # EcoCash — reverse a pending/unsettled charge before settlement (REV)
+  ecocashReverse(originalTxnId: ID!, reason: String): EcoCashReversalResponse! @hasRole(role: BUYER)
+
+  # EcoCash — queue a manual seller payout (finance team executes settlement)
+  ecocashRequestPayout(sellerId: ID!, amountCents: Int!, currency: String!): EcoCashPayoutResponse! @hasRole(role: SELLER)
+
+  # EcoCash — finance/admin marks a payout as paid or failed after manual settlement
+  ecocashUpdatePayoutStatus(id: ID!, status: EcoCashPayoutStatus!, providerRef: String): EcoCashPayoutResponse! @hasRole(role: ADMIN)
+}
+

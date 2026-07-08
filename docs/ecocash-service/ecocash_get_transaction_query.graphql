@@ -1,0 +1,25 @@
+# Fetch a single EcoCash transaction by its internal UUID.
+#
+# Variables:
+# {
+#   "id": "550e8400-e29b-41d4-a716-446655440000"
+# }
+
+query EcoCashGetTransaction($id: ID!) {
+  ecocashTransaction(id: $id) {
+    id
+    orderId
+    clientCorrelator
+    referenceCode
+    tranType
+    msisdnMasked
+    amountCents
+    currency
+    status
+    ecocashStatusCode
+    ecocashStatusMsg
+    ecocashTransactionId
+    createdAt
+    updatedAt
+  }
+}

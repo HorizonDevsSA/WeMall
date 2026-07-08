@@ -1,0 +1,49 @@
+# Charge a customer's EcoCash wallet for an order (MER transaction).
+#
+# amountCents: order total in smallest currency unit (e.g. 1050 = $10.50 USD).
+# currency:    "USD" or "ZWG".
+# msisdn:      accepts 07XXXXXXXX, 2637XXXXXXXX, or 263XXXXXXXXX — normalised internally.
+#
+# The response status will be PENDING while the customer completes the USSD
+# PIN prompt. Subscribe to the wemall.payment.succeeded / wemall.payment.failed
+# NATS events, or poll ecocashLookup, for the final outcome.
+#
+# Variables:
+# {
+#   "orderId":     "ord_01j...",
+#   "msisdn":      "0773123456",
+#   "amountCents": 1050,
+#   "currency":    "USD"
+# }
+
+mutation EcoCashCharge(
+  $orderId:     ID!
+  $msisdn:      String!
+  $amountCents: Int!
+  $currency:    String!
+) {
+  ecocashCharge(
+    orderId:     $orderId
+    msisdn:      $msisdn
+    amountCents: $amountCents
+    currency:    $currency
+  ) {
+    transaction {
+      id
+      orderId
+      clientCorrelator
+      referenceCode
+      tranType
+      msisdnMasked
+      amountCents
+      currency
+      status
+      ecocashStatusCode
+      ecocashStatusMsg
+      ecocashTransactionId
+      createdAt
+      updatedAt
+    }
+    statusMsg
+  }
+}

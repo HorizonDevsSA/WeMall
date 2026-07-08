@@ -1,0 +1,20 @@
+# Fetch a single EcoCash payout record by its internal UUID (SELLER role).
+#
+# Variables:
+# {
+#   "id": "550e8400-e29b-41d4-a716-446655440001"
+# }
+
+query EcoCashGetPayout($id: ID!) {
+  ecocashPayout(id: $id) {
+    id
+    sellerId
+    amountCents
+    currency
+    status
+    method
+    providerRef
+    createdAt
+    updatedAt
+  }
+}

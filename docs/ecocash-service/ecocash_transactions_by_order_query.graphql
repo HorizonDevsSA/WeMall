@@ -1,0 +1,30 @@
+# List all EcoCash transactions for an order — includes the original charge
+# plus any refund (REF) or reversal (REV) records.
+#
+# Useful for displaying a complete payment history on the order detail screen.
+#
+# Variables:
+# {
+#   "orderId": "ord_01j..."
+# }
+
+query EcoCashTransactionsByOrder($orderId: ID!) {
+  ecocashTransactionsByOrder(orderId: $orderId) {
+    transactions {
+      id
+      orderId
+      clientCorrelator
+      referenceCode
+      tranType
+      msisdnMasked
+      amountCents
+      currency
+      status
+      ecocashStatusCode
+      ecocashStatusMsg
+      ecocashTransactionId
+      createdAt
+      updatedAt
+    }
+  }
+}

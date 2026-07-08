@@ -1,0 +1,41 @@
+# Mark a queued payout as PAID or FAILED after manual settlement (ADMIN role).
+#
+# Called by the finance team (or a reconciliation import script) after they
+# have executed the bulk transfer via the EcoCash merchant portal or bank rail.
+#
+# status:      PAID | FAILED | PROCESSING | MANUAL_REVIEW
+# providerRef: the EcoCash portal / bank transaction reference number for audit.
+#
+# On PAID, a payout.paid NATS event is published so downstream services
+# (seller-ledger, notification-service) can react.
+#
+# Variables:
+# {
+#   "id":          "550e8400-e29b-41d4-a716-446655440001",
+#   "status":      "PAID",
+#   "providerRef": "ECO-BULK-20260707-001"
+# }
+
+mutation EcoCashUpdatePayoutStatus(
+  $id:          ID!
+  $status:      EcoCashPayoutStatus!
+  $providerRef: String
+) {
+  ecocashUpdatePayoutStatus(
+    id:          $id
+    status:      $status
+    providerRef: $providerRef
+  ) {
+    payout {
+      id
+      sellerId
+      amountCents
+      currency
+      status
+      method
+      providerRef
+      createdAt
+      updatedAt
+    }
+  }
+}

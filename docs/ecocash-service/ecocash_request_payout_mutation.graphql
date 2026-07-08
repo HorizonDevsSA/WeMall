@@ -1,0 +1,43 @@
+# Queue a seller payout for manual settlement (SELLER role required).
+#
+# Since EcoCash's EIP is a collections-only API, disbursements are handled
+# via a manual bulk-transfer process executed by the finance team through the
+# EcoCash merchant portal. This mutation creates a QUEUED payout record that
+# finance picks up and settles externally.
+#
+# amountCents: payout amount in smallest currency unit (e.g. 5000 = $50.00 USD).
+# currency:    "USD" or "ZWG".
+#
+# After the finance team executes the transfer they call ecocashUpdatePayoutStatus
+# to mark the record as PAID, triggering the payout.paid NATS event.
+#
+# Variables:
+# {
+#   "sellerId":    "seller_01j...",
+#   "amountCents": 5000,
+#   "currency":    "USD"
+# }
+
+mutation EcoCashRequestPayout(
+  $sellerId:    ID!
+  $amountCents: Int!
+  $currency:    String!
+) {
+  ecocashRequestPayout(
+    sellerId:    $sellerId
+    amountCents: $amountCents
+    currency:    $currency
+  ) {
+    payout {
+      id
+      sellerId
+      amountCents
+      currency
+      status
+      method
+      providerRef
+      createdAt
+      updatedAt
+    }
+  }
+}

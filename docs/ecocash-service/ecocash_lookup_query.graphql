@@ -1,0 +1,30 @@
+# Re-confirm a transaction's current status directly from EcoCash.
+#
+# Always call this before retrying a charge after a client-side timeout —
+# never submit a new charge without confirming the original did not succeed,
+# to avoid double-charging the customer.
+#
+# Variables:
+# {
+#   "orderId":          "ord_01j...",
+#   "clientCorrelator": "ord_01j...-1720345678000000000"
+# }
+
+query EcoCashLookup($orderId: ID!, $clientCorrelator: String!) {
+  ecocashLookup(orderId: $orderId, clientCorrelator: $clientCorrelator) {
+    id
+    orderId
+    clientCorrelator
+    referenceCode
+    tranType
+    msisdnMasked
+    amountCents
+    currency
+    status
+    ecocashStatusCode
+    ecocashStatusMsg
+    ecocashTransactionId
+    createdAt
+    updatedAt
+  }
+}

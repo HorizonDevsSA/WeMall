@@ -1,0 +1,48 @@
+# Refund a completed EcoCash charge (REF transaction).
+#
+# originalTxnId: the UUID of the original SUCCESS payment_transaction row.
+# amountCents:   amount to refund in smallest unit. Omit (or pass 0) for a full
+#                refund of the remaining balance. Partial refunds are supported
+#                as long as the cumulative refunded amount does not exceed the
+#                original charge.
+# reason:        free-text reason displayed in the EcoCash merchant portal.
+#
+# The original transaction status moves to REFUNDED on success.
+# A refund.completed event is published to NATS so the order/seller-ledger
+# services can claw back escrowed seller balance.
+#
+# Variables (full refund):
+# {
+#   "originalTxnId": "550e8400-e29b-41d4-a716-446655440000",
+#   "reason": "Customer requested return"
+# }
+#
+# Variables (partial refund of $5.00):
+# {
+#   "originalTxnId": "550e8400-e29b-41d4-a716-446655440000",
+#   "amountCents": 500,
+#   "reason": "Partial item refund"
+# }
+
+mutation EcoCashRefund(
+  $originalTxnId: ID!
+  $amountCents:   Int
+  $reason:        String
+) {
+  ecocashRefund(
+    originalTxnId: $originalTxnId
+    amountCents:   $amountCents
+    reason:        $reason
+  ) {
+    refund {
+      id
+      originalTxnId
+      clientCorrelator
+      amountCents
+      status
+      ecocashStatusCode
+      ecocashStatusMsg
+      createdAt
+    }
+  }
+}
