@@ -249,6 +249,67 @@ type ComplexityRoot struct {
 		Status        func(childComplexity int) int
 	}
 
+	EcoCashChargeResponse struct {
+		StatusMsg   func(childComplexity int) int
+		Transaction func(childComplexity int) int
+	}
+
+	EcoCashPayout struct {
+		AmountCents func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		Currency    func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Method      func(childComplexity int) int
+		ProviderRef func(childComplexity int) int
+		SellerID    func(childComplexity int) int
+		Status      func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
+	}
+
+	EcoCashPayoutResponse struct {
+		Payout func(childComplexity int) int
+	}
+
+	EcoCashRefundRecord struct {
+		AmountCents       func(childComplexity int) int
+		ClientCorrelator  func(childComplexity int) int
+		CreatedAt         func(childComplexity int) int
+		EcocashStatusCode func(childComplexity int) int
+		EcocashStatusMsg  func(childComplexity int) int
+		ID                func(childComplexity int) int
+		OriginalTxnID     func(childComplexity int) int
+		Status            func(childComplexity int) int
+	}
+
+	EcoCashRefundResponse struct {
+		Refund func(childComplexity int) int
+	}
+
+	EcoCashReversalResponse struct {
+		Reversal func(childComplexity int) int
+	}
+
+	EcoCashTransaction struct {
+		AmountCents          func(childComplexity int) int
+		ClientCorrelator     func(childComplexity int) int
+		CreatedAt            func(childComplexity int) int
+		Currency             func(childComplexity int) int
+		EcocashStatusCode    func(childComplexity int) int
+		EcocashStatusMsg     func(childComplexity int) int
+		EcocashTransactionID func(childComplexity int) int
+		ID                   func(childComplexity int) int
+		MsisdnMasked         func(childComplexity int) int
+		OrderID              func(childComplexity int) int
+		ReferenceCode        func(childComplexity int) int
+		Status               func(childComplexity int) int
+		TranType             func(childComplexity int) int
+		UpdatedAt            func(childComplexity int) int
+	}
+
+	EcoCashTransactionList struct {
+		Transactions func(childComplexity int) int
+	}
+
 	FlashSale struct {
 		EndTime   func(childComplexity int) int
 		ID        func(childComplexity int) int
@@ -322,6 +383,11 @@ type ComplexityRoot struct {
 		DeleteProduct                 func(childComplexity int, id string) int
 		DeleteReview                  func(childComplexity int, reviewID string) int
 		DeregisterDeviceToken         func(childComplexity int, token string) int
+		EcocashCharge                 func(childComplexity int, orderID string, msisdn string, amountCents int, currency string) int
+		EcocashRefund                 func(childComplexity int, originalTxnID string, amountCents *int, reason *string) int
+		EcocashRequestPayout          func(childComplexity int, sellerID string, amountCents int, currency string) int
+		EcocashReverse                func(childComplexity int, originalTxnID string, reason *string) int
+		EcocashUpdatePayoutStatus     func(childComplexity int, id string, status model.EcoCashPayoutStatus, providerRef *string) int
 		EscalateDispute               func(childComplexity int, disputeID string) int
 		FollowStore                   func(childComplexity int, sellerID string) int
 		GenerateEWaybillLabel         func(childComplexity int, deliveryOrderID string) int
@@ -554,6 +620,10 @@ type ComplexityRoot struct {
 		DeliveryByOrderID           func(childComplexity int, orderID string) int
 		Dispute                     func(childComplexity int, id string) int
 		DisputeMessages             func(childComplexity int, disputeID string) int
+		EcocashLookup               func(childComplexity int, orderID string, clientCorrelator string) int
+		EcocashPayout               func(childComplexity int, id string) int
+		EcocashTransaction          func(childComplexity int, id string) int
+		EcocashTransactionsByOrder  func(childComplexity int, orderID string) int
 		FrequentlyBoughtTogether    func(childComplexity int, productID string) int
 		IsFollowingStore            func(childComplexity int, sellerID string) int
 		Me                          func(childComplexity int) int
@@ -806,6 +876,11 @@ type MutationResolver interface {
 	StationCheckOutPackage(ctx context.Context, stationID string, trackingNumber string, verificationCode string) (bool, error)
 	RequestPayout(ctx context.Context, amount float64, currency string) (*model.Payout, error)
 	AddAdCredit(ctx context.Context, amount float64, fundFromPayoutBalance bool) (*model.AddAdCreditResponse, error)
+	EcocashCharge(ctx context.Context, orderID string, msisdn string, amountCents int, currency string) (*model.EcoCashChargeResponse, error)
+	EcocashRefund(ctx context.Context, originalTxnID string, amountCents *int, reason *string) (*model.EcoCashRefundResponse, error)
+	EcocashReverse(ctx context.Context, originalTxnID string, reason *string) (*model.EcoCashReversalResponse, error)
+	EcocashRequestPayout(ctx context.Context, sellerID string, amountCents int, currency string) (*model.EcoCashPayoutResponse, error)
+	EcocashUpdatePayoutStatus(ctx context.Context, id string, status model.EcoCashPayoutStatus, providerRef *string) (*model.EcoCashPayoutResponse, error)
 }
 type ProductResolver interface {
 	Seller(ctx context.Context, obj *model.Product) (*model.Seller, error)
@@ -859,6 +934,10 @@ type QueryResolver interface {
 	MyPayouts(ctx context.Context, pageSize *int, pageToken *string) (*model.PayoutList, error)
 	Payout(ctx context.Context, id string) (*model.Payout, error)
 	MySellerMonetizationConfig(ctx context.Context) (*model.SellerMonetizationConfig, error)
+	EcocashTransaction(ctx context.Context, id string) (*model.EcoCashTransaction, error)
+	EcocashTransactionsByOrder(ctx context.Context, orderID string) (*model.EcoCashTransactionList, error)
+	EcocashLookup(ctx context.Context, orderID string, clientCorrelator string) (*model.EcoCashTransaction, error)
+	EcocashPayout(ctx context.Context, id string) (*model.EcoCashPayout, error)
 }
 type SellerResolver interface {
 	Dsr(ctx context.Context, obj *model.Seller) (*model.SellerDsr, error)
@@ -1849,6 +1928,265 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.EarningsLedgerEntry.Status(childComplexity), true
 
+	case "EcoCashChargeResponse.statusMsg":
+		if e.complexity.EcoCashChargeResponse.StatusMsg == nil {
+			break
+		}
+
+		return e.complexity.EcoCashChargeResponse.StatusMsg(childComplexity), true
+
+	case "EcoCashChargeResponse.transaction":
+		if e.complexity.EcoCashChargeResponse.Transaction == nil {
+			break
+		}
+
+		return e.complexity.EcoCashChargeResponse.Transaction(childComplexity), true
+
+	case "EcoCashPayout.amountCents":
+		if e.complexity.EcoCashPayout.AmountCents == nil {
+			break
+		}
+
+		return e.complexity.EcoCashPayout.AmountCents(childComplexity), true
+
+	case "EcoCashPayout.createdAt":
+		if e.complexity.EcoCashPayout.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.EcoCashPayout.CreatedAt(childComplexity), true
+
+	case "EcoCashPayout.currency":
+		if e.complexity.EcoCashPayout.Currency == nil {
+			break
+		}
+
+		return e.complexity.EcoCashPayout.Currency(childComplexity), true
+
+	case "EcoCashPayout.id":
+		if e.complexity.EcoCashPayout.ID == nil {
+			break
+		}
+
+		return e.complexity.EcoCashPayout.ID(childComplexity), true
+
+	case "EcoCashPayout.method":
+		if e.complexity.EcoCashPayout.Method == nil {
+			break
+		}
+
+		return e.complexity.EcoCashPayout.Method(childComplexity), true
+
+	case "EcoCashPayout.providerRef":
+		if e.complexity.EcoCashPayout.ProviderRef == nil {
+			break
+		}
+
+		return e.complexity.EcoCashPayout.ProviderRef(childComplexity), true
+
+	case "EcoCashPayout.sellerId":
+		if e.complexity.EcoCashPayout.SellerID == nil {
+			break
+		}
+
+		return e.complexity.EcoCashPayout.SellerID(childComplexity), true
+
+	case "EcoCashPayout.status":
+		if e.complexity.EcoCashPayout.Status == nil {
+			break
+		}
+
+		return e.complexity.EcoCashPayout.Status(childComplexity), true
+
+	case "EcoCashPayout.updatedAt":
+		if e.complexity.EcoCashPayout.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.EcoCashPayout.UpdatedAt(childComplexity), true
+
+	case "EcoCashPayoutResponse.payout":
+		if e.complexity.EcoCashPayoutResponse.Payout == nil {
+			break
+		}
+
+		return e.complexity.EcoCashPayoutResponse.Payout(childComplexity), true
+
+	case "EcoCashRefundRecord.amountCents":
+		if e.complexity.EcoCashRefundRecord.AmountCents == nil {
+			break
+		}
+
+		return e.complexity.EcoCashRefundRecord.AmountCents(childComplexity), true
+
+	case "EcoCashRefundRecord.clientCorrelator":
+		if e.complexity.EcoCashRefundRecord.ClientCorrelator == nil {
+			break
+		}
+
+		return e.complexity.EcoCashRefundRecord.ClientCorrelator(childComplexity), true
+
+	case "EcoCashRefundRecord.createdAt":
+		if e.complexity.EcoCashRefundRecord.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.EcoCashRefundRecord.CreatedAt(childComplexity), true
+
+	case "EcoCashRefundRecord.ecocashStatusCode":
+		if e.complexity.EcoCashRefundRecord.EcocashStatusCode == nil {
+			break
+		}
+
+		return e.complexity.EcoCashRefundRecord.EcocashStatusCode(childComplexity), true
+
+	case "EcoCashRefundRecord.ecocashStatusMsg":
+		if e.complexity.EcoCashRefundRecord.EcocashStatusMsg == nil {
+			break
+		}
+
+		return e.complexity.EcoCashRefundRecord.EcocashStatusMsg(childComplexity), true
+
+	case "EcoCashRefundRecord.id":
+		if e.complexity.EcoCashRefundRecord.ID == nil {
+			break
+		}
+
+		return e.complexity.EcoCashRefundRecord.ID(childComplexity), true
+
+	case "EcoCashRefundRecord.originalTxnId":
+		if e.complexity.EcoCashRefundRecord.OriginalTxnID == nil {
+			break
+		}
+
+		return e.complexity.EcoCashRefundRecord.OriginalTxnID(childComplexity), true
+
+	case "EcoCashRefundRecord.status":
+		if e.complexity.EcoCashRefundRecord.Status == nil {
+			break
+		}
+
+		return e.complexity.EcoCashRefundRecord.Status(childComplexity), true
+
+	case "EcoCashRefundResponse.refund":
+		if e.complexity.EcoCashRefundResponse.Refund == nil {
+			break
+		}
+
+		return e.complexity.EcoCashRefundResponse.Refund(childComplexity), true
+
+	case "EcoCashReversalResponse.reversal":
+		if e.complexity.EcoCashReversalResponse.Reversal == nil {
+			break
+		}
+
+		return e.complexity.EcoCashReversalResponse.Reversal(childComplexity), true
+
+	case "EcoCashTransaction.amountCents":
+		if e.complexity.EcoCashTransaction.AmountCents == nil {
+			break
+		}
+
+		return e.complexity.EcoCashTransaction.AmountCents(childComplexity), true
+
+	case "EcoCashTransaction.clientCorrelator":
+		if e.complexity.EcoCashTransaction.ClientCorrelator == nil {
+			break
+		}
+
+		return e.complexity.EcoCashTransaction.ClientCorrelator(childComplexity), true
+
+	case "EcoCashTransaction.createdAt":
+		if e.complexity.EcoCashTransaction.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.EcoCashTransaction.CreatedAt(childComplexity), true
+
+	case "EcoCashTransaction.currency":
+		if e.complexity.EcoCashTransaction.Currency == nil {
+			break
+		}
+
+		return e.complexity.EcoCashTransaction.Currency(childComplexity), true
+
+	case "EcoCashTransaction.ecocashStatusCode":
+		if e.complexity.EcoCashTransaction.EcocashStatusCode == nil {
+			break
+		}
+
+		return e.complexity.EcoCashTransaction.EcocashStatusCode(childComplexity), true
+
+	case "EcoCashTransaction.ecocashStatusMsg":
+		if e.complexity.EcoCashTransaction.EcocashStatusMsg == nil {
+			break
+		}
+
+		return e.complexity.EcoCashTransaction.EcocashStatusMsg(childComplexity), true
+
+	case "EcoCashTransaction.ecocashTransactionId":
+		if e.complexity.EcoCashTransaction.EcocashTransactionID == nil {
+			break
+		}
+
+		return e.complexity.EcoCashTransaction.EcocashTransactionID(childComplexity), true
+
+	case "EcoCashTransaction.id":
+		if e.complexity.EcoCashTransaction.ID == nil {
+			break
+		}
+
+		return e.complexity.EcoCashTransaction.ID(childComplexity), true
+
+	case "EcoCashTransaction.msisdnMasked":
+		if e.complexity.EcoCashTransaction.MsisdnMasked == nil {
+			break
+		}
+
+		return e.complexity.EcoCashTransaction.MsisdnMasked(childComplexity), true
+
+	case "EcoCashTransaction.orderId":
+		if e.complexity.EcoCashTransaction.OrderID == nil {
+			break
+		}
+
+		return e.complexity.EcoCashTransaction.OrderID(childComplexity), true
+
+	case "EcoCashTransaction.referenceCode":
+		if e.complexity.EcoCashTransaction.ReferenceCode == nil {
+			break
+		}
+
+		return e.complexity.EcoCashTransaction.ReferenceCode(childComplexity), true
+
+	case "EcoCashTransaction.status":
+		if e.complexity.EcoCashTransaction.Status == nil {
+			break
+		}
+
+		return e.complexity.EcoCashTransaction.Status(childComplexity), true
+
+	case "EcoCashTransaction.tranType":
+		if e.complexity.EcoCashTransaction.TranType == nil {
+			break
+		}
+
+		return e.complexity.EcoCashTransaction.TranType(childComplexity), true
+
+	case "EcoCashTransaction.updatedAt":
+		if e.complexity.EcoCashTransaction.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.EcoCashTransaction.UpdatedAt(childComplexity), true
+
+	case "EcoCashTransactionList.transactions":
+		if e.complexity.EcoCashTransactionList.Transactions == nil {
+			break
+		}
+
+		return e.complexity.EcoCashTransactionList.Transactions(childComplexity), true
+
 	case "FlashSale.endTime":
 		if e.complexity.FlashSale.EndTime == nil {
 			break
@@ -2376,6 +2714,66 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeregisterDeviceToken(childComplexity, args["token"].(string)), true
+
+	case "Mutation.ecocashCharge":
+		if e.complexity.Mutation.EcocashCharge == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_ecocashCharge_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EcocashCharge(childComplexity, args["orderId"].(string), args["msisdn"].(string), args["amountCents"].(int), args["currency"].(string)), true
+
+	case "Mutation.ecocashRefund":
+		if e.complexity.Mutation.EcocashRefund == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_ecocashRefund_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EcocashRefund(childComplexity, args["originalTxnId"].(string), args["amountCents"].(*int), args["reason"].(*string)), true
+
+	case "Mutation.ecocashRequestPayout":
+		if e.complexity.Mutation.EcocashRequestPayout == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_ecocashRequestPayout_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EcocashRequestPayout(childComplexity, args["sellerId"].(string), args["amountCents"].(int), args["currency"].(string)), true
+
+	case "Mutation.ecocashReverse":
+		if e.complexity.Mutation.EcocashReverse == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_ecocashReverse_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EcocashReverse(childComplexity, args["originalTxnId"].(string), args["reason"].(*string)), true
+
+	case "Mutation.ecocashUpdatePayoutStatus":
+		if e.complexity.Mutation.EcocashUpdatePayoutStatus == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_ecocashUpdatePayoutStatus_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EcocashUpdatePayoutStatus(childComplexity, args["id"].(string), args["status"].(model.EcoCashPayoutStatus), args["providerRef"].(*string)), true
 
 	case "Mutation.escalateDispute":
 		if e.complexity.Mutation.EscalateDispute == nil {
@@ -3842,6 +4240,54 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.DisputeMessages(childComplexity, args["disputeId"].(string)), true
+
+	case "Query.ecocashLookup":
+		if e.complexity.Query.EcocashLookup == nil {
+			break
+		}
+
+		args, err := ec.field_Query_ecocashLookup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.EcocashLookup(childComplexity, args["orderId"].(string), args["clientCorrelator"].(string)), true
+
+	case "Query.ecocashPayout":
+		if e.complexity.Query.EcocashPayout == nil {
+			break
+		}
+
+		args, err := ec.field_Query_ecocashPayout_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.EcocashPayout(childComplexity, args["id"].(string)), true
+
+	case "Query.ecocashTransaction":
+		if e.complexity.Query.EcocashTransaction == nil {
+			break
+		}
+
+		args, err := ec.field_Query_ecocashTransaction_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.EcocashTransaction(childComplexity, args["id"].(string)), true
+
+	case "Query.ecocashTransactionsByOrder":
+		if e.complexity.Query.EcocashTransactionsByOrder == nil {
+			break
+		}
+
+		args, err := ec.field_Query_ecocashTransactionsByOrder_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.EcocashTransactionsByOrder(childComplexity, args["orderId"].(string)), true
 
 	case "Query.frequentlyBoughtTogether":
 		if e.complexity.Query.FrequentlyBoughtTogether == nil {
@@ -6209,6 +6655,123 @@ type AddAdCreditResponse {
   newAdCreditBalance: Float!
 }
 
+# ── EcoCash Payment Types ─────────────────────────────────────────────────────
+
+enum EcoCashTransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+  REVERSED
+  MANUAL_REVIEW
+}
+
+enum EcoCashTransactionType {
+  MER
+  REF
+  REV
+}
+
+enum EcoCashPayoutStatus {
+  QUEUED
+  PROCESSING
+  PAID
+  FAILED
+  MANUAL_REVIEW
+}
+
+type EcoCashTransaction {
+  id:                   ID!
+  orderId:              ID!
+  clientCorrelator:     String!
+  referenceCode:        String!
+  tranType:             EcoCashTransactionType!
+  msisdnMasked:         String!
+  amountCents:          Int!
+  currency:             String!
+  status:               EcoCashTransactionStatus!
+  ecocashStatusCode:    String
+  ecocashStatusMsg:     String
+  ecocashTransactionId: String
+  createdAt:            Time!
+  updatedAt:            Time!
+}
+
+type EcoCashRefundRecord {
+  id:                ID!
+  originalTxnId:     ID!
+  clientCorrelator:  String!
+  amountCents:       Int!
+  status:            EcoCashTransactionStatus!
+  ecocashStatusCode: String
+  ecocashStatusMsg:  String
+  createdAt:         Time!
+}
+
+type EcoCashPayout {
+  id:          ID!
+  sellerId:    ID!
+  amountCents: Int!
+  currency:    String!
+  status:      EcoCashPayoutStatus!
+  method:      String!
+  providerRef: String
+  createdAt:   Time!
+  updatedAt:   Time!
+}
+
+type EcoCashChargeResponse {
+  transaction: EcoCashTransaction!
+  statusMsg:   String!
+}
+
+type EcoCashRefundResponse {
+  refund: EcoCashRefundRecord!
+}
+
+type EcoCashReversalResponse {
+  reversal: EcoCashRefundRecord!
+}
+
+type EcoCashPayoutResponse {
+  payout: EcoCashPayout!
+}
+
+type EcoCashTransactionList {
+  transactions: [EcoCashTransaction!]!
+}
+
+extend type Query {
+  # EcoCash — look up a specific transaction by its internal ID
+  ecocashTransaction(id: ID!): EcoCashTransaction! @hasRole(role: BUYER)
+
+  # EcoCash — list all transactions for an order (charge + any refund/reversal attempts)
+  ecocashTransactionsByOrder(orderId: ID!): EcoCashTransactionList! @hasRole(role: BUYER)
+
+  # EcoCash — look up a transaction's current status from EcoCash directly
+  ecocashLookup(orderId: ID!, clientCorrelator: String!): EcoCashTransaction! @hasRole(role: BUYER)
+
+  # EcoCash — seller payout record
+  ecocashPayout(id: ID!): EcoCashPayout! @hasRole(role: SELLER)
+}
+
+extend type Mutation {
+  # EcoCash — charge customer wallet (MER transaction)
+  ecocashCharge(orderId: ID!, msisdn: String!, amountCents: Int!, currency: String!): EcoCashChargeResponse! @hasRole(role: BUYER)
+
+  # EcoCash — refund a completed charge (REF) — full or partial
+  ecocashRefund(originalTxnId: ID!, amountCents: Int, reason: String): EcoCashRefundResponse! @hasRole(role: BUYER)
+
+  # EcoCash — reverse a pending/unsettled charge before settlement (REV)
+  ecocashReverse(originalTxnId: ID!, reason: String): EcoCashReversalResponse! @hasRole(role: BUYER)
+
+  # EcoCash — queue a manual seller payout (finance team executes settlement)
+  ecocashRequestPayout(sellerId: ID!, amountCents: Int!, currency: String!): EcoCashPayoutResponse! @hasRole(role: SELLER)
+
+  # EcoCash — finance/admin marks a payout as paid or failed after manual settlement
+  ecocashUpdatePayoutStatus(id: ID!, status: EcoCashPayoutStatus!, providerRef: String): EcoCashPayoutResponse! @hasRole(role: ADMIN)
+}
+
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -6814,6 +7377,171 @@ func (ec *executionContext) field_Mutation_deregisterDeviceToken_args(ctx contex
 		}
 	}
 	args["token"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_ecocashCharge_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["orderId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderId"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["msisdn"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("msisdn"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["msisdn"] = arg1
+	var arg2 int
+	if tmp, ok := rawArgs["amountCents"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("amountCents"))
+		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["amountCents"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["currency"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("currency"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["currency"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_ecocashRefund_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["originalTxnId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("originalTxnId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["originalTxnId"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["amountCents"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("amountCents"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["amountCents"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["reason"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reason"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["reason"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_ecocashRequestPayout_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["sellerId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sellerId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sellerId"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["amountCents"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("amountCents"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["amountCents"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["currency"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("currency"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["currency"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_ecocashReverse_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["originalTxnId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("originalTxnId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["originalTxnId"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["reason"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reason"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["reason"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_ecocashUpdatePayoutStatus_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 model.EcoCashPayoutStatus
+	if tmp, ok := rawArgs["status"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+		arg1, err = ec.unmarshalNEcoCashPayoutStatus2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashPayoutStatus(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["status"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["providerRef"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("providerRef"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["providerRef"] = arg2
 	return args, nil
 }
 
@@ -7867,6 +8595,75 @@ func (ec *executionContext) field_Query_dispute_args(ctx context.Context, rawArg
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_ecocashLookup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["orderId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderId"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["clientCorrelator"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientCorrelator"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["clientCorrelator"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_ecocashPayout_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_ecocashTransaction_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_ecocashTransactionsByOrder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["orderId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderId"] = arg0
 	return args, nil
 }
 
@@ -14661,6 +15458,1732 @@ func (ec *executionContext) fieldContext_EarningsLedgerEntry_settledAt(ctx conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashChargeResponse_transaction(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashChargeResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashChargeResponse_transaction(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Transaction, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.EcoCashTransaction)
+	fc.Result = res
+	return ec.marshalNEcoCashTransaction2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashTransaction(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashChargeResponse_transaction(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashChargeResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_EcoCashTransaction_id(ctx, field)
+			case "orderId":
+				return ec.fieldContext_EcoCashTransaction_orderId(ctx, field)
+			case "clientCorrelator":
+				return ec.fieldContext_EcoCashTransaction_clientCorrelator(ctx, field)
+			case "referenceCode":
+				return ec.fieldContext_EcoCashTransaction_referenceCode(ctx, field)
+			case "tranType":
+				return ec.fieldContext_EcoCashTransaction_tranType(ctx, field)
+			case "msisdnMasked":
+				return ec.fieldContext_EcoCashTransaction_msisdnMasked(ctx, field)
+			case "amountCents":
+				return ec.fieldContext_EcoCashTransaction_amountCents(ctx, field)
+			case "currency":
+				return ec.fieldContext_EcoCashTransaction_currency(ctx, field)
+			case "status":
+				return ec.fieldContext_EcoCashTransaction_status(ctx, field)
+			case "ecocashStatusCode":
+				return ec.fieldContext_EcoCashTransaction_ecocashStatusCode(ctx, field)
+			case "ecocashStatusMsg":
+				return ec.fieldContext_EcoCashTransaction_ecocashStatusMsg(ctx, field)
+			case "ecocashTransactionId":
+				return ec.fieldContext_EcoCashTransaction_ecocashTransactionId(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_EcoCashTransaction_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_EcoCashTransaction_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EcoCashTransaction", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashChargeResponse_statusMsg(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashChargeResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashChargeResponse_statusMsg(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StatusMsg, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashChargeResponse_statusMsg(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashChargeResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashPayout_id(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashPayout) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashPayout_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashPayout_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashPayout",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashPayout_sellerId(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashPayout) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashPayout_sellerId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SellerID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashPayout_sellerId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashPayout",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashPayout_amountCents(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashPayout) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashPayout_amountCents(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AmountCents, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashPayout_amountCents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashPayout",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashPayout_currency(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashPayout) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashPayout_currency(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Currency, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashPayout_currency(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashPayout",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashPayout_status(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashPayout) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashPayout_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.EcoCashPayoutStatus)
+	fc.Result = res
+	return ec.marshalNEcoCashPayoutStatus2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashPayoutStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashPayout_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashPayout",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type EcoCashPayoutStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashPayout_method(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashPayout) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashPayout_method(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Method, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashPayout_method(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashPayout",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashPayout_providerRef(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashPayout) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashPayout_providerRef(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProviderRef, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashPayout_providerRef(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashPayout",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashPayout_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashPayout) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashPayout_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashPayout_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashPayout",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashPayout_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashPayout) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashPayout_updatedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashPayout_updatedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashPayout",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashPayoutResponse_payout(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashPayoutResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashPayoutResponse_payout(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Payout, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.EcoCashPayout)
+	fc.Result = res
+	return ec.marshalNEcoCashPayout2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashPayout(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashPayoutResponse_payout(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashPayoutResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_EcoCashPayout_id(ctx, field)
+			case "sellerId":
+				return ec.fieldContext_EcoCashPayout_sellerId(ctx, field)
+			case "amountCents":
+				return ec.fieldContext_EcoCashPayout_amountCents(ctx, field)
+			case "currency":
+				return ec.fieldContext_EcoCashPayout_currency(ctx, field)
+			case "status":
+				return ec.fieldContext_EcoCashPayout_status(ctx, field)
+			case "method":
+				return ec.fieldContext_EcoCashPayout_method(ctx, field)
+			case "providerRef":
+				return ec.fieldContext_EcoCashPayout_providerRef(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_EcoCashPayout_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_EcoCashPayout_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EcoCashPayout", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashRefundRecord_id(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashRefundRecord) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashRefundRecord_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashRefundRecord_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashRefundRecord",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashRefundRecord_originalTxnId(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashRefundRecord) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashRefundRecord_originalTxnId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OriginalTxnID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashRefundRecord_originalTxnId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashRefundRecord",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashRefundRecord_clientCorrelator(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashRefundRecord) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashRefundRecord_clientCorrelator(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientCorrelator, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashRefundRecord_clientCorrelator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashRefundRecord",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashRefundRecord_amountCents(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashRefundRecord) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashRefundRecord_amountCents(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AmountCents, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashRefundRecord_amountCents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashRefundRecord",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashRefundRecord_status(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashRefundRecord) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashRefundRecord_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.EcoCashTransactionStatus)
+	fc.Result = res
+	return ec.marshalNEcoCashTransactionStatus2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashTransactionStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashRefundRecord_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashRefundRecord",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type EcoCashTransactionStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashRefundRecord_ecocashStatusCode(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashRefundRecord) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashRefundRecord_ecocashStatusCode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EcocashStatusCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashRefundRecord_ecocashStatusCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashRefundRecord",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashRefundRecord_ecocashStatusMsg(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashRefundRecord) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashRefundRecord_ecocashStatusMsg(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EcocashStatusMsg, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashRefundRecord_ecocashStatusMsg(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashRefundRecord",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashRefundRecord_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashRefundRecord) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashRefundRecord_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashRefundRecord_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashRefundRecord",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashRefundResponse_refund(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashRefundResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashRefundResponse_refund(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Refund, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.EcoCashRefundRecord)
+	fc.Result = res
+	return ec.marshalNEcoCashRefundRecord2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashRefundRecord(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashRefundResponse_refund(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashRefundResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_EcoCashRefundRecord_id(ctx, field)
+			case "originalTxnId":
+				return ec.fieldContext_EcoCashRefundRecord_originalTxnId(ctx, field)
+			case "clientCorrelator":
+				return ec.fieldContext_EcoCashRefundRecord_clientCorrelator(ctx, field)
+			case "amountCents":
+				return ec.fieldContext_EcoCashRefundRecord_amountCents(ctx, field)
+			case "status":
+				return ec.fieldContext_EcoCashRefundRecord_status(ctx, field)
+			case "ecocashStatusCode":
+				return ec.fieldContext_EcoCashRefundRecord_ecocashStatusCode(ctx, field)
+			case "ecocashStatusMsg":
+				return ec.fieldContext_EcoCashRefundRecord_ecocashStatusMsg(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_EcoCashRefundRecord_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EcoCashRefundRecord", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashReversalResponse_reversal(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashReversalResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashReversalResponse_reversal(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Reversal, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.EcoCashRefundRecord)
+	fc.Result = res
+	return ec.marshalNEcoCashRefundRecord2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashRefundRecord(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashReversalResponse_reversal(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashReversalResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_EcoCashRefundRecord_id(ctx, field)
+			case "originalTxnId":
+				return ec.fieldContext_EcoCashRefundRecord_originalTxnId(ctx, field)
+			case "clientCorrelator":
+				return ec.fieldContext_EcoCashRefundRecord_clientCorrelator(ctx, field)
+			case "amountCents":
+				return ec.fieldContext_EcoCashRefundRecord_amountCents(ctx, field)
+			case "status":
+				return ec.fieldContext_EcoCashRefundRecord_status(ctx, field)
+			case "ecocashStatusCode":
+				return ec.fieldContext_EcoCashRefundRecord_ecocashStatusCode(ctx, field)
+			case "ecocashStatusMsg":
+				return ec.fieldContext_EcoCashRefundRecord_ecocashStatusMsg(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_EcoCashRefundRecord_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EcoCashRefundRecord", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashTransaction_id(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashTransaction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashTransaction_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashTransaction_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashTransaction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashTransaction_orderId(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashTransaction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashTransaction_orderId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrderID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashTransaction_orderId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashTransaction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashTransaction_clientCorrelator(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashTransaction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashTransaction_clientCorrelator(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientCorrelator, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashTransaction_clientCorrelator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashTransaction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashTransaction_referenceCode(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashTransaction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashTransaction_referenceCode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ReferenceCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashTransaction_referenceCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashTransaction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashTransaction_tranType(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashTransaction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashTransaction_tranType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TranType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.EcoCashTransactionType)
+	fc.Result = res
+	return ec.marshalNEcoCashTransactionType2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashTransactionType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashTransaction_tranType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashTransaction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type EcoCashTransactionType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashTransaction_msisdnMasked(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashTransaction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashTransaction_msisdnMasked(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MsisdnMasked, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashTransaction_msisdnMasked(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashTransaction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashTransaction_amountCents(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashTransaction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashTransaction_amountCents(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AmountCents, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashTransaction_amountCents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashTransaction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashTransaction_currency(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashTransaction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashTransaction_currency(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Currency, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashTransaction_currency(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashTransaction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashTransaction_status(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashTransaction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashTransaction_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.EcoCashTransactionStatus)
+	fc.Result = res
+	return ec.marshalNEcoCashTransactionStatus2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashTransactionStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashTransaction_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashTransaction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type EcoCashTransactionStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashTransaction_ecocashStatusCode(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashTransaction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashTransaction_ecocashStatusCode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EcocashStatusCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashTransaction_ecocashStatusCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashTransaction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashTransaction_ecocashStatusMsg(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashTransaction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashTransaction_ecocashStatusMsg(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EcocashStatusMsg, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashTransaction_ecocashStatusMsg(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashTransaction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashTransaction_ecocashTransactionId(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashTransaction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashTransaction_ecocashTransactionId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EcocashTransactionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashTransaction_ecocashTransactionId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashTransaction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashTransaction_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashTransaction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashTransaction_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashTransaction_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashTransaction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashTransaction_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashTransaction) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashTransaction_updatedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashTransaction_updatedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashTransaction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _EcoCashTransactionList_transactions(ctx context.Context, field graphql.CollectedField, obj *model.EcoCashTransactionList) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EcoCashTransactionList_transactions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Transactions, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.EcoCashTransaction)
+	fc.Result = res
+	return ec.marshalNEcoCashTransaction2ᚕᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashTransactionᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_EcoCashTransactionList_transactions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "EcoCashTransactionList",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_EcoCashTransaction_id(ctx, field)
+			case "orderId":
+				return ec.fieldContext_EcoCashTransaction_orderId(ctx, field)
+			case "clientCorrelator":
+				return ec.fieldContext_EcoCashTransaction_clientCorrelator(ctx, field)
+			case "referenceCode":
+				return ec.fieldContext_EcoCashTransaction_referenceCode(ctx, field)
+			case "tranType":
+				return ec.fieldContext_EcoCashTransaction_tranType(ctx, field)
+			case "msisdnMasked":
+				return ec.fieldContext_EcoCashTransaction_msisdnMasked(ctx, field)
+			case "amountCents":
+				return ec.fieldContext_EcoCashTransaction_amountCents(ctx, field)
+			case "currency":
+				return ec.fieldContext_EcoCashTransaction_currency(ctx, field)
+			case "status":
+				return ec.fieldContext_EcoCashTransaction_status(ctx, field)
+			case "ecocashStatusCode":
+				return ec.fieldContext_EcoCashTransaction_ecocashStatusCode(ctx, field)
+			case "ecocashStatusMsg":
+				return ec.fieldContext_EcoCashTransaction_ecocashStatusMsg(ctx, field)
+			case "ecocashTransactionId":
+				return ec.fieldContext_EcoCashTransaction_ecocashTransactionId(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_EcoCashTransaction_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_EcoCashTransaction_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EcoCashTransaction", field.Name)
 		},
 	}
 	return fc, nil
@@ -21685,6 +24208,423 @@ func (ec *executionContext) fieldContext_Mutation_addAdCredit(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_addAdCredit_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_ecocashCharge(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_ecocashCharge(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().EcocashCharge(rctx, fc.Args["orderId"].(string), fc.Args["msisdn"].(string), fc.Args["amountCents"].(int), fc.Args["currency"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "BUYER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.EcoCashChargeResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/wemall/api-gateway/internal/graph/model.EcoCashChargeResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.EcoCashChargeResponse)
+	fc.Result = res
+	return ec.marshalNEcoCashChargeResponse2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashChargeResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_ecocashCharge(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "transaction":
+				return ec.fieldContext_EcoCashChargeResponse_transaction(ctx, field)
+			case "statusMsg":
+				return ec.fieldContext_EcoCashChargeResponse_statusMsg(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EcoCashChargeResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_ecocashCharge_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_ecocashRefund(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_ecocashRefund(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().EcocashRefund(rctx, fc.Args["originalTxnId"].(string), fc.Args["amountCents"].(*int), fc.Args["reason"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "BUYER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.EcoCashRefundResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/wemall/api-gateway/internal/graph/model.EcoCashRefundResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.EcoCashRefundResponse)
+	fc.Result = res
+	return ec.marshalNEcoCashRefundResponse2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashRefundResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_ecocashRefund(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "refund":
+				return ec.fieldContext_EcoCashRefundResponse_refund(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EcoCashRefundResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_ecocashRefund_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_ecocashReverse(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_ecocashReverse(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().EcocashReverse(rctx, fc.Args["originalTxnId"].(string), fc.Args["reason"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "BUYER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.EcoCashReversalResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/wemall/api-gateway/internal/graph/model.EcoCashReversalResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.EcoCashReversalResponse)
+	fc.Result = res
+	return ec.marshalNEcoCashReversalResponse2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashReversalResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_ecocashReverse(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "reversal":
+				return ec.fieldContext_EcoCashReversalResponse_reversal(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EcoCashReversalResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_ecocashReverse_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_ecocashRequestPayout(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_ecocashRequestPayout(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().EcocashRequestPayout(rctx, fc.Args["sellerId"].(string), fc.Args["amountCents"].(int), fc.Args["currency"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "SELLER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.EcoCashPayoutResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/wemall/api-gateway/internal/graph/model.EcoCashPayoutResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.EcoCashPayoutResponse)
+	fc.Result = res
+	return ec.marshalNEcoCashPayoutResponse2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashPayoutResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_ecocashRequestPayout(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "payout":
+				return ec.fieldContext_EcoCashPayoutResponse_payout(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EcoCashPayoutResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_ecocashRequestPayout_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_ecocashUpdatePayoutStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_ecocashUpdatePayoutStatus(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().EcocashUpdatePayoutStatus(rctx, fc.Args["id"].(string), fc.Args["status"].(model.EcoCashPayoutStatus), fc.Args["providerRef"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.EcoCashPayoutResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/wemall/api-gateway/internal/graph/model.EcoCashPayoutResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.EcoCashPayoutResponse)
+	fc.Result = res
+	return ec.marshalNEcoCashPayoutResponse2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashPayoutResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_ecocashUpdatePayoutStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "payout":
+				return ec.fieldContext_EcoCashPayoutResponse_payout(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EcoCashPayoutResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_ecocashUpdatePayoutStatus_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -31637,6 +34577,406 @@ func (ec *executionContext) fieldContext_Query_mySellerMonetizationConfig(ctx co
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_ecocashTransaction(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_ecocashTransaction(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().EcocashTransaction(rctx, fc.Args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "BUYER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.EcoCashTransaction); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/wemall/api-gateway/internal/graph/model.EcoCashTransaction`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.EcoCashTransaction)
+	fc.Result = res
+	return ec.marshalNEcoCashTransaction2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashTransaction(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_ecocashTransaction(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_EcoCashTransaction_id(ctx, field)
+			case "orderId":
+				return ec.fieldContext_EcoCashTransaction_orderId(ctx, field)
+			case "clientCorrelator":
+				return ec.fieldContext_EcoCashTransaction_clientCorrelator(ctx, field)
+			case "referenceCode":
+				return ec.fieldContext_EcoCashTransaction_referenceCode(ctx, field)
+			case "tranType":
+				return ec.fieldContext_EcoCashTransaction_tranType(ctx, field)
+			case "msisdnMasked":
+				return ec.fieldContext_EcoCashTransaction_msisdnMasked(ctx, field)
+			case "amountCents":
+				return ec.fieldContext_EcoCashTransaction_amountCents(ctx, field)
+			case "currency":
+				return ec.fieldContext_EcoCashTransaction_currency(ctx, field)
+			case "status":
+				return ec.fieldContext_EcoCashTransaction_status(ctx, field)
+			case "ecocashStatusCode":
+				return ec.fieldContext_EcoCashTransaction_ecocashStatusCode(ctx, field)
+			case "ecocashStatusMsg":
+				return ec.fieldContext_EcoCashTransaction_ecocashStatusMsg(ctx, field)
+			case "ecocashTransactionId":
+				return ec.fieldContext_EcoCashTransaction_ecocashTransactionId(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_EcoCashTransaction_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_EcoCashTransaction_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EcoCashTransaction", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_ecocashTransaction_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_ecocashTransactionsByOrder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_ecocashTransactionsByOrder(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().EcocashTransactionsByOrder(rctx, fc.Args["orderId"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "BUYER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.EcoCashTransactionList); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/wemall/api-gateway/internal/graph/model.EcoCashTransactionList`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.EcoCashTransactionList)
+	fc.Result = res
+	return ec.marshalNEcoCashTransactionList2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashTransactionList(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_ecocashTransactionsByOrder(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "transactions":
+				return ec.fieldContext_EcoCashTransactionList_transactions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EcoCashTransactionList", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_ecocashTransactionsByOrder_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_ecocashLookup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_ecocashLookup(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().EcocashLookup(rctx, fc.Args["orderId"].(string), fc.Args["clientCorrelator"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "BUYER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.EcoCashTransaction); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/wemall/api-gateway/internal/graph/model.EcoCashTransaction`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.EcoCashTransaction)
+	fc.Result = res
+	return ec.marshalNEcoCashTransaction2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashTransaction(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_ecocashLookup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_EcoCashTransaction_id(ctx, field)
+			case "orderId":
+				return ec.fieldContext_EcoCashTransaction_orderId(ctx, field)
+			case "clientCorrelator":
+				return ec.fieldContext_EcoCashTransaction_clientCorrelator(ctx, field)
+			case "referenceCode":
+				return ec.fieldContext_EcoCashTransaction_referenceCode(ctx, field)
+			case "tranType":
+				return ec.fieldContext_EcoCashTransaction_tranType(ctx, field)
+			case "msisdnMasked":
+				return ec.fieldContext_EcoCashTransaction_msisdnMasked(ctx, field)
+			case "amountCents":
+				return ec.fieldContext_EcoCashTransaction_amountCents(ctx, field)
+			case "currency":
+				return ec.fieldContext_EcoCashTransaction_currency(ctx, field)
+			case "status":
+				return ec.fieldContext_EcoCashTransaction_status(ctx, field)
+			case "ecocashStatusCode":
+				return ec.fieldContext_EcoCashTransaction_ecocashStatusCode(ctx, field)
+			case "ecocashStatusMsg":
+				return ec.fieldContext_EcoCashTransaction_ecocashStatusMsg(ctx, field)
+			case "ecocashTransactionId":
+				return ec.fieldContext_EcoCashTransaction_ecocashTransactionId(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_EcoCashTransaction_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_EcoCashTransaction_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EcoCashTransaction", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_ecocashLookup_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_ecocashPayout(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_ecocashPayout(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().EcocashPayout(rctx, fc.Args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐRole(ctx, "SELLER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.EcoCashPayout); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/wemall/api-gateway/internal/graph/model.EcoCashPayout`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.EcoCashPayout)
+	fc.Result = res
+	return ec.marshalNEcoCashPayout2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashPayout(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_ecocashPayout(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_EcoCashPayout_id(ctx, field)
+			case "sellerId":
+				return ec.fieldContext_EcoCashPayout_sellerId(ctx, field)
+			case "amountCents":
+				return ec.fieldContext_EcoCashPayout_amountCents(ctx, field)
+			case "currency":
+				return ec.fieldContext_EcoCashPayout_currency(ctx, field)
+			case "status":
+				return ec.fieldContext_EcoCashPayout_status(ctx, field)
+			case "method":
+				return ec.fieldContext_EcoCashPayout_method(ctx, field)
+			case "providerRef":
+				return ec.fieldContext_EcoCashPayout_providerRef(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_EcoCashPayout_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_EcoCashPayout_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EcoCashPayout", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_ecocashPayout_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -41224,6 +44564,445 @@ func (ec *executionContext) _EarningsLedgerEntry(ctx context.Context, sel ast.Se
 	return out
 }
 
+var ecoCashChargeResponseImplementors = []string{"EcoCashChargeResponse"}
+
+func (ec *executionContext) _EcoCashChargeResponse(ctx context.Context, sel ast.SelectionSet, obj *model.EcoCashChargeResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, ecoCashChargeResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EcoCashChargeResponse")
+		case "transaction":
+			out.Values[i] = ec._EcoCashChargeResponse_transaction(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "statusMsg":
+			out.Values[i] = ec._EcoCashChargeResponse_statusMsg(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var ecoCashPayoutImplementors = []string{"EcoCashPayout"}
+
+func (ec *executionContext) _EcoCashPayout(ctx context.Context, sel ast.SelectionSet, obj *model.EcoCashPayout) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, ecoCashPayoutImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EcoCashPayout")
+		case "id":
+			out.Values[i] = ec._EcoCashPayout_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "sellerId":
+			out.Values[i] = ec._EcoCashPayout_sellerId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "amountCents":
+			out.Values[i] = ec._EcoCashPayout_amountCents(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "currency":
+			out.Values[i] = ec._EcoCashPayout_currency(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._EcoCashPayout_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "method":
+			out.Values[i] = ec._EcoCashPayout_method(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "providerRef":
+			out.Values[i] = ec._EcoCashPayout_providerRef(ctx, field, obj)
+		case "createdAt":
+			out.Values[i] = ec._EcoCashPayout_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._EcoCashPayout_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var ecoCashPayoutResponseImplementors = []string{"EcoCashPayoutResponse"}
+
+func (ec *executionContext) _EcoCashPayoutResponse(ctx context.Context, sel ast.SelectionSet, obj *model.EcoCashPayoutResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, ecoCashPayoutResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EcoCashPayoutResponse")
+		case "payout":
+			out.Values[i] = ec._EcoCashPayoutResponse_payout(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var ecoCashRefundRecordImplementors = []string{"EcoCashRefundRecord"}
+
+func (ec *executionContext) _EcoCashRefundRecord(ctx context.Context, sel ast.SelectionSet, obj *model.EcoCashRefundRecord) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, ecoCashRefundRecordImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EcoCashRefundRecord")
+		case "id":
+			out.Values[i] = ec._EcoCashRefundRecord_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "originalTxnId":
+			out.Values[i] = ec._EcoCashRefundRecord_originalTxnId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "clientCorrelator":
+			out.Values[i] = ec._EcoCashRefundRecord_clientCorrelator(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "amountCents":
+			out.Values[i] = ec._EcoCashRefundRecord_amountCents(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._EcoCashRefundRecord_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ecocashStatusCode":
+			out.Values[i] = ec._EcoCashRefundRecord_ecocashStatusCode(ctx, field, obj)
+		case "ecocashStatusMsg":
+			out.Values[i] = ec._EcoCashRefundRecord_ecocashStatusMsg(ctx, field, obj)
+		case "createdAt":
+			out.Values[i] = ec._EcoCashRefundRecord_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var ecoCashRefundResponseImplementors = []string{"EcoCashRefundResponse"}
+
+func (ec *executionContext) _EcoCashRefundResponse(ctx context.Context, sel ast.SelectionSet, obj *model.EcoCashRefundResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, ecoCashRefundResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EcoCashRefundResponse")
+		case "refund":
+			out.Values[i] = ec._EcoCashRefundResponse_refund(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var ecoCashReversalResponseImplementors = []string{"EcoCashReversalResponse"}
+
+func (ec *executionContext) _EcoCashReversalResponse(ctx context.Context, sel ast.SelectionSet, obj *model.EcoCashReversalResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, ecoCashReversalResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EcoCashReversalResponse")
+		case "reversal":
+			out.Values[i] = ec._EcoCashReversalResponse_reversal(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var ecoCashTransactionImplementors = []string{"EcoCashTransaction"}
+
+func (ec *executionContext) _EcoCashTransaction(ctx context.Context, sel ast.SelectionSet, obj *model.EcoCashTransaction) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, ecoCashTransactionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EcoCashTransaction")
+		case "id":
+			out.Values[i] = ec._EcoCashTransaction_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "orderId":
+			out.Values[i] = ec._EcoCashTransaction_orderId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "clientCorrelator":
+			out.Values[i] = ec._EcoCashTransaction_clientCorrelator(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "referenceCode":
+			out.Values[i] = ec._EcoCashTransaction_referenceCode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "tranType":
+			out.Values[i] = ec._EcoCashTransaction_tranType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "msisdnMasked":
+			out.Values[i] = ec._EcoCashTransaction_msisdnMasked(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "amountCents":
+			out.Values[i] = ec._EcoCashTransaction_amountCents(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "currency":
+			out.Values[i] = ec._EcoCashTransaction_currency(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._EcoCashTransaction_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ecocashStatusCode":
+			out.Values[i] = ec._EcoCashTransaction_ecocashStatusCode(ctx, field, obj)
+		case "ecocashStatusMsg":
+			out.Values[i] = ec._EcoCashTransaction_ecocashStatusMsg(ctx, field, obj)
+		case "ecocashTransactionId":
+			out.Values[i] = ec._EcoCashTransaction_ecocashTransactionId(ctx, field, obj)
+		case "createdAt":
+			out.Values[i] = ec._EcoCashTransaction_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._EcoCashTransaction_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var ecoCashTransactionListImplementors = []string{"EcoCashTransactionList"}
+
+func (ec *executionContext) _EcoCashTransactionList(ctx context.Context, sel ast.SelectionSet, obj *model.EcoCashTransactionList) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, ecoCashTransactionListImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EcoCashTransactionList")
+		case "transactions":
+			out.Values[i] = ec._EcoCashTransactionList_transactions(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var flashSaleImplementors = []string{"FlashSale"}
 
 func (ec *executionContext) _FlashSale(ctx context.Context, sel ast.SelectionSet, obj *model.FlashSale) graphql.Marshaler {
@@ -42000,6 +45779,41 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "addAdCredit":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_addAdCredit(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ecocashCharge":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_ecocashCharge(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ecocashRefund":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_ecocashRefund(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ecocashReverse":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_ecocashReverse(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ecocashRequestPayout":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_ecocashRequestPayout(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ecocashUpdatePayoutStatus":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_ecocashUpdatePayoutStatus(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -44285,6 +48099,94 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "ecocashTransaction":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ecocashTransaction(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "ecocashTransactionsByOrder":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ecocashTransactionsByOrder(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "ecocashLookup":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ecocashLookup(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "ecocashPayout":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ecocashPayout(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -46438,6 +50340,188 @@ func (ec *executionContext) marshalNEarningsLedgerEntry2ᚖgithubᚗcomᚋwemall
 		return graphql.Null
 	}
 	return ec._EarningsLedgerEntry(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNEcoCashChargeResponse2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashChargeResponse(ctx context.Context, sel ast.SelectionSet, v model.EcoCashChargeResponse) graphql.Marshaler {
+	return ec._EcoCashChargeResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEcoCashChargeResponse2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashChargeResponse(ctx context.Context, sel ast.SelectionSet, v *model.EcoCashChargeResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._EcoCashChargeResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNEcoCashPayout2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashPayout(ctx context.Context, sel ast.SelectionSet, v model.EcoCashPayout) graphql.Marshaler {
+	return ec._EcoCashPayout(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEcoCashPayout2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashPayout(ctx context.Context, sel ast.SelectionSet, v *model.EcoCashPayout) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._EcoCashPayout(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNEcoCashPayoutResponse2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashPayoutResponse(ctx context.Context, sel ast.SelectionSet, v model.EcoCashPayoutResponse) graphql.Marshaler {
+	return ec._EcoCashPayoutResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEcoCashPayoutResponse2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashPayoutResponse(ctx context.Context, sel ast.SelectionSet, v *model.EcoCashPayoutResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._EcoCashPayoutResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNEcoCashPayoutStatus2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashPayoutStatus(ctx context.Context, v interface{}) (model.EcoCashPayoutStatus, error) {
+	var res model.EcoCashPayoutStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNEcoCashPayoutStatus2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashPayoutStatus(ctx context.Context, sel ast.SelectionSet, v model.EcoCashPayoutStatus) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNEcoCashRefundRecord2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashRefundRecord(ctx context.Context, sel ast.SelectionSet, v *model.EcoCashRefundRecord) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._EcoCashRefundRecord(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNEcoCashRefundResponse2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashRefundResponse(ctx context.Context, sel ast.SelectionSet, v model.EcoCashRefundResponse) graphql.Marshaler {
+	return ec._EcoCashRefundResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEcoCashRefundResponse2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashRefundResponse(ctx context.Context, sel ast.SelectionSet, v *model.EcoCashRefundResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._EcoCashRefundResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNEcoCashReversalResponse2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashReversalResponse(ctx context.Context, sel ast.SelectionSet, v model.EcoCashReversalResponse) graphql.Marshaler {
+	return ec._EcoCashReversalResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEcoCashReversalResponse2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashReversalResponse(ctx context.Context, sel ast.SelectionSet, v *model.EcoCashReversalResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._EcoCashReversalResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNEcoCashTransaction2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashTransaction(ctx context.Context, sel ast.SelectionSet, v model.EcoCashTransaction) graphql.Marshaler {
+	return ec._EcoCashTransaction(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEcoCashTransaction2ᚕᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashTransactionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.EcoCashTransaction) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNEcoCashTransaction2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashTransaction(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNEcoCashTransaction2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashTransaction(ctx context.Context, sel ast.SelectionSet, v *model.EcoCashTransaction) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._EcoCashTransaction(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNEcoCashTransactionList2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashTransactionList(ctx context.Context, sel ast.SelectionSet, v model.EcoCashTransactionList) graphql.Marshaler {
+	return ec._EcoCashTransactionList(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEcoCashTransactionList2ᚖgithubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashTransactionList(ctx context.Context, sel ast.SelectionSet, v *model.EcoCashTransactionList) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._EcoCashTransactionList(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNEcoCashTransactionStatus2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashTransactionStatus(ctx context.Context, v interface{}) (model.EcoCashTransactionStatus, error) {
+	var res model.EcoCashTransactionStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNEcoCashTransactionStatus2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashTransactionStatus(ctx context.Context, sel ast.SelectionSet, v model.EcoCashTransactionStatus) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNEcoCashTransactionType2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashTransactionType(ctx context.Context, v interface{}) (model.EcoCashTransactionType, error) {
+	var res model.EcoCashTransactionType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNEcoCashTransactionType2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐEcoCashTransactionType(ctx context.Context, sel ast.SelectionSet, v model.EcoCashTransactionType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNFlashSale2githubᚗcomᚋwemallᚋapiᚑgatewayᚋinternalᚋgraphᚋmodelᚐFlashSale(ctx context.Context, sel ast.SelectionSet, v model.FlashSale) graphql.Marshaler {

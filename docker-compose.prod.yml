@@ -453,6 +453,7 @@ services:
       # Public URL EcoCash will POST webhook callbacks to
       - WEBHOOK_BASE_URL=${WEBHOOK_BASE_URL}
       - WEBHOOK_SECRET_PATH=${WEBHOOK_SECRET_PATH:-/webhooks/ecocash/callback}
+      - ECOCASH_PROXY_SECRET=${ECOCASH_PROXY_SECRET}
     depends_on:
       postgres:
         condition: service_healthy

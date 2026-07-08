@@ -190,6 +190,67 @@ type EarningsLedgerEntry struct {
 	SettledAt     *time.Time `json:"settledAt,omitempty"`
 }
 
+type EcoCashChargeResponse struct {
+	Transaction *EcoCashTransaction `json:"transaction"`
+	StatusMsg   string              `json:"statusMsg"`
+}
+
+type EcoCashPayout struct {
+	ID          string              `json:"id"`
+	SellerID    string              `json:"sellerId"`
+	AmountCents int                 `json:"amountCents"`
+	Currency    string              `json:"currency"`
+	Status      EcoCashPayoutStatus `json:"status"`
+	Method      string              `json:"method"`
+	ProviderRef *string             `json:"providerRef,omitempty"`
+	CreatedAt   time.Time           `json:"createdAt"`
+	UpdatedAt   time.Time           `json:"updatedAt"`
+}
+
+type EcoCashPayoutResponse struct {
+	Payout *EcoCashPayout `json:"payout"`
+}
+
+type EcoCashRefundRecord struct {
+	ID                string                   `json:"id"`
+	OriginalTxnID     string                   `json:"originalTxnId"`
+	ClientCorrelator  string                   `json:"clientCorrelator"`
+	AmountCents       int                      `json:"amountCents"`
+	Status            EcoCashTransactionStatus `json:"status"`
+	EcocashStatusCode *string                  `json:"ecocashStatusCode,omitempty"`
+	EcocashStatusMsg  *string                  `json:"ecocashStatusMsg,omitempty"`
+	CreatedAt         time.Time                `json:"createdAt"`
+}
+
+type EcoCashRefundResponse struct {
+	Refund *EcoCashRefundRecord `json:"refund"`
+}
+
+type EcoCashReversalResponse struct {
+	Reversal *EcoCashRefundRecord `json:"reversal"`
+}
+
+type EcoCashTransaction struct {
+	ID                   string                   `json:"id"`
+	OrderID              string                   `json:"orderId"`
+	ClientCorrelator     string                   `json:"clientCorrelator"`
+	ReferenceCode        string                   `json:"referenceCode"`
+	TranType             EcoCashTransactionType   `json:"tranType"`
+	MsisdnMasked         string                   `json:"msisdnMasked"`
+	AmountCents          int                      `json:"amountCents"`
+	Currency             string                   `json:"currency"`
+	Status               EcoCashTransactionStatus `json:"status"`
+	EcocashStatusCode    *string                  `json:"ecocashStatusCode,omitempty"`
+	EcocashStatusMsg     *string                  `json:"ecocashStatusMsg,omitempty"`
+	EcocashTransactionID *string                  `json:"ecocashTransactionId,omitempty"`
+	CreatedAt            time.Time                `json:"createdAt"`
+	UpdatedAt            time.Time                `json:"updatedAt"`
+}
+
+type EcoCashTransactionList struct {
+	Transactions []*EcoCashTransaction `json:"transactions"`
+}
+
 type FlashSale struct {
 	ID        string           `json:"id"`
 	Name      string           `json:"name"`
@@ -679,6 +740,145 @@ func (e *DisputeStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e DisputeStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type EcoCashPayoutStatus string
+
+const (
+	EcoCashPayoutStatusQueued       EcoCashPayoutStatus = "QUEUED"
+	EcoCashPayoutStatusProcessing   EcoCashPayoutStatus = "PROCESSING"
+	EcoCashPayoutStatusPaid         EcoCashPayoutStatus = "PAID"
+	EcoCashPayoutStatusFailed       EcoCashPayoutStatus = "FAILED"
+	EcoCashPayoutStatusManualReview EcoCashPayoutStatus = "MANUAL_REVIEW"
+)
+
+var AllEcoCashPayoutStatus = []EcoCashPayoutStatus{
+	EcoCashPayoutStatusQueued,
+	EcoCashPayoutStatusProcessing,
+	EcoCashPayoutStatusPaid,
+	EcoCashPayoutStatusFailed,
+	EcoCashPayoutStatusManualReview,
+}
+
+func (e EcoCashPayoutStatus) IsValid() bool {
+	switch e {
+	case EcoCashPayoutStatusQueued, EcoCashPayoutStatusProcessing, EcoCashPayoutStatusPaid, EcoCashPayoutStatusFailed, EcoCashPayoutStatusManualReview:
+		return true
+	}
+	return false
+}
+
+func (e EcoCashPayoutStatus) String() string {
+	return string(e)
+}
+
+func (e *EcoCashPayoutStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EcoCashPayoutStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EcoCashPayoutStatus", str)
+	}
+	return nil
+}
+
+func (e EcoCashPayoutStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type EcoCashTransactionStatus string
+
+const (
+	EcoCashTransactionStatusPending      EcoCashTransactionStatus = "PENDING"
+	EcoCashTransactionStatusSuccess      EcoCashTransactionStatus = "SUCCESS"
+	EcoCashTransactionStatusFailed       EcoCashTransactionStatus = "FAILED"
+	EcoCashTransactionStatusRefunded     EcoCashTransactionStatus = "REFUNDED"
+	EcoCashTransactionStatusReversed     EcoCashTransactionStatus = "REVERSED"
+	EcoCashTransactionStatusManualReview EcoCashTransactionStatus = "MANUAL_REVIEW"
+)
+
+var AllEcoCashTransactionStatus = []EcoCashTransactionStatus{
+	EcoCashTransactionStatusPending,
+	EcoCashTransactionStatusSuccess,
+	EcoCashTransactionStatusFailed,
+	EcoCashTransactionStatusRefunded,
+	EcoCashTransactionStatusReversed,
+	EcoCashTransactionStatusManualReview,
+}
+
+func (e EcoCashTransactionStatus) IsValid() bool {
+	switch e {
+	case EcoCashTransactionStatusPending, EcoCashTransactionStatusSuccess, EcoCashTransactionStatusFailed, EcoCashTransactionStatusRefunded, EcoCashTransactionStatusReversed, EcoCashTransactionStatusManualReview:
+		return true
+	}
+	return false
+}
+
+func (e EcoCashTransactionStatus) String() string {
+	return string(e)
+}
+
+func (e *EcoCashTransactionStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EcoCashTransactionStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EcoCashTransactionStatus", str)
+	}
+	return nil
+}
+
+func (e EcoCashTransactionStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type EcoCashTransactionType string
+
+const (
+	EcoCashTransactionTypeMer EcoCashTransactionType = "MER"
+	EcoCashTransactionTypeRef EcoCashTransactionType = "REF"
+	EcoCashTransactionTypeRev EcoCashTransactionType = "REV"
+)
+
+var AllEcoCashTransactionType = []EcoCashTransactionType{
+	EcoCashTransactionTypeMer,
+	EcoCashTransactionTypeRef,
+	EcoCashTransactionTypeRev,
+}
+
+func (e EcoCashTransactionType) IsValid() bool {
+	switch e {
+	case EcoCashTransactionTypeMer, EcoCashTransactionTypeRef, EcoCashTransactionTypeRev:
+		return true
+	}
+	return false
+}
+
+func (e EcoCashTransactionType) String() string {
+	return string(e)
+}
+
+func (e *EcoCashTransactionType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EcoCashTransactionType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EcoCashTransactionType", str)
+	}
+	return nil
+}
+
+func (e EcoCashTransactionType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

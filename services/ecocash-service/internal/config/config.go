@@ -26,6 +26,7 @@ type Config struct {
 	// The public URL the service is reachable at — embedded in notifyUrl
 	// e.g. https://api.wemall.co.zw/webhooks/ecocash or an ngrok URL in dev
 	WebhookBaseURL string
+	EcoCashProxySecret string
 }
 
 // Load reads configuration from environment variables with safe defaults for
@@ -48,7 +49,8 @@ func Load() (*Config, error) {
 		EcoCashMerchantName:   getEnv("ECOCASH_MERCHANT_NAME", "WeMall"),
 		EcoCashSuperMerchant:  getEnv("ECOCASH_SUPER_MERCHANT", ""),
 
-		WebhookBaseURL: getEnv("WEBHOOK_BASE_URL", "http://localhost:8080"),
+		WebhookBaseURL:     getEnv("WEBHOOK_BASE_URL", "http://localhost:8080"),
+		EcoCashProxySecret: getEnv("ECOCASH_PROXY_SECRET", ""),
 	}, nil
 }
 

@@ -10,6 +10,9 @@ import (
 
 	"github.com/wemall/api-gateway/internal/graph/model"
 	"github.com/wemall/api-gateway/internal/middleware"
+	"strings"
+
+	ecocashv1 "github.com/wemall/gen/ecocash/v1"
 	adminv1 "github.com/wemall/gen/admin/v1"
 	notificationv1 "github.com/wemall/gen/notification/v1"
 	orderv1 "github.com/wemall/gen/order/v1"
@@ -1359,3 +1362,50 @@ func (r *mutationResolver) MarkNotificationAsRead(ctx context.Context, id string
 	return true, nil
 }
 
+// ── EcoCash Mutations ─────────────────────────────────────────────────────────
+
+func (r *mutationResolver) EcocashCharge(ctx context.Context, orderID string, msisdn string, amountCents int, currency string) (*model.EcoCashChargeResponse, error) {
+	resp, err := r.Clients.Ecocash.ChargeCustomer(ctx, &ecocashv1.ChargeCustomerRequest{
+		OrderId:     orderID,
+		Msisdn:      msisdn,
+		AmountCents: int64(amountCents),
+		Currency:    currency,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.EcoCashChargeResponse{
+		Transaction: &model.EcoCashTransaction{
+			ID:                   resp.Transaction.Id,
+			OrderID:              resp.Transaction.OrderId,
+			ClientCorrelator:     resp.Transaction.ClientCorrelator,
+			ReferenceCode:        resp.Transaction.ReferenceCode,
+			TranType:             model.EcoCashTransactionType(strings.TrimPrefix(resp.Transaction.TranType.String(), "TRANSACTION_TYPE_")),
+			MsisdnMasked:         resp.Transaction.MsisdnMasked,
+			AmountCents:          int(resp.Transaction.AmountCents),
+			Currency:             resp.Transaction.Currency,
+			Status:               model.EcoCashTransactionStatus(strings.TrimPrefix(resp.Transaction.Status.String(), "TRANSACTION_STATUS_")),
+			EcocashStatusCode:    &resp.Transaction.EcocashStatusCode,
+			EcocashStatusMsg:     &resp.Transaction.EcocashStatusMsg,
+			EcocashTransactionID: &resp.Transaction.EcocashTransactionId,
+		},
+		StatusMsg: resp.StatusMsg,
+	}, nil
+}
+
+func (r *mutationResolver) EcocashRefund(ctx context.Context, originalTxnID string, amountCents *int, reason *string) (*model.EcoCashRefundResponse, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (r *mutationResolver) EcocashRequestPayout(ctx context.Context, sellerID string, amountCents int, currency string) (*model.EcoCashPayoutResponse, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (r *mutationResolver) EcocashUpdatePayoutStatus(ctx context.Context, id string, status model.EcoCashPayoutStatus, providerRef *string) (*model.EcoCashPayoutResponse, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (r *mutationResolver) EcocashReverse(ctx context.Context, originalTxnID string, reason *string) (*model.EcoCashReversalResponse, error) {
+	return nil, errors.New("not implemented")
+}

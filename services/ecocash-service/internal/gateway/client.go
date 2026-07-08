@@ -42,6 +42,7 @@ type GatewayConfig struct {
 	MerchantName   string
 	SuperMerchant  string
 	NotifyURL      string // e.g. https://api.wemall.co.zw/webhooks/ecocash
+	ProxySecret    string
 }
 
 // Gateway is the port interface consumed by the use-case layer.
@@ -178,10 +179,10 @@ func (c *Client) postCharge(ctx context.Context, hc *http.Client, path string, r
 
 	var resp ChargeResponse
 	if err := json.Unmarshal(rawResp, &resp); err != nil {
+		c.logger.Error().Err(err).Str("body", string(rawResp)).Msg("Failed to decode charge response")
 		return ChargeResponse{}, fmt.Errorf("decode charge response: %w", err)
 	}
 
-	// All EcoCash responses are HTTP 200 — check statusCode in body for errors.
 	if gatewayErr := ParseEcoCashError(resp.StatusCode, resp.StatusMessage); gatewayErr != nil {
 		return resp, gatewayErr
 	}
@@ -221,6 +222,10 @@ func (c *Client) post(ctx context.Context, hc *http.Client, path string, body []
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("Authorization", "Basic "+c.basicAuth())
+	httpReq.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+	if c.cfg.ProxySecret != "" {
+		httpReq.Header.Set("X-WeMall-Proxy-Secret", c.cfg.ProxySecret)
+	}
 
 	c.logger.Debug().
 		Str("method", "POST").
@@ -261,6 +266,10 @@ func (c *Client) get(ctx context.Context, hc *http.Client, path string) ([]byte,
 		return nil, fmt.Errorf("create get request: %w", err)
 	}
 	httpReq.Header.Set("Authorization", "Basic "+c.basicAuth())
+	httpReq.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+	if c.cfg.ProxySecret != "" {
+		httpReq.Header.Set("X-WeMall-Proxy-Secret", c.cfg.ProxySecret)
+	}
 
 	c.logger.Debug().
 		Str("method", "GET").

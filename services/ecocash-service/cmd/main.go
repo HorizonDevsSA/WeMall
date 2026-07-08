@@ -80,6 +80,7 @@ func main() {
 		MerchantName:   cfg.EcoCashMerchantName,
 		SuperMerchant:  cfg.EcoCashSuperMerchant,
 		NotifyURL:      notifyURL,
+		ProxySecret:    cfg.EcoCashProxySecret,
 	}, log)
 
 	// 6. Service (use-case layer)

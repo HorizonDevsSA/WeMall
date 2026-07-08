@@ -1172,4 +1172,18 @@ func (r *queryResolver) MySellerMonetizationConfig(ctx context.Context) (*model.
 	return mapSellerMonetizationConfig(resp), nil
 }
 
+func (r *queryResolver) EcocashLookup(ctx context.Context, orderID string, clientCorrelator string) (*model.EcoCashTransaction, error) {
+	return nil, errors.New("not implemented")
+}
 
+func (r *queryResolver) EcocashPayout(ctx context.Context, id string) (*model.EcoCashPayout, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (r *queryResolver) EcocashTransaction(ctx context.Context, id string) (*model.EcoCashTransaction, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (r *queryResolver) EcocashTransactionsByOrder(ctx context.Context, orderID string) (*model.EcoCashTransactionList, error) {
+	return nil, errors.New("not implemented")
+}
