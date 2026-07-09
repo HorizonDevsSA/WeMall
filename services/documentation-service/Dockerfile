@@ -21,6 +21,7 @@ COPY services/admin-service/go.mod ./services/admin-service/
 COPY services/promotion-service/go.mod ./services/promotion-service/
 COPY services/recommendation-service/go.mod ./services/recommendation-service/
 COPY services/delivery-service/go.mod ./services/delivery-service/
+COPY services/ecocash-service/go.mod ./services/ecocash-service/
 
 RUN go work sync
 
