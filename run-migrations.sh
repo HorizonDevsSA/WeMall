@@ -1,5 +1,6 @@
 #!/bin/bash
 export DB_PASSWORD=$(grep DB_PASSWORD /home/ubuntu/WeMall/.env | cut -d= -f2-)
+export DB_USER=$(grep DB_USER /home/ubuntu/WeMall/.env | cut -d= -f2-)
 for s in user-service product-service order-service seller-service notification-service review-service payment-service chat-service dispute-service admin-service promotion-service recommendation-service delivery-service; do
   DB_NAME="wemall_$(echo $s | cut -d- -f1)"
   if [ "$s" = "user-service" ]; then DB_NAME="wemall_users"; fi
@@ -14,11 +15,11 @@ for s in user-service product-service order-service seller-service notification-
   if [ "$s" = "delivery-service" ]; then DB_NAME="wemall_delivery"; fi
   
   SUFFIX=$(echo $DB_NAME | cut -d_ -f2)
-  DB_HOST="postgres-$SUFFIX"
+  DB_HOST="postgres"
   echo "Migrating $s (Database: $DB_NAME on Host: $DB_HOST)..."
   docker run --rm -v /home/ubuntu/WeMall/services/$s/db/migrations:/migrations \
-    --network wemall_default \
+    --network wemall_wemall-net \
     migrate/migrate \
     -path=/migrations/ \
-    -database "postgres://wemall:wemall_secret@${DB_HOST}:5432/$DB_NAME?sslmode=disable" up
+    -database "postgres://${DB_USER:-wemall}:${DB_PASSWORD:-wemall_secret}@${DB_HOST}:5432/$DB_NAME?sslmode=disable" up
 done

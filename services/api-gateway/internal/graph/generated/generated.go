@@ -690,6 +690,7 @@ type ComplexityRoot struct {
 		BankAccountNumber        func(childComplexity int) int
 		BankName                 func(childComplexity int) int
 		BannerURL                func(childComplexity int) int
+		ChatGroupID              func(childComplexity int) int
 		CreatedAt                func(childComplexity int) int
 		DataSharingEnabled       func(childComplexity int) int
 		DeactivationReason       func(childComplexity int) int
@@ -4793,6 +4794,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Seller.BannerURL(childComplexity), true
 
+	case "Seller.chatGroupId":
+		if e.complexity.Seller.ChatGroupID == nil {
+			break
+		}
+
+		return e.complexity.Seller.ChatGroupID(childComplexity), true
+
 	case "Seller.createdAt":
 		if e.complexity.Seller.CreatedAt == nil {
 			break
@@ -5799,6 +5807,7 @@ type Seller {
   twoFactorEnabled:         Boolean!
   deactivationReason:       String!
   hasPin:                   Boolean!
+  chatGroupId:              String
 }
 
 # ── Input Types ───────────────────────────────────────────────────────────────
@@ -17875,6 +17884,8 @@ func (ec *executionContext) fieldContext_FollowedStoresList_sellers(ctx context.
 				return ec.fieldContext_Seller_deactivationReason(ctx, field)
 			case "hasPin":
 				return ec.fieldContext_Seller_hasPin(ctx, field)
+			case "chatGroupId":
+				return ec.fieldContext_Seller_chatGroupId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -19535,6 +19546,8 @@ func (ec *executionContext) fieldContext_Mutation_createStore(ctx context.Contex
 				return ec.fieldContext_Seller_deactivationReason(ctx, field)
 			case "hasPin":
 				return ec.fieldContext_Seller_hasPin(ctx, field)
+			case "chatGroupId":
+				return ec.fieldContext_Seller_chatGroupId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -19684,6 +19697,8 @@ func (ec *executionContext) fieldContext_Mutation_updateStore(ctx context.Contex
 				return ec.fieldContext_Seller_deactivationReason(ctx, field)
 			case "hasPin":
 				return ec.fieldContext_Seller_hasPin(ctx, field)
+			case "chatGroupId":
+				return ec.fieldContext_Seller_chatGroupId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -19912,6 +19927,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSellerStatus(ctx context
 				return ec.fieldContext_Seller_deactivationReason(ctx, field)
 			case "hasPin":
 				return ec.fieldContext_Seller_hasPin(ctx, field)
+			case "chatGroupId":
+				return ec.fieldContext_Seller_chatGroupId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -29165,6 +29182,8 @@ func (ec *executionContext) fieldContext_Product_seller(ctx context.Context, fie
 				return ec.fieldContext_Seller_deactivationReason(ctx, field)
 			case "hasPin":
 				return ec.fieldContext_Seller_hasPin(ctx, field)
+			case "chatGroupId":
+				return ec.fieldContext_Seller_chatGroupId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -31606,6 +31625,8 @@ func (ec *executionContext) fieldContext_Query_myStore(ctx context.Context, fiel
 				return ec.fieldContext_Seller_deactivationReason(ctx, field)
 			case "hasPin":
 				return ec.fieldContext_Seller_hasPin(ctx, field)
+			case "chatGroupId":
+				return ec.fieldContext_Seller_chatGroupId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -31744,6 +31765,8 @@ func (ec *executionContext) fieldContext_Query_revealBankDetails(ctx context.Con
 				return ec.fieldContext_Seller_deactivationReason(ctx, field)
 			case "hasPin":
 				return ec.fieldContext_Seller_hasPin(ctx, field)
+			case "chatGroupId":
+				return ec.fieldContext_Seller_chatGroupId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -32040,6 +32063,8 @@ func (ec *executionContext) fieldContext_Query_seller(ctx context.Context, field
 				return ec.fieldContext_Seller_deactivationReason(ctx, field)
 			case "hasPin":
 				return ec.fieldContext_Seller_hasPin(ctx, field)
+			case "chatGroupId":
+				return ec.fieldContext_Seller_chatGroupId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -37583,6 +37608,47 @@ func (ec *executionContext) fieldContext_Seller_hasPin(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Seller_chatGroupId(ctx context.Context, field graphql.CollectedField, obj *model.Seller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Seller_chatGroupId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ChatGroupID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Seller_chatGroupId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Seller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SellerBalance_escrowedBalance(ctx context.Context, field graphql.CollectedField, obj *model.SellerBalance) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SellerBalance_escrowedBalance(ctx, field)
 	if err != nil {
@@ -37998,6 +38064,8 @@ func (ec *executionContext) fieldContext_SellerDashboard_store(ctx context.Conte
 				return ec.fieldContext_Seller_deactivationReason(ctx, field)
 			case "hasPin":
 				return ec.fieldContext_Seller_hasPin(ctx, field)
+			case "chatGroupId":
+				return ec.fieldContext_Seller_chatGroupId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Seller", field.Name)
 		},
@@ -48581,6 +48649,8 @@ func (ec *executionContext) _Seller(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "chatGroupId":
+			out.Values[i] = ec._Seller_chatGroupId(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -168,6 +168,7 @@ type Seller struct {
 	TwoFactorEnabled         bool                   `protobuf:"varint,31,opt,name=two_factor_enabled,json=twoFactorEnabled,proto3" json:"two_factor_enabled,omitempty"`
 	DeactivationReason       string                 `protobuf:"bytes,32,opt,name=deactivation_reason,json=deactivationReason,proto3" json:"deactivation_reason,omitempty"`
 	HasPin                   bool                   `protobuf:"varint,33,opt,name=has_pin,json=hasPin,proto3" json:"has_pin,omitempty"`
+	ChatGroupId              string                 `protobuf:"bytes,34,opt,name=chat_group_id,json=chatGroupId,proto3" json:"chat_group_id,omitempty"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -431,6 +432,13 @@ func (x *Seller) GetHasPin() bool {
 		return x.HasPin
 	}
 	return false
+}
+
+func (x *Seller) GetChatGroupId() string {
+	if x != nil {
+		return x.ChatGroupId
+	}
+	return ""
 }
 
 type Payout struct {
@@ -860,6 +868,7 @@ type UpdateStoreRequest struct {
 	TwoFactorEnabled         *bool                  `protobuf:"varint,23,opt,name=two_factor_enabled,json=twoFactorEnabled,proto3,oneof" json:"two_factor_enabled,omitempty"`
 	DeactivationReason       *string                `protobuf:"bytes,24,opt,name=deactivation_reason,json=deactivationReason,proto3,oneof" json:"deactivation_reason,omitempty"`
 	Pin                      *string                `protobuf:"bytes,25,opt,name=pin,proto3,oneof" json:"pin,omitempty"`
+	ChatGroupId              *string                `protobuf:"bytes,26,opt,name=chat_group_id,json=chatGroupId,proto3,oneof" json:"chat_group_id,omitempty"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -1065,6 +1074,13 @@ func (x *UpdateStoreRequest) GetDeactivationReason() string {
 func (x *UpdateStoreRequest) GetPin() string {
 	if x != nil && x.Pin != nil {
 		return *x.Pin
+	}
+	return ""
+}
+
+func (x *UpdateStoreRequest) GetChatGroupId() string {
+	if x != nil && x.ChatGroupId != nil {
+		return *x.ChatGroupId
 	}
 	return ""
 }
@@ -2513,7 +2529,7 @@ var File_seller_v1_seller_proto protoreflect.FileDescriptor
 
 const file_seller_v1_seller_proto_rawDesc = "" +
 	"\n" +
-	"\x16seller/v1/seller.proto\x12\tseller.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xbb\n" +
+	"\x16seller/v1/seller.proto\x12\tseller.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xdf\n" +
 	"\n" +
 	"\x06Seller\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
@@ -2556,7 +2572,8 @@ const file_seller_v1_seller_proto_rawDesc = "" +
 	"\x14data_sharing_enabled\x18\x1e \x01(\bR\x12dataSharingEnabled\x12,\n" +
 	"\x12two_factor_enabled\x18\x1f \x01(\bR\x10twoFactorEnabled\x12/\n" +
 	"\x13deactivation_reason\x18  \x01(\tR\x12deactivationReason\x12\x17\n" +
-	"\ahas_pin\x18! \x01(\bR\x06hasPin\"\x92\x03\n" +
+	"\ahas_pin\x18! \x01(\bR\x06hasPin\x12\"\n" +
+	"\rchat_group_id\x18\" \x01(\tR\vchatGroupId\"\x92\x03\n" +
 	"\x06Payout\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tseller_id\x18\x02 \x01(\tR\bsellerId\x12\x16\n" +
@@ -2593,7 +2610,7 @@ const file_seller_v1_seller_proto_rawDesc = "" +
 	"banner_url\x18\x05 \x01(\tR\tbannerUrl\x12\x1a\n" +
 	"\blatitude\x18\x06 \x01(\x01R\blatitude\x12\x1c\n" +
 	"\tlongitude\x18\a \x01(\x01R\tlongitude\x12%\n" +
-	"\x0estore_location\x18\b \x01(\tR\rstoreLocation\"\xe5\v\n" +
+	"\x0estore_location\x18\b \x01(\tR\rstoreLocation\"\xa0\f\n" +
 	"\x12UpdateStoreRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1d\n" +
 	"\n" +
@@ -2623,7 +2640,8 @@ const file_seller_v1_seller_proto_rawDesc = "" +
 	"\x14data_sharing_enabled\x18\x16 \x01(\bH\rR\x12dataSharingEnabled\x88\x01\x01\x121\n" +
 	"\x12two_factor_enabled\x18\x17 \x01(\bH\x0eR\x10twoFactorEnabled\x88\x01\x01\x124\n" +
 	"\x13deactivation_reason\x18\x18 \x01(\tH\x0fR\x12deactivationReason\x88\x01\x01\x12\x15\n" +
-	"\x03pin\x18\x19 \x01(\tH\x10R\x03pin\x88\x01\x01B\x11\n" +
+	"\x03pin\x18\x19 \x01(\tH\x10R\x03pin\x88\x01\x01\x12'\n" +
+	"\rchat_group_id\x18\x1a \x01(\tH\x11R\vchatGroupId\x88\x01\x01B\x11\n" +
 	"\x0f_shipping_zonesB\f\n" +
 	"\n" +
 	"_bank_nameB\x16\n" +
@@ -2641,7 +2659,8 @@ const file_seller_v1_seller_proto_rawDesc = "" +
 	"\x15_data_sharing_enabledB\x15\n" +
 	"\x13_two_factor_enabledB\x16\n" +
 	"\x14_deactivation_reasonB\x06\n" +
-	"\x04_pin\"N\n" +
+	"\x04_pinB\x10\n" +
+	"\x0e_chat_group_id\"N\n" +
 	"\x13VerifySellerRequest\x12\x1b\n" +
 	"\tseller_id\x18\x01 \x01(\tR\bsellerId\x12\x1a\n" +
 	"\bverified\x18\x02 \x01(\bR\bverified\"i\n" +

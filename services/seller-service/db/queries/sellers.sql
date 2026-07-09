@@ -41,6 +41,7 @@ UPDATE sellers SET
     data_sharing_enabled        = COALESCE(sqlc.narg('data_sharing_enabled'), data_sharing_enabled),
     two_factor_enabled          = COALESCE(sqlc.narg('two_factor_enabled'), two_factor_enabled),
     deactivation_reason         = COALESCE(sqlc.narg('deactivation_reason'), deactivation_reason),
+    chat_group_id               = COALESCE(sqlc.narg('chat_group_id'), chat_group_id),
     updated_at                  = NOW()
 WHERE user_id = @user_id
 RETURNING *;

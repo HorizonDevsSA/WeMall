@@ -127,6 +127,7 @@ func (h *SellerHandler) UpdateStore(ctx context.Context, req *sellerv1.UpdateSto
 		TwoFactorEnabled:         req.TwoFactorEnabled,
 		DeactivationReason:       req.DeactivationReason,
 		PIN:                      req.Pin,
+		ChatGroupID:              req.ChatGroupId,
 	})
 	return mapSeller(seller), grpcErr(err)
 }
@@ -406,6 +407,10 @@ func mapSeller(s *db.Seller) *sellerv1.Seller {
 		TwoFactorEnabled:           s.TwoFactorEnabled,
 		DeactivationReason:         s.DeactivationReason,
 		HasPin:                     s.SellerPinHash != nil && *s.SellerPinHash != "",
+	}
+
+	if s.ChatGroupID.Valid {
+		seller.ChatGroupId = uuid.UUID(s.ChatGroupID.Bytes).String()
 	}
 
 	// Add coordinates if they exist

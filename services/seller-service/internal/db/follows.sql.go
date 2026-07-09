@@ -86,7 +86,7 @@ func (q *Queries) IsFollowingStore(ctx context.Context, arg IsFollowingStorePara
 }
 
 const listFollowedStores = `-- name: ListFollowedStores :many
-SELECT s.id, s.user_id, s.store_name, s.store_slug, s.logo_url, s.banner_url, s.description, s.rating, s.total_sales, s.is_verified, s.created_at, s.updated_at, s.latitude, s.longitude, s.status, s.store_location, s.commission_rate, s.ad_credit_balance, s.shipping_zones, s.bank_name, s.bank_account_number, s.ecocash_number, s.return_window_days, s.return_policy_text, s.push_notifications_enabled, s.email_alerts_enabled, s.sms_alerts_enabled, s.auto_accept_orders, s.inventory_alerts_enabled, s.profile_visibility, s.search_indexing_enabled, s.data_sharing_enabled, s.two_factor_enabled, s.deactivation_reason, s.seller_pin_hash, s.bank_details_last_updated, s.payouts_locked_until
+SELECT s.id, s.user_id, s.store_name, s.store_slug, s.logo_url, s.banner_url, s.description, s.rating, s.total_sales, s.is_verified, s.created_at, s.updated_at, s.latitude, s.longitude, s.status, s.store_location, s.commission_rate, s.ad_credit_balance, s.shipping_zones, s.bank_name, s.bank_account_number, s.ecocash_number, s.return_window_days, s.return_policy_text, s.push_notifications_enabled, s.email_alerts_enabled, s.sms_alerts_enabled, s.auto_accept_orders, s.inventory_alerts_enabled, s.profile_visibility, s.search_indexing_enabled, s.data_sharing_enabled, s.two_factor_enabled, s.deactivation_reason, s.seller_pin_hash, s.bank_details_last_updated, s.payouts_locked_until, s.chat_group_id
 FROM sellers s
 INNER JOIN store_follows f ON f.seller_id = s.id
 WHERE f.user_id = $1
@@ -102,7 +102,7 @@ type ListFollowedStoresParams struct {
 
 // ListFollowedStores
 //
-//	SELECT s.id, s.user_id, s.store_name, s.store_slug, s.logo_url, s.banner_url, s.description, s.rating, s.total_sales, s.is_verified, s.created_at, s.updated_at, s.latitude, s.longitude, s.status, s.store_location, s.commission_rate, s.ad_credit_balance, s.shipping_zones, s.bank_name, s.bank_account_number, s.ecocash_number, s.return_window_days, s.return_policy_text, s.push_notifications_enabled, s.email_alerts_enabled, s.sms_alerts_enabled, s.auto_accept_orders, s.inventory_alerts_enabled, s.profile_visibility, s.search_indexing_enabled, s.data_sharing_enabled, s.two_factor_enabled, s.deactivation_reason, s.seller_pin_hash, s.bank_details_last_updated, s.payouts_locked_until
+//	SELECT s.id, s.user_id, s.store_name, s.store_slug, s.logo_url, s.banner_url, s.description, s.rating, s.total_sales, s.is_verified, s.created_at, s.updated_at, s.latitude, s.longitude, s.status, s.store_location, s.commission_rate, s.ad_credit_balance, s.shipping_zones, s.bank_name, s.bank_account_number, s.ecocash_number, s.return_window_days, s.return_policy_text, s.push_notifications_enabled, s.email_alerts_enabled, s.sms_alerts_enabled, s.auto_accept_orders, s.inventory_alerts_enabled, s.profile_visibility, s.search_indexing_enabled, s.data_sharing_enabled, s.two_factor_enabled, s.deactivation_reason, s.seller_pin_hash, s.bank_details_last_updated, s.payouts_locked_until, s.chat_group_id
 //	FROM sellers s
 //	INNER JOIN store_follows f ON f.seller_id = s.id
 //	WHERE f.user_id = $1
@@ -155,6 +155,7 @@ func (q *Queries) ListFollowedStores(ctx context.Context, arg ListFollowedStores
 			&i.SellerPinHash,
 			&i.BankDetailsLastUpdated,
 			&i.PayoutsLockedUntil,
+			&i.ChatGroupID,
 		); err != nil {
 			return nil, err
 		}

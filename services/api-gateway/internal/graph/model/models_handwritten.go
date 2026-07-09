@@ -201,6 +201,7 @@ type Seller struct {
 	TwoFactorEnabled         bool         `json:"twoFactorEnabled"`
 	DeactivationReason       string       `json:"deactivationReason"`
 	HasPin                   bool         `json:"hasPin"`
+	ChatGroupID              *string      `json:"chatGroupId"`
 }
 
 type FollowedStoresList struct {

@@ -57,6 +57,7 @@ message Seller {
   bool                      two_factor_enabled             = 31;
   string                    deactivation_reason            = 32;
   bool                      has_pin                        = 33;
+  string                    chat_group_id                  = 34;
 }
 
 message Payout {
@@ -128,6 +129,7 @@ message UpdateStoreRequest {
   optional bool   two_factor_enabled         = 23;
   optional string deactivation_reason        = 24;
   optional string pin                        = 25;
+  optional string chat_group_id              = 26;
 }
 
 message VerifySellerRequest {

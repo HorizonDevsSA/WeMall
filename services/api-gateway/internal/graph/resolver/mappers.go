@@ -443,6 +443,7 @@ func mapSeller(s *sellerv1.Seller) *model.Seller {
 		TwoFactorEnabled:         s.TwoFactorEnabled,
 		DeactivationReason:       s.DeactivationReason,
 		HasPin:                   s.HasPin,
+		ChatGroupID:              strPtr(s.ChatGroupId),
 	}
 }
 

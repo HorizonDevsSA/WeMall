@@ -300,6 +300,7 @@ type Seller {
   twoFactorEnabled:         Boolean!
   deactivationReason:       String!
   hasPin:                   Boolean!
+  chatGroupId:              String
 }
 
 # ── Input Types ───────────────────────────────────────────────────────────────

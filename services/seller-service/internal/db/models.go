@@ -99,6 +99,7 @@ type Seller struct {
 	SellerPinHash            *string            `json:"seller_pin_hash"`
 	BankDetailsLastUpdated   pgtype.Timestamptz `json:"bank_details_last_updated"`
 	PayoutsLockedUntil       pgtype.Timestamptz `json:"payouts_locked_until"`
+	ChatGroupID              pgtype.UUID        `json:"chat_group_id"`
 }
 
 type SellerEarning struct {

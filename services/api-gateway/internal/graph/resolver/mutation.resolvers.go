@@ -84,7 +84,19 @@ func (r *mutationResolver) BuyerVerifyOtp(ctx context.Context, phone string, otp
 	if err != nil {
 		return nil, err
 	}
-	return mapAuthPayload(resp), nil
+
+	// Check whether the user has already completed seller registration (has a store).
+	verificationStatus := model.UserVerificationStatusPending
+	if resp.User != nil && resp.User.Id != "" {
+		sellerResp, sellerErr := r.Clients.Seller.GetSellerByUserID(ctx, &sellerv1.GetSellerByUserIDRequest{
+			UserId: resp.User.Id,
+		})
+		if sellerErr == nil && sellerResp != nil && sellerResp.Id != "" {
+			verificationStatus = mapUserVerificationStatus(resp.User.VerificationStatus)
+		}
+	}
+
+	return mapAuthPayloadWithVerified(resp, verificationStatus), nil
 }
 
 func (r *mutationResolver) SellerRegister(ctx context.Context, email string, password string, fullName string) (*model.AuthPayload, error) {
@@ -286,6 +298,24 @@ func (r *mutationResolver) CreateStore(ctx context.Context, input model.CreateSt
 	if err != nil {
 		return nil, err
 	}
+
+	// Create a broadcast group in the chat service for the store updates
+	chatGroup, chatErr := r.Clients.Chat.CreateBroadcastGroup(ctx, &chatv1.CreateBroadcastGroupRequest{
+		SellerId:          resp.Id,
+		Title:             "Store Updates",
+		ParticipantAvatar: resp.LogoUrl,
+	})
+	if chatErr == nil && chatGroup != nil && chatGroup.Id != "" {
+		// Save the group ID in the seller schema
+		updatedResp, updateErr := r.Clients.Seller.UpdateStore(ctx, &sellerv1.UpdateStoreRequest{
+			UserId:      uid,
+			ChatGroupId: &chatGroup.Id,
+		})
+		if updateErr == nil {
+			resp = updatedResp
+		}
+	}
+
 	return mapSeller(resp), nil
 }
 

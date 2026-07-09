@@ -146,6 +146,7 @@ type UpdateStoreInput struct {
 	TwoFactorEnabled         *bool
 	DeactivationReason       *string
 	PIN                      *string
+	ChatGroupID              *string
 }
 
 func (s *SellerService) UpdateStore(ctx context.Context, in UpdateStoreInput) (*db.Seller, error) {
@@ -216,6 +217,13 @@ func (s *SellerService) UpdateStore(ctx context.Context, in UpdateStoreInput) (*
 		ecocashNumber = &encVal
 	}
 
+	var chatGroupID pgtype.UUID
+	if in.ChatGroupID != nil && *in.ChatGroupID != "" {
+		if u, err := uuid.Parse(*in.ChatGroupID); err == nil {
+			chatGroupID = pgtype.UUID{Bytes: u, Valid: true}
+		}
+	}
+
 	seller, err := s.q.UpdateSeller(ctx, db.UpdateSellerParams{
 		UserID:                   in.UserID,
 		StoreName:                ptrToString(storeName),
@@ -242,6 +250,7 @@ func (s *SellerService) UpdateStore(ctx context.Context, in UpdateStoreInput) (*
 		DataSharingEnabled:       in.DataSharingEnabled,
 		TwoFactorEnabled:         in.TwoFactorEnabled,
 		DeactivationReason:       in.DeactivationReason,
+		ChatGroupID:              chatGroupID,
 	})
 	if err != nil {
 		if isUniqueViolation(err) {

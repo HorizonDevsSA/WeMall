@@ -26,6 +26,7 @@ RUN go work sync
 
 COPY pkg/    ./pkg/
 COPY gen/    ./gen/
+COPY services/ecocash-service/ ./services/ecocash-service/
 COPY services/api-gateway/ ./services/api-gateway/
 
 RUN go build -ldflags="-s -w" -o /api-gateway ./services/api-gateway/cmd/main.go

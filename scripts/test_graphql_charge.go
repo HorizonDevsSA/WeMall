@@ -43,13 +43,13 @@ func main() {
 	// 2. Prepare GraphQL Mutation
 	query := fmt.Sprintf(`
 		mutation {
-			ecocashCharge(orderId: "test-order-777", msisdn: "%s", amountCents: 100, currency: "USD") {
+			ecocashCharge(orderId: "123e4567-e89b-12d3-a456-426614174000", msisdn: "%s", amountCents: 100, currency: "USD") {
 				transaction {
 					id
 					status
 					amountCents
 					currency
-					msisdn
+					msisdnMasked
 				}
 				statusMsg
 			}
