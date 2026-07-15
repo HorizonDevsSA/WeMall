@@ -384,6 +384,7 @@ input CheckoutInput {
   couponCode:      String
   notes:           String
   currency:        Currency
+  paymentToken:    String
 }
 
 input CreateStoreInput {
@@ -1255,6 +1256,12 @@ extend type Query {
 
   # EcoCash — seller payout record
   ecocashPayout(id: ID!): EcoCashPayout! @hasRole(role: SELLER)
+
+  # Property Service Queries
+  property(id: ID!): Property!
+  listing(id: ID!): Listing!
+  nearbyProperties(lat: Float!, lng: Float!, radiusMeters: Float!, limit: Int!, offset: Int!): [Listing!]!
+  viewportProperties(minLat: Float!, minLng: Float!, maxLat: Float!, maxLng: Float!): [Listing!]!
 }
 
 extend type Mutation {
@@ -1272,5 +1279,250 @@ extend type Mutation {
 
   # EcoCash — finance/admin marks a payout as paid or failed after manual settlement
   ecocashUpdatePayoutStatus(id: ID!, status: EcoCashPayoutStatus!, providerRef: String): EcoCashPayoutResponse! @hasRole(role: ADMIN)
+
+  # Property Service Mutations
+  createProperty(input: CreatePropertyInput!): Property! @hasRole(role: SELLER)
+  createListing(input: CreateListingInput!): Listing! @hasRole(role: SELLER)
+  bookProperty(input: BookPropertyInput!): Booking! @hasRole(role: BUYER)
+  makePropertyOffer(input: MakeOfferInput!): Offer! @hasRole(role: BUYER)
+  acceptPropertyOffer(offerId: ID!): Offer! @hasRole(role: SELLER)
+  scheduleViewing(listingId: ID!, scheduledTime: Time!, notes: String): ViewingAppointment! @hasRole(role: BUYER)
+}
+
+# ── Property Types ────────────────────────────────────────────────────────────
+
+enum PropertyType {
+  APARTMENT
+  HOUSE
+  VILLA
+  CONDO
+  TOWNHOUSE
+  CABIN
+  STUDIO
+  LAND
+}
+
+enum ListingType {
+  RENTAL
+  SALE
+}
+
+enum ListingStatus {
+  DRAFT
+  PENDING_APPROVAL
+  ACTIVE
+  SUSPENDED
+  SOLD
+  RENTED
+  INACTIVE
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  REQUESTED
+  CONFIRMED
+  CANCELLED
+  ACTIVE
+  COMPLETED
+  DISPUTED
+}
+
+enum OfferStatus {
+  SUBMITTED
+  ACCEPTED
+  REJECTED
+  UNDER_ESCROW
+  FUNDS_RELEASED
+  CANCELLED
+  DISPUTED
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+type PropertyImage {
+  id: ID!
+  propertyId: ID!
+  url: String!
+  displayOrder: Int!
+  isCover: Boolean!
+}
+
+type PropertyAmenity {
+  id: ID!
+  propertyId: ID!
+  name: String!
+  category: String!
+}
+
+type Property {
+  id: ID!
+  ownerId: ID!
+  type: PropertyType!
+  title: String!
+  description: String!
+  addressLine1: String!
+  addressLine2: String
+  city: String!
+  stateProvince: String!
+  country: String!
+  postalCode: String
+  latitude: Float!
+  longitude: Float!
+  bedroomCount: Int!
+  bathroomCount: Float!
+  maxGuests: Int!
+  squareMeters: Float!
+  isVerified: Boolean!
+  createdAt: Time!
+  updatedAt: Time!
+  images: [PropertyImage!]!
+  amenities: [PropertyAmenity!]!
+}
+
+type RentalListingMeta {
+  cleaningFee: Float!
+  securityDeposit: Float!
+  minNights: Int!
+  maxNights: Int!
+  checkInTime: String!
+  checkOutTime: String!
+}
+
+type SalesListingMeta {
+  escrowDepositPercent: Float!
+  agentCommissionRate: Float!
+  includesFurniture: Boolean!
+  yearBuilt: Int
+  propertyTaxAnnual: Float
+}
+
+type Listing {
+  id: ID!
+  propertyId: ID!
+  type: ListingType!
+  status: ListingStatus!
+  basePrice: Float!
+  currency: String!
+  isInstantBook: Boolean!
+  rentalMeta: RentalListingMeta
+  salesMeta: SalesListingMeta
+  createdAt: Time!
+  updatedAt: Time!
+  property: Property!
+}
+
+type Booking {
+  id: ID!
+  listingId: ID!
+  tenantId: ID!
+  startDate: String!
+  endDate: String!
+  nightlyPrice: Float!
+  cleaningFee: Float!
+  securityDeposit: Float!
+  totalPrice: Float!
+  status: BookingStatus!
+  paymentIntentId: String
+  createdAt: Time!
+  updatedAt: Time!
+  listing: Listing!
+}
+
+type Offer {
+  id: ID!
+  listingId: ID!
+  buyerId: ID!
+  offerPrice: Float!
+  escrowDepositPaid: Float!
+  status: OfferStatus!
+  conditionsText: String
+  expirationDate: Time!
+  createdAt: Time!
+  updatedAt: Time!
+  listing: Listing!
+}
+
+type ViewingAppointment {
+  id: ID!
+  listingId: ID!
+  clientId: ID!
+  hostId: ID!
+  scheduledTime: Time!
+  status: AppointmentStatus!
+  notes: String
+  createdAt: Time!
+  updatedAt: Time!
+  listing: Listing!
+}
+
+input CreatePropertyInput {
+  type: PropertyType!
+  title: String!
+  description: String!
+  addressLine1: String!
+  addressLine2: String
+  city: String!
+  stateProvince: String!
+  country: String!
+  postalCode: String
+  latitude: Float!
+  longitude: Float!
+  bedroomCount: Int!
+  bathroomCount: Float!
+  maxGuests: Int!
+  squareMeters: Float!
+  imageUrls: [String!]!
+  amenities: [PropertyAmenityInput!]!
+}
+
+input PropertyAmenityInput {
+  name: String!
+  category: String!
+}
+
+input CreateListingInput {
+  propertyId: ID!
+  type: ListingType!
+  basePrice: Float!
+  currency: String!
+  isInstantBook: Boolean!
+  rentalMeta: RentalListingMetaInput
+  salesMeta: SalesListingMetaInput
+}
+
+input RentalListingMetaInput {
+  cleaningFee: Float!
+  securityDeposit: Float!
+  minNights: Int!
+  maxNights: Int!
+  checkInTime: String!
+  checkOutTime: String!
+}
+
+input SalesListingMetaInput {
+  escrowDepositPercent: Float!
+  agentCommissionRate: Float!
+  includesFurniture: Boolean!
+  yearBuilt: Int
+  propertyTaxAnnual: Float
+}
+
+input BookPropertyInput {
+  listingId: ID!
+  startDate: String!
+  endDate: String!
+}
+
+input MakeOfferInput {
+  listingId: ID!
+  offerPrice: Float!
+  conditionsText: String!
+  expirationDate: Time!
 }
 

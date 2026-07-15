@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.5.5
-	github.com/nats-io/nats.go v1.33.1
+	github.com/nats-io/nats.go v1.35.0
 	github.com/rs/zerolog v1.32.0
 	github.com/wemall/gen v0.0.0
 	github.com/wemall/pkg v0.0.0

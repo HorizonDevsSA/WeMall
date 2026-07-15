@@ -62,11 +62,12 @@ func (w *Worker) Start(ctx context.Context) error {
 }
 
 type orderCreatedEvent struct {
-	OrderID     string  `json:"order_id"`
-	OrderNumber string  `json:"order_number"`
-	UserID      string  `json:"user_id"`
-	Total       float64 `json:"total"`
-	Currency    string  `json:"currency"`
+	OrderID      string  `json:"order_id"`
+	OrderNumber  string  `json:"order_number"`
+	UserID       string  `json:"user_id"`
+	Total        float64 `json:"total"`
+	Currency     string  `json:"currency"`
+	PaymentToken string  `json:"payment_token"`
 }
 
 func (w *Worker) handleOrderCreated(msg *nats.Msg) {
@@ -108,6 +109,17 @@ func (w *Worker) handleOrderCreated(msg *nats.Msg) {
 	}
 
 	w.logger.Info().Msgf("automatically initialized pending payment %s for order %s", payment.ID, event.OrderID)
+
+	// If payment token is present, process the payment immediately
+	if event.PaymentToken != "" {
+		w.logger.Info().Msgf("payment token found, processing payment %s automatically...", payment.ID)
+		_, err = w.svc.ProcessPayment(ctx, payment.ID, event.PaymentToken)
+		if err != nil {
+			w.logger.Error().Err(err).Msgf("failed to process payment automatically for payment %s", payment.ID)
+		} else {
+			w.logger.Info().Msgf("successfully processed payment %s automatically", payment.ID)
+		}
+	}
 }
 
 type orderCancelledEvent struct {

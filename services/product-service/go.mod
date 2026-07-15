@@ -7,7 +7,7 @@ require (
 	github.com/gosimple/slug v1.14.0
 	github.com/jackc/pgx/v5 v5.5.5
 	github.com/lib/pq v1.12.3
-	github.com/nats-io/nats.go v1.33.1
+	github.com/nats-io/nats.go v1.35.0
 	google.golang.org/grpc v1.64.0
 	google.golang.org/protobuf v1.34.1
 )

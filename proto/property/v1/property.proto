@@ -1,0 +1,325 @@
+syntax = "proto3";
+package property.v1;
+option go_package = "github.com/wemall/gen/property/v1;propertyv1";
+
+import "google/protobuf/timestamp.proto";
+
+enum PropertyType {
+  PROPERTY_TYPE_UNSPECIFIED = 0;
+  PROPERTY_TYPE_APARTMENT = 1;
+  PROPERTY_TYPE_HOUSE = 2;
+  PROPERTY_TYPE_VILLA = 3;
+  PROPERTY_TYPE_CONDO = 4;
+  PROPERTY_TYPE_TOWNHOUSE = 5;
+  PROPERTY_TYPE_CABIN = 6;
+  PROPERTY_TYPE_STUDIO = 7;
+  PROPERTY_TYPE_LAND = 8;
+}
+
+enum ListingType {
+  LISTING_TYPE_UNSPECIFIED = 0;
+  LISTING_TYPE_RENTAL = 1;
+  LISTING_TYPE_SALE = 2;
+}
+
+enum ListingStatus {
+  LISTING_STATUS_UNSPECIFIED = 0;
+  LISTING_STATUS_DRAFT = 1;
+  LISTING_STATUS_PENDING_APPROVAL = 2;
+  LISTING_STATUS_ACTIVE = 3;
+  LISTING_STATUS_SUSPENDED = 4;
+  LISTING_STATUS_SOLD = 5;
+  LISTING_STATUS_RENTED = 6;
+  LISTING_STATUS_INACTIVE = 7;
+}
+
+enum BookingStatus {
+  BOOKING_STATUS_UNSPECIFIED = 0;
+  BOOKING_STATUS_PENDING_PAYMENT = 1;
+  BOOKING_STATUS_REQUESTED = 2;
+  BOOKING_STATUS_CONFIRMED = 3;
+  BOOKING_STATUS_CANCELLED = 4;
+  BOOKING_STATUS_ACTIVE = 5;
+  BOOKING_STATUS_COMPLETED = 6;
+  BOOKING_STATUS_DISPUTED = 7;
+}
+
+enum OfferStatus {
+  OFFER_STATUS_UNSPECIFIED = 0;
+  OFFER_STATUS_SUBMITTED = 1;
+  OFFER_STATUS_ACCEPTED = 2;
+  OFFER_STATUS_REJECTED = 3;
+  OFFER_STATUS_UNDER_ESCROW = 4;
+  OFFER_STATUS_FUNDS_RELEASED = 5;
+  OFFER_STATUS_CANCELLED = 6;
+  OFFER_STATUS_DISPUTED = 7;
+}
+
+enum AppointmentStatus {
+  APPOINTMENT_STATUS_UNSPECIFIED = 0;
+  APPOINTMENT_STATUS_SCHEDULED = 1;
+  APPOINTMENT_STATUS_CONFIRMED = 2;
+  APPOINTMENT_STATUS_COMPLETED = 3;
+  APPOINTMENT_STATUS_CANCELLED = 4;
+  APPOINTMENT_STATUS_NO_SHOW = 5;
+}
+
+// ── Core Message Types ────────────────────────────────────────────────────────
+
+message PropertyImage {
+  string id = 1;
+  string property_id = 2;
+  string url = 3;
+  int32 display_order = 4;
+  bool is_cover = 5;
+}
+
+message PropertyAmenity {
+  string id = 1;
+  string property_id = 2;
+  string name = 3;
+  string category = 4;
+}
+
+message Property {
+  string id = 1;
+  string owner_id = 2;
+  PropertyType type = 3;
+  string title = 4;
+  string description = 5;
+  string address_line1 = 6;
+  string address_line2 = 7;
+  string city = 8;
+  string state_province = 9;
+  string country = 10;
+  string postal_code = 11;
+  double latitude = 12;
+  double longitude = 13;
+  int32 bedroom_count = 14;
+  double bathroom_count = 15;
+  int32 max_guests = 16;
+  double square_meters = 17;
+  bool is_verified = 18;
+  google.protobuf.Timestamp created_at = 19;
+  google.protobuf.Timestamp updated_at = 20;
+  repeated PropertyImage images = 21;
+  repeated PropertyAmenity amenities = 22;
+}
+
+message RentalListingMeta {
+  double cleaning_fee = 1;
+  double security_deposit = 2;
+  int32 min_nights = 3;
+  int32 max_nights = 4;
+  string check_in_time = 5;  // Format "HH:MM:SS"
+  string check_out_time = 6; // Format "HH:MM:SS"
+}
+
+message SalesListingMeta {
+  double escrow_deposit_percent = 1;
+  double agent_commission_rate = 2;
+  bool includes_furniture = 3;
+  int32 year_built = 4;
+  double property_tax_annual = 5;
+}
+
+message Listing {
+  string id = 1;
+  string property_id = 2;
+  ListingType type = 3;
+  ListingStatus status = 4;
+  double base_price = 5;
+  string currency = 6;
+  bool is_instant_book = 7;
+  RentalListingMeta rental_meta = 8;
+  SalesListingMeta sales_meta = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  Property property = 12;
+}
+
+message Booking {
+  string id = 1;
+  string listing_id = 2;
+  string tenant_id = 3;
+  string start_date = 4; // Format "YYYY-MM-DD"
+  string end_date = 5;   // Format "YYYY-MM-DD"
+  double nightly_price = 6;
+  double cleaning_fee = 7;
+  double security_deposit = 8;
+  double total_price = 9;
+  BookingStatus status = 10;
+  string payment_intent_id = 11;
+  google.protobuf.Timestamp created_at = 12;
+  google.protobuf.Timestamp updated_at = 13;
+  Listing listing = 14;
+}
+
+message Offer {
+  string id = 1;
+  string listing_id = 2;
+  string buyer_id = 3;
+  double offer_price = 4;
+  double escrow_deposit_paid = 5;
+  OfferStatus status = 6;
+  string conditions_text = 7;
+  google.protobuf.Timestamp expiration_date = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+  Listing listing = 11;
+}
+
+message ViewingAppointment {
+  string id = 1;
+  string listing_id = 2;
+  string client_id = 3;
+  string host_id = 4;
+  google.protobuf.Timestamp scheduled_time = 5;
+  AppointmentStatus status = 6;
+  string notes = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+  Listing listing = 10;
+}
+
+// ── Service Requests & Responses ──────────────────────────────────────────────
+
+message CreatePropertyRequest {
+  string owner_id = 1;
+  PropertyType type = 2;
+  string title = 3;
+  string description = 4;
+  string address_line1 = 5;
+  string address_line2 = 6;
+  string city = 7;
+  string state_province = 8;
+  string country = 9;
+  string postal_code = 10;
+  double latitude = 11;
+  double longitude = 12;
+  int32 bedroom_count = 13;
+  double bathroom_count = 14;
+  int32 max_guests = 15;
+  double square_meters = 16;
+  repeated string image_urls = 17;
+  repeated PropertyAmenityInput amenities = 18;
+}
+
+message PropertyAmenityInput {
+  string name = 1;
+  string category = 2;
+}
+
+message CreatePropertyResponse {
+  Property property = 1;
+}
+
+message GetPropertyRequest {
+  string id = 1;
+}
+
+message GetPropertyResponse {
+  Property property = 1;
+}
+
+message CreateListingRequest {
+  string property_id = 1;
+  ListingType type = 2;
+  double base_price = 3;
+  string currency = 4;
+  bool is_instant_book = 5;
+  RentalListingMeta rental_meta = 6;
+  SalesListingMeta sales_meta = 7;
+}
+
+message CreateListingResponse {
+  Listing listing = 1;
+}
+
+message GetListingRequest {
+  string id = 1;
+}
+
+message GetListingResponse {
+  Listing listing = 2;
+}
+
+message SearchNearbyListingsRequest {
+  double latitude = 1;
+  double longitude = 2;
+  double radius_meters = 3;
+  int32 limit = 4;
+  int32 offset = 5;
+}
+
+message SearchNearbyListingsResponse {
+  repeated Listing listings = 1;
+}
+
+message GetListingsInViewportRequest {
+  double min_latitude = 1;
+  double min_longitude = 2;
+  double max_latitude = 3;
+  double max_longitude = 4;
+}
+
+message GetListingsInViewportResponse {
+  repeated Listing listings = 1;
+}
+
+message CreateBookingRequest {
+  string listing_id = 1;
+  string tenant_id = 2;
+  string start_date = 3;
+  string end_date = 4;
+}
+
+message CreateBookingResponse {
+  Booking booking = 1;
+}
+
+message CreateOfferRequest {
+  string listing_id = 1;
+  string buyer_id = 2;
+  double offer_price = 3;
+  string conditions_text = 4;
+  google.protobuf.Timestamp expiration_date = 5;
+}
+
+message CreateOfferResponse {
+  Offer offer = 1;
+}
+
+message AcceptOfferRequest {
+  string id = 1;
+  string owner_id = 2;
+}
+
+message AcceptOfferResponse {
+  Offer offer = 1;
+}
+
+message ScheduleViewingRequest {
+  string listing_id = 1;
+  string client_id = 2;
+  string host_id = 3;
+  google.protobuf.Timestamp scheduled_time = 4;
+  string notes = 5;
+}
+
+message ScheduleViewingResponse {
+  ViewingAppointment appointment = 1;
+}
+
+service PropertyService {
+  rpc CreateProperty(CreatePropertyRequest) returns (CreatePropertyResponse);
+  rpc GetProperty(GetPropertyRequest) returns (GetPropertyResponse);
+  rpc CreateListing(CreateListingRequest) returns (CreateListingResponse);
+  rpc GetListing(GetListingRequest) returns (GetListingResponse);
+  rpc SearchNearbyListings(SearchNearbyListingsRequest) returns (SearchNearbyListingsResponse);
+  rpc GetListingsInViewport(GetListingsInViewportRequest) returns (GetListingsInViewportResponse);
+  rpc CreateBooking(CreateBookingRequest) returns (CreateBookingResponse);
+  rpc CreateOffer(CreateOfferRequest) returns (CreateOfferResponse);
+  rpc AcceptOffer(AcceptOfferRequest) returns (AcceptOfferResponse);
+  rpc ScheduleViewing(ScheduleViewingRequest) returns (ScheduleViewingResponse);
+}

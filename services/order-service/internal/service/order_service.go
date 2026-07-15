@@ -303,12 +303,13 @@ func (s *OrderService) Checkout(ctx context.Context, userID uuid.UUID, input *or
 	// 8. Publish NATS Event
 	if s.nc != nil {
 		event := map[string]interface{}{
-			"order_id":     orderID.String(),
-			"order_number": orderNumber,
-			"user_id":      userID.String(),
-			"total":        total,
-			"currency":     input.Currency,
-			"product_ids":  productIDs,
+			"order_id":      orderID.String(),
+			"order_number":  orderNumber,
+			"user_id":       userID.String(),
+			"total":         total,
+			"currency":      input.Currency,
+			"product_ids":   productIDs,
+			"payment_token": input.PaymentToken,
 		}
 		eventBytes, _ := json.Marshal(event)
 		_ = s.nc.Publish("wemall.order.created", eventBytes)

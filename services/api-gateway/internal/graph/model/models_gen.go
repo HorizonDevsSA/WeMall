@@ -34,6 +34,29 @@ type AppendReviewInput struct {
 	MediaUrls []string `json:"mediaUrls,omitempty"`
 }
 
+type BookPropertyInput struct {
+	ListingID string `json:"listingId"`
+	StartDate string `json:"startDate"`
+	EndDate   string `json:"endDate"`
+}
+
+type Booking struct {
+	ID              string        `json:"id"`
+	ListingID       string        `json:"listingId"`
+	TenantID        string        `json:"tenantId"`
+	StartDate       string        `json:"startDate"`
+	EndDate         string        `json:"endDate"`
+	NightlyPrice    float64       `json:"nightlyPrice"`
+	CleaningFee     float64       `json:"cleaningFee"`
+	SecurityDeposit float64       `json:"securityDeposit"`
+	TotalPrice      float64       `json:"totalPrice"`
+	Status          BookingStatus `json:"status"`
+	PaymentIntentID *string       `json:"paymentIntentId,omitempty"`
+	CreatedAt       time.Time     `json:"createdAt"`
+	UpdatedAt       time.Time     `json:"updatedAt"`
+	Listing         *Listing      `json:"listing"`
+}
+
 type ChatMessage struct {
 	ID          string          `json:"id"`
 	ThreadID    string          `json:"threadId"`
@@ -112,6 +135,36 @@ type CreateFlashSaleInput struct {
 	Name      string    `json:"name"`
 	StartTime time.Time `json:"startTime"`
 	EndTime   time.Time `json:"endTime"`
+}
+
+type CreateListingInput struct {
+	PropertyID    string                  `json:"propertyId"`
+	Type          ListingType             `json:"type"`
+	BasePrice     float64                 `json:"basePrice"`
+	Currency      string                  `json:"currency"`
+	IsInstantBook bool                    `json:"isInstantBook"`
+	RentalMeta    *RentalListingMetaInput `json:"rentalMeta,omitempty"`
+	SalesMeta     *SalesListingMetaInput  `json:"salesMeta,omitempty"`
+}
+
+type CreatePropertyInput struct {
+	Type          PropertyType            `json:"type"`
+	Title         string                  `json:"title"`
+	Description   string                  `json:"description"`
+	AddressLine1  string                  `json:"addressLine1"`
+	AddressLine2  *string                 `json:"addressLine2,omitempty"`
+	City          string                  `json:"city"`
+	StateProvince string                  `json:"stateProvince"`
+	Country       string                  `json:"country"`
+	PostalCode    *string                 `json:"postalCode,omitempty"`
+	Latitude      float64                 `json:"latitude"`
+	Longitude     float64                 `json:"longitude"`
+	BedroomCount  int                     `json:"bedroomCount"`
+	BathroomCount float64                 `json:"bathroomCount"`
+	MaxGuests     int                     `json:"maxGuests"`
+	SquareMeters  float64                 `json:"squareMeters"`
+	ImageUrls     []string                `json:"imageUrls"`
+	Amenities     []*PropertyAmenityInput `json:"amenities"`
 }
 
 type CreateReviewInput struct {
@@ -275,6 +328,21 @@ type InitiatePaymentResponse struct {
 	ClientSecret *string  `json:"clientSecret,omitempty"`
 }
 
+type Listing struct {
+	ID            string             `json:"id"`
+	PropertyID    string             `json:"propertyId"`
+	Type          ListingType        `json:"type"`
+	Status        ListingStatus      `json:"status"`
+	BasePrice     float64            `json:"basePrice"`
+	Currency      string             `json:"currency"`
+	IsInstantBook bool               `json:"isInstantBook"`
+	RentalMeta    *RentalListingMeta `json:"rentalMeta,omitempty"`
+	SalesMeta     *SalesListingMeta  `json:"salesMeta,omitempty"`
+	CreatedAt     time.Time          `json:"createdAt"`
+	UpdatedAt     time.Time          `json:"updatedAt"`
+	Property      *Property          `json:"property"`
+}
+
 type Location struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
@@ -283,6 +351,13 @@ type Location struct {
 type LocationInput struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
+}
+
+type MakeOfferInput struct {
+	ListingID      string    `json:"listingId"`
+	OfferPrice     float64   `json:"offerPrice"`
+	ConditionsText string    `json:"conditionsText"`
+	ExpirationDate time.Time `json:"expirationDate"`
 }
 
 type Mutation struct {
@@ -302,6 +377,20 @@ type NotificationPreference struct {
 	Category     NotificationCategory `json:"category"`
 	EmailEnabled bool                 `json:"emailEnabled"`
 	PushEnabled  bool                 `json:"pushEnabled"`
+}
+
+type Offer struct {
+	ID                string      `json:"id"`
+	ListingID         string      `json:"listingId"`
+	BuyerID           string      `json:"buyerId"`
+	OfferPrice        float64     `json:"offerPrice"`
+	EscrowDepositPaid float64     `json:"escrowDepositPaid"`
+	Status            OfferStatus `json:"status"`
+	ConditionsText    *string     `json:"conditionsText,omitempty"`
+	ExpirationDate    time.Time   `json:"expirationDate"`
+	CreatedAt         time.Time   `json:"createdAt"`
+	UpdatedAt         time.Time   `json:"updatedAt"`
+	Listing           *Listing    `json:"listing"`
 }
 
 type Payment struct {
@@ -386,7 +475,70 @@ type ProductWithDistance struct {
 	Distance float64  `json:"distance"`
 }
 
+type Property struct {
+	ID            string             `json:"id"`
+	OwnerID       string             `json:"ownerId"`
+	Type          PropertyType       `json:"type"`
+	Title         string             `json:"title"`
+	Description   string             `json:"description"`
+	AddressLine1  string             `json:"addressLine1"`
+	AddressLine2  *string            `json:"addressLine2,omitempty"`
+	City          string             `json:"city"`
+	StateProvince string             `json:"stateProvince"`
+	Country       string             `json:"country"`
+	PostalCode    *string            `json:"postalCode,omitempty"`
+	Latitude      float64            `json:"latitude"`
+	Longitude     float64            `json:"longitude"`
+	BedroomCount  int                `json:"bedroomCount"`
+	BathroomCount float64            `json:"bathroomCount"`
+	MaxGuests     int                `json:"maxGuests"`
+	SquareMeters  float64            `json:"squareMeters"`
+	IsVerified    bool               `json:"isVerified"`
+	CreatedAt     time.Time          `json:"createdAt"`
+	UpdatedAt     time.Time          `json:"updatedAt"`
+	Images        []*PropertyImage   `json:"images"`
+	Amenities     []*PropertyAmenity `json:"amenities"`
+}
+
+type PropertyAmenity struct {
+	ID         string `json:"id"`
+	PropertyID string `json:"propertyId"`
+	Name       string `json:"name"`
+	Category   string `json:"category"`
+}
+
+type PropertyAmenityInput struct {
+	Name     string `json:"name"`
+	Category string `json:"category"`
+}
+
+type PropertyImage struct {
+	ID           string `json:"id"`
+	PropertyID   string `json:"propertyId"`
+	URL          string `json:"url"`
+	DisplayOrder int    `json:"displayOrder"`
+	IsCover      bool   `json:"isCover"`
+}
+
 type Query struct {
+}
+
+type RentalListingMeta struct {
+	CleaningFee     float64 `json:"cleaningFee"`
+	SecurityDeposit float64 `json:"securityDeposit"`
+	MinNights       int     `json:"minNights"`
+	MaxNights       int     `json:"maxNights"`
+	CheckInTime     string  `json:"checkInTime"`
+	CheckOutTime    string  `json:"checkOutTime"`
+}
+
+type RentalListingMetaInput struct {
+	CleaningFee     float64 `json:"cleaningFee"`
+	SecurityDeposit float64 `json:"securityDeposit"`
+	MinNights       int     `json:"minNights"`
+	MaxNights       int     `json:"maxNights"`
+	CheckInTime     string  `json:"checkInTime"`
+	CheckOutTime    string  `json:"checkOutTime"`
 }
 
 type Review struct {
@@ -415,6 +567,22 @@ type ReviewMedia struct {
 	ID        string `json:"id"`
 	MediaURL  string `json:"mediaUrl"`
 	MediaType string `json:"mediaType"`
+}
+
+type SalesListingMeta struct {
+	EscrowDepositPercent float64  `json:"escrowDepositPercent"`
+	AgentCommissionRate  float64  `json:"agentCommissionRate"`
+	IncludesFurniture    bool     `json:"includesFurniture"`
+	YearBuilt            *int     `json:"yearBuilt,omitempty"`
+	PropertyTaxAnnual    *float64 `json:"propertyTaxAnnual,omitempty"`
+}
+
+type SalesListingMetaInput struct {
+	EscrowDepositPercent float64  `json:"escrowDepositPercent"`
+	AgentCommissionRate  float64  `json:"agentCommissionRate"`
+	IncludesFurniture    bool     `json:"includesFurniture"`
+	YearBuilt            *int     `json:"yearBuilt,omitempty"`
+	PropertyTaxAnnual    *float64 `json:"propertyTaxAnnual,omitempty"`
 }
 
 type SellerBalance struct {
@@ -504,6 +672,117 @@ type UpdateReviewInput struct {
 	RatingService     int     `json:"ratingService"`
 	RatingDelivery    int     `json:"ratingDelivery"`
 	Content           *string `json:"content,omitempty"`
+}
+
+type ViewingAppointment struct {
+	ID            string            `json:"id"`
+	ListingID     string            `json:"listingId"`
+	ClientID      string            `json:"clientId"`
+	HostID        string            `json:"hostId"`
+	ScheduledTime time.Time         `json:"scheduledTime"`
+	Status        AppointmentStatus `json:"status"`
+	Notes         *string           `json:"notes,omitempty"`
+	CreatedAt     time.Time         `json:"createdAt"`
+	UpdatedAt     time.Time         `json:"updatedAt"`
+	Listing       *Listing          `json:"listing"`
+}
+
+type AppointmentStatus string
+
+const (
+	AppointmentStatusScheduled AppointmentStatus = "SCHEDULED"
+	AppointmentStatusConfirmed AppointmentStatus = "CONFIRMED"
+	AppointmentStatusCompleted AppointmentStatus = "COMPLETED"
+	AppointmentStatusCancelled AppointmentStatus = "CANCELLED"
+	AppointmentStatusNoShow    AppointmentStatus = "NO_SHOW"
+)
+
+var AllAppointmentStatus = []AppointmentStatus{
+	AppointmentStatusScheduled,
+	AppointmentStatusConfirmed,
+	AppointmentStatusCompleted,
+	AppointmentStatusCancelled,
+	AppointmentStatusNoShow,
+}
+
+func (e AppointmentStatus) IsValid() bool {
+	switch e {
+	case AppointmentStatusScheduled, AppointmentStatusConfirmed, AppointmentStatusCompleted, AppointmentStatusCancelled, AppointmentStatusNoShow:
+		return true
+	}
+	return false
+}
+
+func (e AppointmentStatus) String() string {
+	return string(e)
+}
+
+func (e *AppointmentStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AppointmentStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AppointmentStatus", str)
+	}
+	return nil
+}
+
+func (e AppointmentStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type BookingStatus string
+
+const (
+	BookingStatusPendingPayment BookingStatus = "PENDING_PAYMENT"
+	BookingStatusRequested      BookingStatus = "REQUESTED"
+	BookingStatusConfirmed      BookingStatus = "CONFIRMED"
+	BookingStatusCancelled      BookingStatus = "CANCELLED"
+	BookingStatusActive         BookingStatus = "ACTIVE"
+	BookingStatusCompleted      BookingStatus = "COMPLETED"
+	BookingStatusDisputed       BookingStatus = "DISPUTED"
+)
+
+var AllBookingStatus = []BookingStatus{
+	BookingStatusPendingPayment,
+	BookingStatusRequested,
+	BookingStatusConfirmed,
+	BookingStatusCancelled,
+	BookingStatusActive,
+	BookingStatusCompleted,
+	BookingStatusDisputed,
+}
+
+func (e BookingStatus) IsValid() bool {
+	switch e {
+	case BookingStatusPendingPayment, BookingStatusRequested, BookingStatusConfirmed, BookingStatusCancelled, BookingStatusActive, BookingStatusCompleted, BookingStatusDisputed:
+		return true
+	}
+	return false
+}
+
+func (e BookingStatus) String() string {
+	return string(e)
+}
+
+func (e *BookingStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = BookingStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid BookingStatus", str)
+	}
+	return nil
+}
+
+func (e BookingStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type ChatMessageType string
@@ -925,6 +1204,98 @@ func (e FlashSaleStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type ListingStatus string
+
+const (
+	ListingStatusDraft           ListingStatus = "DRAFT"
+	ListingStatusPendingApproval ListingStatus = "PENDING_APPROVAL"
+	ListingStatusActive          ListingStatus = "ACTIVE"
+	ListingStatusSuspended       ListingStatus = "SUSPENDED"
+	ListingStatusSold            ListingStatus = "SOLD"
+	ListingStatusRented          ListingStatus = "RENTED"
+	ListingStatusInactive        ListingStatus = "INACTIVE"
+)
+
+var AllListingStatus = []ListingStatus{
+	ListingStatusDraft,
+	ListingStatusPendingApproval,
+	ListingStatusActive,
+	ListingStatusSuspended,
+	ListingStatusSold,
+	ListingStatusRented,
+	ListingStatusInactive,
+}
+
+func (e ListingStatus) IsValid() bool {
+	switch e {
+	case ListingStatusDraft, ListingStatusPendingApproval, ListingStatusActive, ListingStatusSuspended, ListingStatusSold, ListingStatusRented, ListingStatusInactive:
+		return true
+	}
+	return false
+}
+
+func (e ListingStatus) String() string {
+	return string(e)
+}
+
+func (e *ListingStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ListingStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ListingStatus", str)
+	}
+	return nil
+}
+
+func (e ListingStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ListingType string
+
+const (
+	ListingTypeRental ListingType = "RENTAL"
+	ListingTypeSale   ListingType = "SALE"
+)
+
+var AllListingType = []ListingType{
+	ListingTypeRental,
+	ListingTypeSale,
+}
+
+func (e ListingType) IsValid() bool {
+	switch e {
+	case ListingTypeRental, ListingTypeSale:
+		return true
+	}
+	return false
+}
+
+func (e ListingType) String() string {
+	return string(e)
+}
+
+func (e *ListingType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ListingType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ListingType", str)
+	}
+	return nil
+}
+
+func (e ListingType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type NotificationCategory string
 
 const (
@@ -969,6 +1340,57 @@ func (e *NotificationCategory) UnmarshalGQL(v interface{}) error {
 }
 
 func (e NotificationCategory) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type OfferStatus string
+
+const (
+	OfferStatusSubmitted     OfferStatus = "SUBMITTED"
+	OfferStatusAccepted      OfferStatus = "ACCEPTED"
+	OfferStatusRejected      OfferStatus = "REJECTED"
+	OfferStatusUnderEscrow   OfferStatus = "UNDER_ESCROW"
+	OfferStatusFundsReleased OfferStatus = "FUNDS_RELEASED"
+	OfferStatusCancelled     OfferStatus = "CANCELLED"
+	OfferStatusDisputed      OfferStatus = "DISPUTED"
+)
+
+var AllOfferStatus = []OfferStatus{
+	OfferStatusSubmitted,
+	OfferStatusAccepted,
+	OfferStatusRejected,
+	OfferStatusUnderEscrow,
+	OfferStatusFundsReleased,
+	OfferStatusCancelled,
+	OfferStatusDisputed,
+}
+
+func (e OfferStatus) IsValid() bool {
+	switch e {
+	case OfferStatusSubmitted, OfferStatusAccepted, OfferStatusRejected, OfferStatusUnderEscrow, OfferStatusFundsReleased, OfferStatusCancelled, OfferStatusDisputed:
+		return true
+	}
+	return false
+}
+
+func (e OfferStatus) String() string {
+	return string(e)
+}
+
+func (e *OfferStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OfferStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid OfferStatus", str)
+	}
+	return nil
+}
+
+func (e OfferStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1100,6 +1522,59 @@ func (e *PayoutStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e PayoutStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type PropertyType string
+
+const (
+	PropertyTypeApartment PropertyType = "APARTMENT"
+	PropertyTypeHouse     PropertyType = "HOUSE"
+	PropertyTypeVilla     PropertyType = "VILLA"
+	PropertyTypeCondo     PropertyType = "CONDO"
+	PropertyTypeTownhouse PropertyType = "TOWNHOUSE"
+	PropertyTypeCabin     PropertyType = "CABIN"
+	PropertyTypeStudio    PropertyType = "STUDIO"
+	PropertyTypeLand      PropertyType = "LAND"
+)
+
+var AllPropertyType = []PropertyType{
+	PropertyTypeApartment,
+	PropertyTypeHouse,
+	PropertyTypeVilla,
+	PropertyTypeCondo,
+	PropertyTypeTownhouse,
+	PropertyTypeCabin,
+	PropertyTypeStudio,
+	PropertyTypeLand,
+}
+
+func (e PropertyType) IsValid() bool {
+	switch e {
+	case PropertyTypeApartment, PropertyTypeHouse, PropertyTypeVilla, PropertyTypeCondo, PropertyTypeTownhouse, PropertyTypeCabin, PropertyTypeStudio, PropertyTypeLand:
+		return true
+	}
+	return false
+}
+
+func (e PropertyType) String() string {
+	return string(e)
+}
+
+func (e *PropertyType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PropertyType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid PropertyType", str)
+	}
+	return nil
+}
+
+func (e PropertyType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

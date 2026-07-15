@@ -976,6 +976,7 @@ type CheckoutInput struct {
 	CouponCode      string                 `protobuf:"bytes,2,opt,name=coupon_code,json=couponCode,proto3" json:"coupon_code,omitempty"`
 	Notes           string                 `protobuf:"bytes,3,opt,name=notes,proto3" json:"notes,omitempty"`
 	Currency        string                 `protobuf:"bytes,4,opt,name=currency,proto3" json:"currency,omitempty"` // "USD" | "ZWG"
+	PaymentToken    string                 `protobuf:"bytes,5,opt,name=payment_token,json=paymentToken,proto3" json:"payment_token,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1034,6 +1035,13 @@ func (x *CheckoutInput) GetNotes() string {
 func (x *CheckoutInput) GetCurrency() string {
 	if x != nil {
 		return x.Currency
+	}
+	return ""
+}
+
+func (x *CheckoutInput) GetPaymentToken() string {
+	if x != nil {
+		return x.PaymentToken
 	}
 	return ""
 }
@@ -1523,13 +1531,14 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x17\n" +
 	"\aitem_id\x18\x02 \x01(\tR\x06itemId\"+\n" +
 	"\x10ClearCartRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"\xa6\x01\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"\xcb\x01\n" +
 	"\rCheckoutInput\x12B\n" +
 	"\x10shipping_address\x18\x01 \x01(\v2\x17.google.protobuf.StructR\x0fshippingAddress\x12\x1f\n" +
 	"\vcoupon_code\x18\x02 \x01(\tR\n" +
 	"couponCode\x12\x14\n" +
 	"\x05notes\x18\x03 \x01(\tR\x05notes\x12\x1a\n" +
-	"\bcurrency\x18\x04 \x01(\tR\bcurrency\"Y\n" +
+	"\bcurrency\x18\x04 \x01(\tR\bcurrency\x12#\n" +
+	"\rpayment_token\x18\x05 \x01(\tR\fpaymentToken\"Y\n" +
 	"\x0fCheckoutRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12-\n" +
 	"\x05input\x18\x02 \x01(\v2\x17.order.v1.CheckoutInputR\x05input\":\n" +

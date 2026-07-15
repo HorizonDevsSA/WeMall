@@ -42,6 +42,7 @@ func main() {
 		cfg.DeliveryServiceAddr,
 		cfg.ChatServiceAddr,
 		cfg.EcocashServiceAddr,
+		cfg.PropertyServiceAddr,
 	)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to connect to downstream services")

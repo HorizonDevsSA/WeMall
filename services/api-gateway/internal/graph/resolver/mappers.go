@@ -15,6 +15,7 @@ import (
 	paymentv1 "github.com/wemall/gen/payment/v1"
 	promotionv1 "github.com/wemall/gen/promotion/v1"
 	deliveryv1 "github.com/wemall/gen/delivery/v1"
+	propertyv1 "github.com/wemall/gen/property/v1"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -1228,6 +1229,344 @@ func mapSellerMonetizationConfig(c *sellerv1.SellerMonetizationConfig) *model.Se
 	return &model.SellerMonetizationConfig{
 		CommissionRate:  c.CommissionRate,
 		AdCreditBalance: c.AdCreditBalance,
+	}
+}
+
+// ── Property Mappers ─────────────────────────────────────────────────────────
+
+func mapPropertyType(t propertyv1.PropertyType) model.PropertyType {
+	switch t {
+	case propertyv1.PropertyType_PROPERTY_TYPE_APARTMENT:
+		return model.PropertyTypeApartment
+	case propertyv1.PropertyType_PROPERTY_TYPE_HOUSE:
+		return model.PropertyTypeHouse
+	case propertyv1.PropertyType_PROPERTY_TYPE_VILLA:
+		return model.PropertyTypeVilla
+	case propertyv1.PropertyType_PROPERTY_TYPE_CONDO:
+		return model.PropertyTypeCondo
+	case propertyv1.PropertyType_PROPERTY_TYPE_TOWNHOUSE:
+		return model.PropertyTypeTownhouse
+	case propertyv1.PropertyType_PROPERTY_TYPE_CABIN:
+		return model.PropertyTypeCabin
+	case propertyv1.PropertyType_PROPERTY_TYPE_STUDIO:
+		return model.PropertyTypeStudio
+	case propertyv1.PropertyType_PROPERTY_TYPE_LAND:
+		return model.PropertyTypeLand
+	default:
+		return model.PropertyTypeHouse
+	}
+}
+
+func mapListingType(t propertyv1.ListingType) model.ListingType {
+	switch t {
+	case propertyv1.ListingType_LISTING_TYPE_RENTAL:
+		return model.ListingTypeRental
+	case propertyv1.ListingType_LISTING_TYPE_SALE:
+		return model.ListingTypeSale
+	default:
+		return model.ListingTypeRental
+	}
+}
+
+func mapListingStatus(s propertyv1.ListingStatus) model.ListingStatus {
+	switch s {
+	case propertyv1.ListingStatus_LISTING_STATUS_DRAFT:
+		return model.ListingStatusDraft
+	case propertyv1.ListingStatus_LISTING_STATUS_PENDING_APPROVAL:
+		return model.ListingStatusPendingApproval
+	case propertyv1.ListingStatus_LISTING_STATUS_ACTIVE:
+		return model.ListingStatusActive
+	case propertyv1.ListingStatus_LISTING_STATUS_SUSPENDED:
+		return model.ListingStatusSuspended
+	case propertyv1.ListingStatus_LISTING_STATUS_SOLD:
+		return model.ListingStatusSold
+	case propertyv1.ListingStatus_LISTING_STATUS_RENTED:
+		return model.ListingStatusRented
+	case propertyv1.ListingStatus_LISTING_STATUS_INACTIVE:
+		return model.ListingStatusInactive
+	default:
+		return model.ListingStatusDraft
+	}
+}
+
+func mapBookingStatus(s propertyv1.BookingStatus) model.BookingStatus {
+	switch s {
+	case propertyv1.BookingStatus_BOOKING_STATUS_PENDING_PAYMENT:
+		return model.BookingStatusPendingPayment
+	case propertyv1.BookingStatus_BOOKING_STATUS_REQUESTED:
+		return model.BookingStatusRequested
+	case propertyv1.BookingStatus_BOOKING_STATUS_CONFIRMED:
+		return model.BookingStatusConfirmed
+	case propertyv1.BookingStatus_BOOKING_STATUS_CANCELLED:
+		return model.BookingStatusCancelled
+	case propertyv1.BookingStatus_BOOKING_STATUS_ACTIVE:
+		return model.BookingStatusActive
+	case propertyv1.BookingStatus_BOOKING_STATUS_COMPLETED:
+		return model.BookingStatusCompleted
+	case propertyv1.BookingStatus_BOOKING_STATUS_DISPUTED:
+		return model.BookingStatusDisputed
+	default:
+		return model.BookingStatusRequested
+	}
+}
+
+func mapOfferStatus(s propertyv1.OfferStatus) model.OfferStatus {
+	switch s {
+	case propertyv1.OfferStatus_OFFER_STATUS_SUBMITTED:
+		return model.OfferStatusSubmitted
+	case propertyv1.OfferStatus_OFFER_STATUS_ACCEPTED:
+		return model.OfferStatusAccepted
+	case propertyv1.OfferStatus_OFFER_STATUS_REJECTED:
+		return model.OfferStatusRejected
+	case propertyv1.OfferStatus_OFFER_STATUS_UNDER_ESCROW:
+		return model.OfferStatusUnderEscrow
+	case propertyv1.OfferStatus_OFFER_STATUS_FUNDS_RELEASED:
+		return model.OfferStatusFundsReleased
+	case propertyv1.OfferStatus_OFFER_STATUS_CANCELLED:
+		return model.OfferStatusCancelled
+	case propertyv1.OfferStatus_OFFER_STATUS_DISPUTED:
+		return model.OfferStatusDisputed
+	default:
+		return model.OfferStatusSubmitted
+	}
+}
+
+func mapAppointmentStatus(s propertyv1.AppointmentStatus) model.AppointmentStatus {
+	switch s {
+	case propertyv1.AppointmentStatus_APPOINTMENT_STATUS_SCHEDULED:
+		return model.AppointmentStatusScheduled
+	case propertyv1.AppointmentStatus_APPOINTMENT_STATUS_CONFIRMED:
+		return model.AppointmentStatusConfirmed
+	case propertyv1.AppointmentStatus_APPOINTMENT_STATUS_COMPLETED:
+		return model.AppointmentStatusCompleted
+	case propertyv1.AppointmentStatus_APPOINTMENT_STATUS_CANCELLED:
+		return model.AppointmentStatusCancelled
+	case propertyv1.AppointmentStatus_APPOINTMENT_STATUS_NO_SHOW:
+		return model.AppointmentStatusNoShow
+	default:
+		return model.AppointmentStatusScheduled
+	}
+}
+
+func mapPropertyImage(img *propertyv1.PropertyImage) *model.PropertyImage {
+	if img == nil {
+		return nil
+	}
+	return &model.PropertyImage{
+		ID:           img.Id,
+		PropertyID:   img.PropertyId,
+		URL:          img.Url,
+		DisplayOrder: int(img.DisplayOrder),
+		IsCover:      img.IsCover,
+	}
+}
+
+func mapPropertyAmenity(am *propertyv1.PropertyAmenity) *model.PropertyAmenity {
+	if am == nil {
+		return nil
+	}
+	return &model.PropertyAmenity{
+		ID:         am.Id,
+		PropertyID: am.PropertyId,
+		Name:       am.Name,
+		Category:   am.Category,
+	}
+}
+
+func mapProperty(p *propertyv1.Property) *model.Property {
+	if p == nil {
+		return nil
+	}
+	var createdAt, updatedAt time.Time
+	if p.CreatedAt != nil {
+		createdAt = p.CreatedAt.AsTime()
+	}
+	if p.UpdatedAt != nil {
+		updatedAt = p.UpdatedAt.AsTime()
+	}
+
+	images := make([]*model.PropertyImage, len(p.Images))
+	for i, img := range p.Images {
+		images[i] = mapPropertyImage(img)
+	}
+
+	amenities := make([]*model.PropertyAmenity, len(p.Amenities))
+	for i, am := range p.Amenities {
+		amenities[i] = mapPropertyAmenity(am)
+	}
+
+	return &model.Property{
+		ID:            p.Id,
+		OwnerID:       p.OwnerId,
+		Type:          mapPropertyType(p.Type),
+		Title:         p.Title,
+		Description:   p.Description,
+		AddressLine1:  p.AddressLine1,
+		AddressLine2:  strPtr(p.AddressLine2),
+		City:          p.City,
+		StateProvince: p.StateProvince,
+		Country:       p.Country,
+		PostalCode:    strPtr(p.PostalCode),
+		Latitude:      float64(p.Latitude),
+		Longitude:     float64(p.Longitude),
+		BedroomCount:  int(p.BedroomCount),
+		BathroomCount: float64(p.BathroomCount),
+		MaxGuests:     int(p.MaxGuests),
+		SquareMeters:  float64(p.SquareMeters),
+		IsVerified:    p.IsVerified,
+		CreatedAt:     createdAt,
+		UpdatedAt:     updatedAt,
+		Images:        images,
+		Amenities:     amenities,
+	}
+}
+
+func mapRentalListingMeta(m *propertyv1.RentalListingMeta) *model.RentalListingMeta {
+	if m == nil {
+		return nil
+	}
+	return &model.RentalListingMeta{
+		CleaningFee:     float64(m.CleaningFee),
+		SecurityDeposit: float64(m.SecurityDeposit),
+		MinNights:       int(m.MinNights),
+		MaxNights:       int(m.MaxNights),
+		CheckInTime:     m.CheckInTime,
+		CheckOutTime:    m.CheckOutTime,
+	}
+}
+
+func mapSalesListingMeta(m *propertyv1.SalesListingMeta) *model.SalesListingMeta {
+	if m == nil {
+		return nil
+	}
+	var yearBuilt *int
+	if m.YearBuilt != 0 {
+		val := int(m.YearBuilt)
+		yearBuilt = &val
+	}
+	var propertyTaxAnnual *float64
+	if m.PropertyTaxAnnual != 0 {
+		val := float64(m.PropertyTaxAnnual)
+		propertyTaxAnnual = &val
+	}
+
+	return &model.SalesListingMeta{
+		EscrowDepositPercent: float64(m.EscrowDepositPercent),
+		AgentCommissionRate:  float64(m.AgentCommissionRate),
+		IncludesFurniture:    m.IncludesFurniture,
+		YearBuilt:            yearBuilt,
+		PropertyTaxAnnual:    propertyTaxAnnual,
+	}
+}
+
+func mapListing(l *propertyv1.Listing) *model.Listing {
+	if l == nil {
+		return nil
+	}
+	var createdAt, updatedAt time.Time
+	if l.CreatedAt != nil {
+		createdAt = l.CreatedAt.AsTime()
+	}
+	if l.UpdatedAt != nil {
+		updatedAt = l.UpdatedAt.AsTime()
+	}
+
+	return &model.Listing{
+		ID:            l.Id,
+		PropertyID:    l.PropertyId,
+		Type:          mapListingType(l.Type),
+		Status:        mapListingStatus(l.Status),
+		BasePrice:     float64(l.BasePrice),
+		Currency:      l.Currency,
+		IsInstantBook: l.IsInstantBook,
+		RentalMeta:    mapRentalListingMeta(l.RentalMeta),
+		SalesMeta:     mapSalesListingMeta(l.SalesMeta),
+		CreatedAt:     createdAt,
+		UpdatedAt:     updatedAt,
+		Property:      mapProperty(l.Property),
+	}
+}
+
+func mapBooking(b *propertyv1.Booking) *model.Booking {
+	if b == nil {
+		return nil
+	}
+	var createdAt, updatedAt time.Time
+	if b.CreatedAt != nil {
+		createdAt = b.CreatedAt.AsTime()
+	}
+	if b.UpdatedAt != nil {
+		updatedAt = b.UpdatedAt.AsTime()
+	}
+
+	return &model.Booking{
+		ID:              b.Id,
+		ListingID:       b.ListingId,
+		TenantID:        b.TenantId,
+		StartDate:       b.StartDate,
+		EndDate:         b.EndDate,
+		NightlyPrice:    float64(b.NightlyPrice),
+		CleaningFee:     float64(b.CleaningFee),
+		SecurityDeposit: float64(b.SecurityDeposit),
+		TotalPrice:      float64(b.TotalPrice),
+		Status:          mapBookingStatus(b.Status),
+		PaymentIntentID: strPtr(b.PaymentIntentId),
+		CreatedAt:       createdAt,
+		UpdatedAt:       updatedAt,
+		Listing:         mapListing(b.Listing),
+	}
+}
+
+func mapOffer(o *propertyv1.Offer) *model.Offer {
+	if o == nil {
+		return nil
+	}
+	var createdAt, updatedAt time.Time
+	if o.CreatedAt != nil {
+		createdAt = o.CreatedAt.AsTime()
+	}
+	if o.UpdatedAt != nil {
+		updatedAt = o.UpdatedAt.AsTime()
+	}
+
+	return &model.Offer{
+		ID:                o.Id,
+		ListingID:         o.ListingId,
+		BuyerID:           o.BuyerId,
+		OfferPrice:        float64(o.OfferPrice),
+		EscrowDepositPaid: float64(o.EscrowDepositPaid),
+		Status:            mapOfferStatus(o.Status),
+		ConditionsText:    strPtr(o.ConditionsText),
+		ExpirationDate:    o.ExpirationDate.AsTime(),
+		CreatedAt:         createdAt,
+		UpdatedAt:         updatedAt,
+		Listing:           mapListing(o.Listing),
+	}
+}
+
+func mapViewingAppointment(a *propertyv1.ViewingAppointment) *model.ViewingAppointment {
+	if a == nil {
+		return nil
+	}
+	var createdAt, updatedAt time.Time
+	if a.CreatedAt != nil {
+		createdAt = a.CreatedAt.AsTime()
+	}
+	if a.UpdatedAt != nil {
+		updatedAt = a.UpdatedAt.AsTime()
+	}
+
+	return &model.ViewingAppointment{
+		ID:            a.Id,
+		ListingID:     a.ListingId,
+		ClientID:      a.ClientId,
+		HostID:        a.HostId,
+		ScheduledTime: a.ScheduledTime.AsTime(),
+		Status:        mapAppointmentStatus(a.Status),
+		Notes:         strPtr(a.Notes),
+		CreatedAt:     createdAt,
+		UpdatedAt:     updatedAt,
+		Listing:       mapListing(a.Listing),
 	}
 }
 

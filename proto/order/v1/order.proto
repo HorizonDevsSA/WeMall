@@ -133,6 +133,7 @@ message CheckoutInput {
   string                 coupon_code      = 2;
   string                 notes            = 3;
   string                 currency         = 4;  // "USD" | "ZWG"
+  string                 payment_token    = 5;
 }
 
 message CheckoutRequest {

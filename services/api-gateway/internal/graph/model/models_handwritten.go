@@ -395,6 +395,7 @@ type CheckoutInput struct {
 	CouponCode      *string              `json:"couponCode"`
 	Notes           *string              `json:"notes"`
 	Currency        *Currency            `json:"currency"`
+	PaymentToken    *string              `json:"paymentToken,omitempty"`
 }
 
 type CreateStoreInput struct {

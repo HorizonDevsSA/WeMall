@@ -212,6 +212,21 @@ services:
       timeout: 5s
       retries: 5
 
+  postgres-property:
+    image: postgis/postgis:16-3.4-alpine
+    environment:
+      POSTGRES_DB: wemall_property
+      POSTGRES_USER: wemall
+      POSTGRES_PASSWORD: wemall_secret
+    ports: ['5447:5432']
+    volumes:
+      - pgdata-property:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U wemall -d wemall_property']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   # ── Redis ──────────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
@@ -581,6 +596,28 @@ services:
         condition: service_started
     restart: unless-stopped
 
+  property-service:
+    build:
+      context: .
+      dockerfile: ./services/property-service/Dockerfile
+    ports: ['9019:9019']
+    environment:
+      DB_URL: postgres://wemall:wemall_secret@postgres-property:5432/wemall_property?sslmode=disable
+      REDIS_URL: redis:6379
+      NATS_URL: nats://nats:4222
+      GRPC_PORT: '9019'
+      PAYMENT_SERVICE_ADDR: payment-service:9011
+      USER_SERVICE_ADDR: user-service:9001
+      ENVIRONMENT: development
+    depends_on:
+      postgres-property:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_started
+    restart: unless-stopped
+
 volumes:
   pgdata-users:
   pgdata-products:
@@ -596,6 +633,7 @@ volumes:
   pgdata-recommendation:
   pgdata-delivery:
   pgdata-ecocash:
+  pgdata-property:
   redisdata:
   natsdata:
   meilidata:

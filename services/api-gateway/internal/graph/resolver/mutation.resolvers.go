@@ -516,7 +516,7 @@ func (r *mutationResolver) Checkout(ctx context.Context, input model.CheckoutInp
 	}
 	resp, err := r.Clients.Order.Checkout(ctx, &orderv1.CheckoutRequest{
 		UserId: uid,
-		Input:  &orderv1.CheckoutInput{ShippingAddress: addrStruct, CouponCode: derefStr(input.CouponCode), Notes: derefStr(input.Notes), Currency: currency},
+		Input:  &orderv1.CheckoutInput{ShippingAddress: addrStruct, CouponCode: derefStr(input.CouponCode), Notes: derefStr(input.Notes), Currency: currency, PaymentToken: derefStr(input.PaymentToken)},
 	})
 	if err != nil {
 		return nil, err

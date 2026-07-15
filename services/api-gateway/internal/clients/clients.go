@@ -20,6 +20,7 @@ import (
 	deliveryv1 "github.com/wemall/gen/delivery/v1"
 	chatv1 "github.com/wemall/gen/chat/v1"
 	ecocashv1 "github.com/wemall/gen/ecocash/v1"
+	propertyv1 "github.com/wemall/gen/property/v1"
 )
 
 // Clients bundles all downstream gRPC service clients.
@@ -37,6 +38,7 @@ type Clients struct {
 	Delivery     deliveryv1.DeliveryServiceClient
 	Chat         chatv1.ChatServiceClient
 	Ecocash      ecocashv1.EcoCashServiceClient
+	Property     propertyv1.PropertyServiceClient
 
 	userConn         *grpc.ClientConn
 	productConn      *grpc.ClientConn
@@ -51,10 +53,11 @@ type Clients struct {
 	deliveryConn     *grpc.ClientConn
 	chatConn         *grpc.ClientConn
 	ecocashConn      *grpc.ClientConn
+	propertyConn     *grpc.ClientConn
 }
 
-// New dials user, product, order, seller, inventory, notification, review, payment, admin, promotion, delivery, chat, and ecocash services.
-func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificationAddr, reviewAddr, paymentAddr, adminAddr, promotionAddr, deliveryAddr, chatAddr, ecocashAddr string) (*Clients, error) {
+// New dials user, product, order, seller, inventory, notification, review, payment, admin, promotion, delivery, chat, ecocash, and property services.
+func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificationAddr, reviewAddr, paymentAddr, adminAddr, promotionAddr, deliveryAddr, chatAddr, ecocashAddr, propertyAddr string) (*Clients, error) {
 	dial := func(addr string) (*grpc.ClientConn, error) {
 		conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
@@ -193,6 +196,23 @@ func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificati
 		cConn.Close()
 		return nil, err
 	}
+	propConn, err := dial(propertyAddr)
+	if err != nil {
+		uConn.Close()
+		pConn.Close()
+		oConn.Close()
+		sConn.Close()
+		iConn.Close()
+		nConn.Close()
+		rConn.Close()
+		payConn.Close()
+		admConn.Close()
+		promoConn.Close()
+		delConn.Close()
+		cConn.Close()
+		ecoConn.Close()
+		return nil, err
+	}
 
 	return &Clients{
 		User:         userv1.NewUserServiceClient(uConn),
@@ -208,6 +228,7 @@ func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificati
 		Delivery:     deliveryv1.NewDeliveryServiceClient(delConn),
 		Chat:         chatv1.NewChatServiceClient(cConn),
 		Ecocash:      ecocashv1.NewEcoCashServiceClient(ecoConn),
+		Property:     propertyv1.NewPropertyServiceClient(propConn),
 		userConn:         uConn,
 		productConn:      pConn,
 		orderConn:        oConn,
@@ -221,6 +242,7 @@ func New(userAddr, productAddr, orderAddr, sellerAddr, inventoryAddr, notificati
 		deliveryConn:     delConn,
 		chatConn:         cConn,
 		ecocashConn:      ecoConn,
+		propertyConn:     propConn,
 	}, nil
 }
 
@@ -239,4 +261,5 @@ func (c *Clients) Close() {
 	c.deliveryConn.Close()
 	c.chatConn.Close()
 	c.ecocashConn.Close()
+	c.propertyConn.Close()
 }

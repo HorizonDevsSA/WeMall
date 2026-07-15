@@ -6,17 +6,18 @@ use (
 	./services/admin-service
 	./services/api-gateway
 	./services/chat-service
+	./services/delivery-service
 	./services/dispute-service
 	./services/documentation-service
+	./services/ecocash-service
 	./services/notification-service
 	./services/order-service
 	./services/payment-service
 	./services/product-service
 	./services/promotion-service
+	./services/property-service
 	./services/recommendation-service
 	./services/review-service
 	./services/seller-service
 	./services/user-service
-	./services/delivery-service
-	./services/ecocash-service
 )

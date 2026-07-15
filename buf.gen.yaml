@@ -1,5 +1,4 @@
 version: v2
-clean: false
 plugins:
   - local: protoc-gen-go
     out: gen
